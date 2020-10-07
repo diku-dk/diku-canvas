@@ -21,7 +21,7 @@ val width    : bitmap -> int
 val height   : bitmap -> int
 val scale    : bitmap -> int -> int -> bitmap
 
-// read a bitmap file
+// read a bitmap from an image file (e.g., a png-file)
 val fromFile : string -> bitmap
 
 // save a bitmap as a png file
