@@ -7,7 +7,7 @@ INCL=-I /Library/Frameworks/Mono.framework/Versions/Current/lib/mono/gtk-sharp-2
 GTKDLLS=-r gdk-sharp.dll -r gtk-sharp.dll
 
 .PHONY: all
-all: sierp.exe spiral.exe fig.exe gui_wav.exe turtle.exe show_pic.exe
+all: sierp.exe spiral.exe fig.exe gui_wav.exe turtle.exe show_pic.exe sierpinski.exe
 
 .PHONY: clean
 clean:
@@ -33,6 +33,9 @@ spiral.exe: img_util.dll spiral.fs
 	$(FSC) -r $^
 
 sierp.exe: img_util.dll sierp.fs
+	$(FSC) $(INCL) $(GTKDLLS) -r $^
+
+sierpinski.exe: img_util.dll sierpinski.fs
 	$(FSC) $(INCL) $(GTKDLLS) -r $^
 
 gui_wav.exe: gui_wav.fs img_util.dll fun_img.dll

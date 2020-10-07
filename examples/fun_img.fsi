@@ -37,13 +37,13 @@ val toPolar   : point -> polar_point
 val polarChecker : int -> region
 val wavDist      : frac image
 
-// store a color image into a bitmap; the float
+// store a color image into a canvas; the float
 // specifies the with and height of the image domain
-val imgToBitmap : ImgUtil.bitmap -> float -> fcolor image -> unit
+val imgToCanvas : ImgUtil.canvas -> float -> fcolor image -> unit
 
-// return a bitmap of the specified width and height; the float
+// return a canvas of the specified width and height; the float
 // specifies the with and height of the image domain
-val imgBitmap : float -> fcolor image -> int -> int -> ImgUtil.bitmap
+val imgCanvas : float -> fcolor image -> int -> int -> ImgUtil.canvas
 
 val lerpC : frac -> fcolor -> fcolor -> fcolor
 

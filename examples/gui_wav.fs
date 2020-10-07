@@ -37,7 +37,7 @@ let min x y = if x < y then x else y
 
 do ImgUtil.runApp "Img" 600 480
            (fun w h (s,i) ->
-              imgBitmap (float s) (img i) w h)
+              imgCanvas (float s) (img i) w h)
            (fun (s,i) e ->
               if e = Gdk.Key.u then Some (s+1,i)
               else if e = Gdk.Key.d then Some (max 0 (s-1),i)

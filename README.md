@@ -3,20 +3,22 @@
 <img src="images/turtle.png" border="2" width="250" align="right">
 
 This library features a number of utility functions for drawing simple
-2d graphics with Mono and Gtk, including features for loading and
-saving images and for running simple apps that display images and that
-can be made interactive by letting the user interact with the apps
-using the keyboard.
+2d graphics on a canvas, including features for loading and saving
+images and for running simple user-interactive apps that display
+images. The library, which is based on Mono and Gtk, is portable, in
+the sense that applications built using the library can execute on
+Linux, macOS, and Windows.
 
-The API for the library is available in the file [img_util.fsi](img_util.fsi).
+## The API
+
+The library API is available in the file [img_util.fsi](img_util.fsi).
 
 ## Example compilation and use of the library
 
-The library is built upon Gtk and Mono. To compile and run an example
-program without using `make`, see the section titled "Compilation
-without using make" below. Before you start, be sure that you have the
-mono-mdk framework installed. On macOS, mono-mdk can be installed as
-follows, using `brew`:
+To compile and run an example program without using `make`, see the
+section titled "Compilation without using make" below. Before you
+start, be sure that you have the mono-mdk framework installed. On
+macOS, mono-mdk can be installed as follows, using `brew`:
 
     $ brew install mono-mdk
 
@@ -36,13 +38,9 @@ in the present directory:
 
 If you are not on macOS, you probably need to adjust the Makefile.
 
-## The API
+## Examples
 
 <img src="images/applespiral.png" border="2" width="250" align="right">
-
-The library API is available in the file `img_util.fsi`.
-
-## Examples
 
 A number of examples are available in the `examples` folder. To
 compile the examples, execute the following commands:
@@ -79,15 +77,15 @@ directory. Then, in a terminal, execute the following command:
 This command should produce the file `img_util.dll`, which should now
 be available in the present directory.
 
-Now, to compile and run the Spiral example, for examples, copy the
+Now, to compile and run the Spiral example, for example, copy the
 file `spiral.fs` to the present directory and execute the commands:
 
     $ fsharpc --nologo -r img_util.dll spiral.fs
     $ mono spiral.exe
 
-You should now be able to find an open window on your Mac showing a
-spiral (you may need to hit Command-Tab a couple of times to select
-the newly opened window).
+You should now be able to find an open window showing a spiral (under
+macOS, you may need to hit Command-Tab a couple of times to select the
+newly opened window).
 
 ## License
 

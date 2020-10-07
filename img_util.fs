@@ -22,48 +22,48 @@ let blue : color = fromRgb(0,0,255)
 let fromColor (c: color) : int * int * int * int =
   (int(c.a),int(c.r),int(c.g),int(c.b))
 
-// bitmaps - 4 bytes for each pixel (r,g,b,a)
-type bitmap = {w:int;h:int;data:byte[]}
+// canvas - 4 bytes for each pixel (r,g,b,a)
+type canvas = {w:int;h:int;data:byte[]}
 
 // create white opaque canvas
-let mk w h : bitmap =
+let mk w h : canvas =
   {w=w; h=h;
    data=Array.create (h*w*4) 0xffuy}
 
-let height (bm:bitmap) = bm.h
-let width (bm:bitmap) = bm.w
+let height (C:canvas) = C.h
+let width (C:canvas) = C.w
 
 // draw a single pixel if it is inside the bitmap
-let setPixel (c: color) (x,y) (bm:bitmap) : unit =
-  if x < 0 || y < 0 || x >= bm.w || y >= bm.h then ()
-  else let i = 4*(y*bm.w+x)
-       in (bm.data.[i] <- c.r; bm.data.[i+1] <- c.g;
-           bm.data.[i+2] <- c.b; bm.data.[i+3] <- c.a)
+let setPixel (c: color) (x,y) (C:canvas) : unit =
+  if x < 0 || y < 0 || x >= C.w || y >= C.h then ()
+  else let i = 4*(y*C.w+x)
+       in (C.data.[i] <- c.r; C.data.[i+1] <- c.g;
+           C.data.[i+2] <- c.b; C.data.[i+3] <- c.a)
 
 // draw a line by linear interpolation
-let setLine (c: color) (x1:int,y1:int) (x2:int,y2:int) bm : unit =
+let setLine (c: color) (x1:int,y1:int) (x2:int,y2:int) C : unit =
   let m = max (abs(y2-y1)) (abs(x2-x1))
   in if m = 0 then ()
      else for i in [0..m] do
             let x = ((m-i)*x1 + i*x2) / m
             let y = ((m-i)*y1 + i*y2) / m
-            in setPixel c (x,y) bm
+            in setPixel c (x,y) C
 
 // draw a box
-let setBox c (x1,y1) (x2,y2) bmp =
-  do setLine c (x1,y1) (x2,y1) bmp
-  do setLine c (x2,y1) (x2,y2) bmp
-  do setLine c (x2,y2) (x1,y2) bmp
-  do setLine c (x1,y2) (x1,y1) bmp
+let setBox c (x1,y1) (x2,y2) C =
+  do setLine c (x1,y1) (x2,y1) C
+  do setLine c (x2,y1) (x2,y2) C
+  do setLine c (x2,y2) (x1,y2) C
+  do setLine c (x1,y2) (x1,y1) C
 
 // get a pixel color from a bitmap
-let getPixel (bm:bitmap) (x:int,y:int) : color =   // rgba
-  let i = 4*(y*bm.w+x)
-  in {r=bm.data.[i]; g=bm.data.[i+1];
-      b=bm.data.[i+2]; a=bm.data.[i+3]}
+let getPixel (C:canvas) (x:int,y:int) : color =   // rgba
+  let i = 4*(y*C.w+x)
+  in {r=C.data.[i]; g=C.data.[i+1];
+      b=C.data.[i+2]; a=C.data.[i+3]}
 
 // initialize a new bitmap
-let init (w:int) (h:int) (f:int*int->color) : bitmap =    // rgba
+let init (w:int) (h:int) (f:int*int->color) : canvas =    // rgba
   let data = Array.create (h*w*4) 0xffuy
   for y in [0..h-1] do
     for x in [0..w-1] do
@@ -76,13 +76,13 @@ let init (w:int) (h:int) (f:int*int->color) : bitmap =    // rgba
   {h=h;w=w;data=data}
 
 // scale a bitmap
-let scale (bm:bitmap) w2 h2 : bitmap =
-  let scale_x x = (x * bm.w) / w2
-  let scale_y y = (y * bm.h) / h2
-  in init w2 h2 (fun (x,y) -> getPixel bm (scale_x x, scale_y y))
+let scale (C:canvas) w2 h2 : canvas =
+  let scale_x x = (x * C.w) / w2
+  let scale_y y = (y * C.h) / h2
+  in init w2 h2 (fun (x,y) -> getPixel C (scale_x x, scale_y y))
 
 // read a bitmap file
-let fromFile (fname : string) : bitmap =
+let fromFile (fname : string) : canvas =
   use pb0 = new Gdk.Pixbuf(fname)
   use pb = pb0.AddAlpha(false,0x0uy,0x0uy,0x0uy)
   let h = pb.Height
@@ -93,12 +93,12 @@ let fromFile (fname : string) : bitmap =
       {h=h;w=w;data=data})
 
 // create a pixbuf from a bitmap
-let toPixbuf (bm:bitmap) =
-  new Gdk.Pixbuf(bm.data,true,8,bm.w,bm.h,4*bm.w)
+let toPixbuf (C:canvas) =
+  new Gdk.Pixbuf(C.data,true,8,C.w,C.h,4*C.w)
 
 // save a bitmap as a png file
-let toPngFile (fname : string) (bm:bitmap) : unit =
-  use pb = toPixbuf bm
+let toPngFile (fname : string) (C:canvas) : unit =
+  use pb = toPixbuf C
   in pb.Save(fname,"png") |> ignore
 
 // start and run an application with an action
@@ -111,7 +111,7 @@ type Key = Gdk.Key
 
 // start an app that can listen to key-events
 let runApp (t:string) (w:int) (h:int)
-           (f:int -> int -> 's -> bitmap)
+           (f:int -> int -> 's -> canvas)
            (onKeyDown: 's -> Key -> 's option) (s:'s) : unit =
   runApplication (
     fun () ->
@@ -125,8 +125,8 @@ let runApp (t:string) (w:int) (h:int)
          let draw () =
            let gc = drawing.Style.BaseGC(StateType.Normal)
            let (w,h) = window.GetSize()
-           let bm = f w h (!state)
-           use pb = toPixbuf bm
+           let C = f w h (!state)
+           use pb = toPixbuf C
            use pm = new Gdk.Pixmap(null, w, h, 24)
            in (pb.RenderToDrawable(pm,gc,0,0,0,0,w,h,Gdk.RgbDither.None,0,0);
                drawing.GdkWindow.DrawDrawable(gc,pm,0,0,0,0,-1,-1);
@@ -146,9 +146,9 @@ let runApp (t:string) (w:int) (h:int)
              window.Show()))
   )
 
-let runSimpleApp t w h (f:int->int->bitmap) : unit =
+let runSimpleApp t w h (f:int->int->canvas) : unit =
   runApp t w h (fun w h () -> f w h)
                (fun _ _ -> None) ()
 
-let show t (bm:bitmap) : unit =
-  runApp t (width bm) (height bm) (fun w h () -> scale bm w h) (fun _ _ -> None) ()
+let show t (C:canvas) : unit =
+  runApp t (width C) (height C) (fun w h () -> scale C w h) (fun _ _ -> None) ()

@@ -9,36 +9,36 @@ val fromRgb   : int * int * int -> color
 val fromArgb  : int * int * int * int -> color
 val fromColor : color -> int * int * int * int
 
-// bitmaps
-type bitmap
-val mk        : int -> int -> bitmap
-val init      : int -> int -> (int*int -> color) -> bitmap
-val setPixel  : color -> int * int -> bitmap -> unit
-val getPixel  : bitmap -> int * int -> color
-val setLine   : color -> int * int -> int * int -> bitmap -> unit
-val setBox    : color -> int * int -> int * int -> bitmap -> unit
-val width     : bitmap -> int
-val height    : bitmap -> int
-val scale     : bitmap -> int -> int -> bitmap
+// canvas
+type canvas
+val mk        : int -> int -> canvas
+val init      : int -> int -> (int*int -> color) -> canvas
+val setPixel  : color -> int * int -> canvas -> unit
+val getPixel  : canvas -> int * int -> color
+val setLine   : color -> int * int -> int * int -> canvas -> unit
+val setBox    : color -> int * int -> int * int -> canvas -> unit
+val width     : canvas -> int
+val height    : canvas -> int
+val scale     : canvas -> int -> int -> canvas
 
-// read a bitmap from an image file (e.g., a png-file)
-val fromFile  : string -> bitmap
+// load a canvas from an image file (e.g., a png-file)
+val fromFile  : string -> canvas
 
-// save a bitmap as a png file
-val toPngFile : string -> bitmap -> unit
+// save a canvas as a png file
+val toPngFile : string -> canvas -> unit
 
-// show bitmap in a gui
-val show      : string -> bitmap -> unit
+// show canvas in a gui
+val show      : string -> canvas -> unit
 
 // start a simple app
 val runSimpleApp : string -> int -> int
-                -> (int -> int -> bitmap)
+                -> (int -> int -> canvas)
                 -> unit
 
 type Key = Gdk.Key
 
 // start an app that can listen to key-events
 val runApp    : string -> int -> int
-             -> (int -> int -> 's -> bitmap)
+             -> (int -> int -> 's -> canvas)
              -> ('s -> Key -> 's option)
              -> 's -> unit

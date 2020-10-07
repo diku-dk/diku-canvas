@@ -55,20 +55,20 @@ module FunImg
   let wavDist : frac image =
     fun p -> (1.0 + cos (pi * distO p)) / 2.0
 
-  let imgToBitmap (bmp:ImgUtil.bitmap) (width:float) (img:fcolor image): unit =
-    let (w,h) = (ImgUtil.width bmp, ImgUtil.height bmp)
+  let imgToCanvas (C:ImgUtil.canvas) (width:float) (img:fcolor image): unit =
+    let (w,h) = (ImgUtil.width C, ImgUtil.height C)
     for x in [0..w-1] do
       for y in [0..h-1] do
         let p_x = width * float (x - w/2) / float w
         let p_y = width * float (y - h/2) / float h
         let fc = img (p_x,p_y)
         let c = toColor fc
-        in ImgUtil.setPixel c (x,y) bmp
+        in ImgUtil.setPixel c (x,y) C
 
-  let imgBitmap (width:float) (img:fcolor image) w h : ImgUtil.bitmap =
-    let bmp = ImgUtil.mk w h
-    do imgToBitmap bmp width img
-    bmp
+  let imgCanvas (width:float) (img:fcolor image) w h : ImgUtil.canvas =
+    let C = ImgUtil.mk w h
+    do imgToCanvas C width img
+    C
 
   let boolToFunColor b =
     if b then (1.0,0.0,0.0,0.0)
