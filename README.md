@@ -1,5 +1,7 @@
 # img_util.dll
 
+<img src="images/turtle.png" border="2" width="250" align="right">
+
 This library features a number of utility functions for drawing simple
 2d graphics with Mono and Gtk, including features for loading and
 saving images and for running simple apps that display images and that
