@@ -38,14 +38,13 @@ let fig_test : figure =
 let fig_test_move = move fig_test (-20,20)
 
 let makePicture filnavn figur b h =
-  let bmp = ImgUtil.mk b h
-  for x in [0..b-1] do
-    for y in [0..h-1] do
-      let c =
-        match colourAt (x,y) figur with
-          | None -> (128,128,128)
-          | Some c -> c
-      do ImgUtil.setPixel (ImgUtil.fromRgb c) (x,y) bmp
+  let bmp =
+    ImgUtil.init b h
+      (fun (x,y) ->
+         let c = match colourAt (x,y) figur with
+                    | None -> (128,128,128)
+                    | Some c -> c
+         in ImgUtil.fromRgb c)
   let target = filnavn + ".png"
   do ImgUtil.toPngFile target bmp
   do printfn "Wrote file: %s" target
