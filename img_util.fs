@@ -22,9 +22,10 @@ let blue : color = fromRgb(0,0,255)
 let fromColor (c: color) : int * int * int * int =
   (int(c.a),int(c.r),int(c.g),int(c.b))
 
-// bitmaps
-type bitmap = {w:int;h:int;data:byte[]} // 4 bytes pr pixel (r,g,b,a)
+// bitmaps - 4 bytes for each pixel (r,g,b,a)
+type bitmap = {w:int;h:int;data:byte[]}
 
+// create white opaque canvas
 let mk w h : bitmap =
   {w=w; h=h;
    data=Array.create (h*w*4) 0xffuy}
@@ -32,13 +33,14 @@ let mk w h : bitmap =
 let height (bm:bitmap) = bm.h
 let width (bm:bitmap) = bm.w
 
+// draw a single pixel if it is inside the bitmap
 let setPixel (c: color) (x,y) (bm:bitmap) : unit =
   if x < 0 || y < 0 || x >= bm.w || y >= bm.h then ()
   else let i = 4*(y*bm.w+x)
        in (bm.data.[i] <- c.r; bm.data.[i+1] <- c.g;
            bm.data.[i+2] <- c.b; bm.data.[i+3] <- c.a)
 
-// set a line by linear interpolation
+// draw a line by linear interpolation
 let setLine (c: color) (x1:int,y1:int) (x2:int,y2:int) bm : unit =
   let m = max (abs(y2-y1)) (abs(x2-x1))
   in if m = 0 then ()
@@ -47,6 +49,7 @@ let setLine (c: color) (x1:int,y1:int) (x2:int,y2:int) bm : unit =
             let y = ((m-i)*y1 + i*y2) / m
             in setPixel c (x,y) bm
 
+// draw a box
 let setBox c (x1,y1) (x2,y2) bmp =
   do setLine c (x1,y1) (x2,y1) bmp
   do setLine c (x2,y1) (x2,y2) bmp
@@ -98,11 +101,6 @@ let toPngFile (fname : string) (bm:bitmap) : unit =
   use pb = toPixbuf bm
   in pb.Save(fname,"png") |> ignore
 
-
-  // let pb = new Gdk.Pixbuf(pm)
-  // let i = new Gtk.Image(pb)
-  // in i.WriteToPng(fname)
-
 // start and run an application with an action
 let runApplication (action:unit -> unit) =
   (Application.Init();
@@ -119,7 +117,9 @@ let runApp (t:string) (w:int) (h:int)
     fun () ->
      let window = new Window(t)
      in (window.SetDefaultSize(w,h)
-         window.DeleteEvent.Add(fun e -> window.Hide(); Application.Quit(); e.RetVal <- true)
+         window.DeleteEvent.Add(fun e -> (window.Hide();
+                                          Application.Quit();
+                                          e.RetVal <- true))
          let state = ref s
          let drawing = new Gtk.DrawingArea()
          let draw () =
@@ -137,7 +137,8 @@ let runApp (t:string) (w:int) (h:int)
                                        match e.Event.Key with
                                            | Gdk.Key.Escape -> Application.Quit()
                                            | k -> (match onKeyDown (!state) k with
-                                                   | Some s -> (state := s; window.QueueDraw())
+                                                   | Some s -> (state := s;
+                                                                window.QueueDraw())
                                                    | None -> ())
                                      );
              window.Add(drawing);
@@ -145,12 +146,9 @@ let runApp (t:string) (w:int) (h:int)
              window.Show()))
   )
 
-let runSimpleApp t w h (f:bitmap->unit) : unit =
-  runApp t w h (fun w h () ->
-                  let bitmap = mk w h
-                  do f bitmap
-                  bitmap)
-                (fun _ _ -> None) ()
+let runSimpleApp t w h (f:int->int->bitmap) : unit =
+  runApp t w h (fun w h () -> f w h)
+               (fun _ _ -> None) ()
 
 let show t (bm:bitmap) : unit =
   runApp t (width bm) (height bm) (fun w h () -> scale bm w h) (fun _ _ -> None) ()

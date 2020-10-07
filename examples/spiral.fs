@@ -13,4 +13,8 @@ let rec spiral bmp s i x y =
        do setLine red p4 p5 bmp
        spiral bmp s (i+2*s) (x-s) (y-s)
 
-do runSimpleApp "Spiral" 400 400 (fun bmp -> spiral bmp 10 10 200 200)
+let apple = fromFile "apple.jpg"
+do runSimpleApp "Spiral" 400 400 (fun w h ->
+                                    let bm = scale apple w h
+                                    in (spiral bm 10 10 200 200;
+                                        bm))

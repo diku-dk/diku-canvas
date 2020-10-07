@@ -1,6 +1,6 @@
-<img src="images/turtle.png" border="2" width="250" align="right">
-
 # The ImgUtil library (img_util.dll)
+
+<img src="images/turtle.png" border="2" width="250" align="right">
 
 This library features a number of utility functions for drawing simple
 2d graphics with Mono and Gtk, including features for loading and
@@ -10,7 +10,9 @@ using the keyboard.
 
 The API for the library is available in the file [img_util.fsi](img_util.fsi).
 
-## Example compilation and use of the image-utility library
+## Example compilation and use of the library
+
+<img src="images/applespiral.png" border="2" width="250" align="right">
 
 The library is built upon Gtk and Mono. To compile and run an example
 program without using `make`, see the section titled "Compilation
