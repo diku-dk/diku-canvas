@@ -12,8 +12,6 @@ The API for the library is available in the file [img_util.fsi](img_util.fsi).
 
 ## Example compilation and use of the library
 
-<img src="images/applespiral.png" border="2" width="250" align="right">
-
 The library is built upon Gtk and Mono. To compile and run an example
 program without using `make`, see the section titled "Compilation
 without using make" below. Before you start, be sure that you have the
@@ -39,6 +37,8 @@ in the present directory:
 If you are not on macOS, you probably need to adjust the Makefile.
 
 ## The API
+
+<img src="images/applespiral.png" border="2" width="250" align="right">
 
 The library API is available in the file `img_util.fsi`.
 
