@@ -36,7 +36,7 @@ in the present directory:
 
     $ make img_util.dll
 
-If you are not on macOS, you probably need to adjust the Makefile.
+If you are not on macOS, you probably need to adjust the Makefile or build the DLL without using make, as described below.
 
 ## Examples
 
