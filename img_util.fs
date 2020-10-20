@@ -1,7 +1,7 @@
 module ImgUtil
 
-open Gtk
-open System
+//open SDL
+//open System
 
 // some utility functions
 let max x y = if x > y then x else y
@@ -82,69 +82,94 @@ let scale (C:canvas) w2 h2 : canvas =
   in init w2 h2 (fun (x,y) -> getPixel C (scale_x x, scale_y y))
 
 // read a bitmap file
-let fromFile (fname : string) : canvas =
-  use pb0 = new Gdk.Pixbuf(fname)
-  use pb = pb0.AddAlpha(false,0x0uy,0x0uy,0x0uy)
-  let h = pb.Height
-  let w = pb.Width
-  let len = h*w*4
-  let data = Array.create len 0xffuy
-  in (System.Runtime.InteropServices.Marshal.Copy(pb.Pixels,data,0,len);
-      {h=h;w=w;data=data})
+let fromFile (fname : string) : canvas = failwith "not implemented, yet"
+  // use pb0 = new Gdk.Pixbuf(fname)
+  // use pb = pb0.AddAlpha(false,0x0uy,0x0uy,0x0uy)
+  // let h = pb.Height
+  // let w = pb.Width
+  // let len = h*w*4
+  // let data = Array.create len 0xffuy
+  // in (System.Runtime.InteropServices.Marshal.Copy(pb.Pixels,data,0,len);
+  //     {h=h;w=w;data=data})
 
 // create a pixbuf from a bitmap
 let toPixbuf (C:canvas) =
-  new Gdk.Pixbuf(C.data,true,8,C.w,C.h,4*C.w)
+  failwith "Not implemented"
+//  new Gdk.Pixbuf(C.data,true,8,C.w,C.h,4*C.w)
 
 // save a bitmap as a png file
 let toPngFile (fname : string) (C:canvas) : unit =
-  use pb = toPixbuf C
-  in pb.Save(fname,"png") |> ignore
+  failwith "Not implemented"
 
 // start and run an application with an action
 let runApplication (action:unit -> unit) =
-  (Application.Init();
-   Application.Invoke(fun _ _ -> action());
-   Application.Run())
+  failwith "not implemented"
+  // (Application.Init();
+  //  Application.Invoke(fun _ _ -> action());
+  //  Application.Run())
 
-type Key = Gdk.Key
+type key = Keysym of int
+open System.Runtime.InteropServices
+open System
+
+let asUint32 (r, g, b) = BitConverter.ToUInt32 (ReadOnlySpan [|b; g; r; 255uy|])
+
+let white = asUint32 (255uy, 255uy, 255uy)
+let black = asUint32 (0uy, 0uy, 0uy)
+
 
 // start an app that can listen to key-events
 let runApp (t:string) (w:int) (h:int)
            (f:int -> int -> 's -> canvas)
-           (onKeyDown: 's -> Key -> 's option) (s:'s) : unit =
-  runApplication (
-    fun () ->
-     let window = new Window(t)
-     in (window.SetDefaultSize(w,h)
-         window.DeleteEvent.Add(fun e -> (window.Hide();
-                                          Application.Quit();
-                                          e.RetVal <- true))
-         let state = ref s
-         let drawing = new Gtk.DrawingArea()
-         let draw () =
-           let gc = drawing.Style.BaseGC(StateType.Normal)
-           let (w,h) = window.GetSize()
-           let C = f w h (!state)
-           use pb = toPixbuf C
-           use pm = new Gdk.Pixmap(null, w, h, 24)
-           in (pb.RenderToDrawable(pm,gc,0,0,0,0,w,h,Gdk.RgbDither.None,0,0);
-               drawing.GdkWindow.DrawDrawable(gc,pm,0,0,0,0,-1,-1);
-               gc.Dispose()
-              )
-         in (drawing.ExposeEvent.Add( fun _ -> draw() );
-             window.KeyPressEvent.Add( fun (e:KeyPressEventArgs) ->
-                                       match e.Event.Key with
-                                           | Gdk.Key.Escape -> Application.Quit()
-                                           | k -> (match onKeyDown (!state) k with
-                                                   | Some s -> (state := s;
-                                                                window.QueueDraw())
-                                                   | None -> ())
-                                     );
-             window.Add(drawing);
-             window.ShowAll();
-             window.Show()))
-  )
+           (onKeyDown: 's -> key -> 's option) (s:'s) : unit =
+
+    let state = ref s
+
+    SDL.SDL_Init(SDL.SDL_INIT_VIDEO) |> ignore
+
+    let viewWidth, viewHeight = w, h
+    let mutable window, renderer = IntPtr.Zero, IntPtr.Zero
+    let windowFlags = SDL.SDL_WindowFlags.SDL_WINDOW_SHOWN |||
+                      SDL.SDL_WindowFlags.SDL_WINDOW_INPUT_FOCUS
+
+    SDL.SDL_CreateWindowAndRenderer(viewWidth, viewHeight, windowFlags, &window, &renderer) |> ignore
+
+    let texture = SDL.SDL_CreateTexture(renderer, SDL.SDL_PIXELFORMAT_ARGB8888, SDL.SDL_TEXTUREACCESS_STREAMING, viewWidth, viewHeight)
+
+    let frameBuffer = Array.create (viewWidth * viewHeight *4 ) (byte(0))
+    let bufferPtr = IntPtr ((Marshal.UnsafeAddrOfPinnedArrayElement (frameBuffer, 0)).ToPointer ())
+    let mutable keyEvent = Unchecked.defaultof<SDL.SDL_KeyboardEvent>
+
+    let rec drawLoop() =
+        let C = f w h (!state)
+        Array.blit C.data 0 frameBuffer 0 C.data.Length
+
+        SDL.SDL_UpdateTexture(texture, IntPtr.Zero, bufferPtr, viewWidth * 4) |> ignore
+        SDL.SDL_RenderClear(renderer) |> ignore
+        SDL.SDL_RenderCopy(renderer, texture, IntPtr.Zero, IntPtr.Zero) |> ignore
+        SDL.SDL_RenderPresent(renderer) |> ignore
+
+        let ret = SDL.SDL_WaitEvent(&keyEvent)
+        if ret = 0 then () // an error happened so we exit
+        else if keyEvent.``type`` = SDL.SDL_QUIT then ()
+        else if (keyEvent.``type`` = SDL.SDL_KEYDOWN) then
+             if keyEvent.keysym.sym = SDL.SDLK_ESCAPE then
+                 () // quit the game by exiting the loop
+             else
+                 let k = keyEvent.keysym.sym
+                 match onKeyDown (!state) (Keysym (int k)) with
+                     | Some s -> state := s
+                     | None   -> ()
+                 drawLoop()
+        else
+            drawLoop()
+    drawLoop ()
+
+    SDL.SDL_DestroyTexture(texture)
+    SDL.SDL_DestroyRenderer(renderer)
+    SDL.SDL_DestroyWindow(window)
+    SDL.SDL_Quit()
+    ()
 
 let runSimpleApp t w h (f:int->int->canvas) : unit =
   runApp t w h (fun w h () -> f w h)

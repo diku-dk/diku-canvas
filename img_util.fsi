@@ -35,10 +35,10 @@ val runSimpleApp : string -> int -> int
                 -> (int -> int -> canvas)
                 -> unit
 
-type Key = Gdk.Key
+type key = Keysym of int
 
 // start an app that can listen to key-events
 val runApp    : string -> int -> int
              -> (int -> int -> 's -> canvas)
-             -> ('s -> Key -> 's option)
+             -> ('s -> key -> 's option)
              -> 's -> unit
