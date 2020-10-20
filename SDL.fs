@@ -1,5 +1,5 @@
 ﻿/// Wrappers and PInvoke of SDL2
-/// Note I have only implemented the methods and constants I actually use - this is not a complete set of SDL by any means.
+/// Stolen from https://github.com/ChrisPritchard/tiny-ray-caster
 module SDL
 
 open System.Runtime.InteropServices
