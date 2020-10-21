@@ -38,7 +38,32 @@ Finally, compile and run the `turtle` example:
 
 (To try an other example, edit the `img_util.fsproj` file.)
 
-**Below are old mono instructions**
+### Almost working mono port
+
+Make sure you have SDL2 installed.
+
+Build with `msbuild` from the mono distribution:
+
+    msbuild -restore:true img_util.fsproj -t:Publish
+
+This build a `.dll` for reasons currently incomprehensible to me.
+
+You can now run it with:
+
+    mono ./bin/Debug/netcoreapp3.1/publish/img_util.dll
+
+However, if you are on a "modern" **macOS**, then `mono` won't
+dynamically link to files in `/usr/local/lib` (despite what the
+documentation says) for "security reasons". So if you get a `System.DllNotFoundException: libSDL2-2.0.0.dylib` error then try to run:
+
+    LD_LIBRARY_PATH=/usr/local/lib mono ./bin/Debug/netcoreapp3.1/publish/img_util.dll
+
+Alas, on macOS that will give you a `System.NullReferenceException`
+exception. (Note that the title of this section contains the word
+"Almost").
+
+
+**Below are old mono and Gdk instructions**
 
 
 
