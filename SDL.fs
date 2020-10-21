@@ -46,7 +46,20 @@ type SDL_KeyboardEvent =
         val private padding2: byte
         val private padding3: byte
         val keysym: SDL_Keysym
+        new (t) =     { ``type`` = t ;
+                       timestamp = 0u;
+                       windowID = 0u;
+                       state = 0uy;
+                       repeat = 0uy;
+                       padding2 = 0uy;
+                       padding3 = 0uy;
+                       keysym = { scancode = SDL_Scancode.SDL_SCANCODE_ESCAPE;
+                                  sym = 0u;
+                                  ``mod`` = SDL_Keymod.KMOD_NONE;
+                                  unicode = 0u }}
+
     end
+
 
 [<DllImport(libName, CallingConvention = CallingConvention.Cdecl)>]
 extern int SDL_Init(uint32 flags)

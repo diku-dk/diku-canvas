@@ -138,7 +138,7 @@ let runApp (t:string) (w:int) (h:int)
 
     let frameBuffer = Array.create (viewWidth * viewHeight *4 ) (byte(0))
     let bufferPtr = IntPtr ((Marshal.UnsafeAddrOfPinnedArrayElement (frameBuffer, 0)).ToPointer ())
-    let mutable keyEvent = Unchecked.defaultof<SDL.SDL_KeyboardEvent>
+    let mutable keyEvent = SDL.SDL_KeyboardEvent 0u
 
     let rec drawLoop() =
         let C = f w h (!state)
