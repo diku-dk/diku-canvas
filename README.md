@@ -63,5 +63,11 @@ MIT license
 
 ## Copyright
 
-Copyright 2020 - Martin Elsman
+Copyright 2018-2020 - Martin Elsman
 
+## Contributions
+
+The following individuals have contributed to the ImgUtil library:
+
+- Mads Dyrvig Obitsø Thomsen
+- Jan Rolandsen
