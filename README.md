@@ -60,7 +60,8 @@ documentation says) for "security reasons". So if you get a `System.DllNotFoundE
 
 Alas, on macOS that will give you a `System.NullReferenceException`
 exception. (Note that the title of this section contains the word
-"Almost").
+"Almost"). There is a slight chance that this is actually a mono bug,
+at least it sounds like [#7596](https://github.com/mono/mono/issues/7596).
 
 
 **Below are old mono and Gdk instructions**
