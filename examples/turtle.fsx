@@ -89,15 +89,14 @@ let white = ImgUtil.fromRgb (255,255,255)
 let black = ImgUtil.fromRgb (0,0,0)
 
 let draw (w,h) pic =
-  let bmp = ImgUtil.mk w h
-  for x in [0..w-1] do
-    for y in [0..h-1] do
-      ImgUtil.setPixel white (x,y) bmp
-  let initState = ((w/2,h/2),90,black,false)
+  let C = ImgUtil.mk w h
+  let center = (w/2,h/2)
+  let dir_up = 90
+  let initState = (center,dir_up,black,false)
   let lines = interp initState pic
   for (p1,p2,c) in lines do
-    ImgUtil.setLine c p1 p2 bmp
-  ImgUtil.show "Logo" bmp
+    ImgUtil.setLine c p1 p2 C
+  ImgUtil.show "Logo" C
 
 do draw (600,600) pic
 
