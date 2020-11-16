@@ -23,21 +23,21 @@ let initColor = ImgUtil.fromRgb (255,255,255)
 
 let pi = System.Math.PI
 
-let rec interp (p:point,d:int,c:color,up:bool) (cmds : cmd list) : line list =
+let rec interp (p:point,d:int,c:color,up:bool) (cmds : cmd list) (acc:line list) : line list =
   match cmds with
-    | [] -> []
-    | SetColor c :: cmds -> interp (p,d,c,up) cmds
-    | Turn i :: cmds -> interp (p,d-i,c,up) cmds
-    | PenUp :: cmds -> interp (p,d,c,true) cmds
-    | PenDown :: cmds -> interp (p,d,c,false) cmds
+    | [] -> acc
+    | SetColor c :: cmds -> interp (p,d,c,up) cmds acc
+    | Turn i :: cmds -> interp (p,d-i,c,up) cmds acc
+    | PenUp :: cmds -> interp (p,d,c,true) cmds acc
+    | PenDown :: cmds -> interp (p,d,c,false) cmds acc
     | Move i :: cmds ->
       let r = 2.0 * pi * float d / 360.0
       let dx = int(float i * cos r)
       let dy = -int(float i * sin r)
       let (x,y) = p
       let p2 = (x+dx,y+dy)
-      let lines = interp (p2,d,c,up) cmds
-      if up then lines else (p,p2,c)::lines
+      let acc2 = if up then acc else (p,p2,c)::acc
+      in interp (p2,d,c,up) cmds acc2
 
 let rec repeat n cmds =
   if n <= 0 then []
@@ -93,7 +93,7 @@ let draw (w,h) pic =
   let center = (w/2,h/2)
   let dir_up = 90
   let initState = (center,dir_up,black,false)
-  let lines = interp initState pic
+  let lines = interp initState pic []
   for (p1,p2,c) in lines do
     ImgUtil.setLine c p1 p2 C
   ImgUtil.show "Logo" C
