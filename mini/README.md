@@ -28,7 +28,7 @@ Here  `PROGRAMNAME` is the name of your .fsx file.
 #### Example
 
 ```
-fsharpc -r img_util.dll simpletest.fsx
+fsharpc -r img_util.dll quicktest.fsx
 ```
 
 ## Usage
