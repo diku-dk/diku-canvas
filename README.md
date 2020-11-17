@@ -12,6 +12,9 @@ The library, which is based on SDL2, is portable,
 in the sense that applications built using the library can execute on
 Linux, macOS, and Windows using .NET6.0.
 
+NOTICE: A mini-version of the library (with limited functionality) is
+available in the `mini/` folder.
+
 ## The API
 
 The library API is available in the file [img_util.fsi](img_util.fsi).
