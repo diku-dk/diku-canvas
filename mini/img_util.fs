@@ -11,6 +11,8 @@ let fromRgb (r:int,g:int,b:int) : color =
   C(Color.FromArgb(255,r,g,b))
 let fromArgb (a:int,r:int,g:int,b:int) : color =
   C(Color.FromArgb(a,r,g,b))
+let fromColor (C c) : int * int * int * int =
+  (int(c.A), int(c.R), int(c.G), int(c.B))
 
 let format = Imaging.PixelFormat.Format24bppRgb
 
@@ -20,15 +22,24 @@ type canvas = Canvas of System.Drawing.Bitmap
 let setPixel (C c) (x,y) (Canvas bmp) : unit =
   bmp.SetPixel (x,y,c)
 
-let init h w (f:int*int->color) : canvas =
-  let canvas = Canvas(new Bitmap (h, w, format))
-  for i in [0..h-1] do
-    for j in [0..w-1] do setPixel (f(i,j)) (i,j) canvas
+let getPixel (Canvas bmp) (x,y) : color =
+  C(bmp.GetPixel (x,y))
+
+let init w h (f:int*int->color) : canvas =
+  let canvas = Canvas(new Bitmap (w, h, format))
+  for y in [0..h-1] do
+    for x in [0..w-1] do setPixel (f(x,y)) (x,y) canvas
   canvas
 
-let mk h w : canvas =
+let mk w h : canvas =
   let white = fromRgb(255,255,255)
-  in init h w (fun _ -> white)
+  in init w h (fun _ -> white)
+
+let width (Canvas bmp) : int =
+  bmp.Width
+
+let height (Canvas bmp) : int =
+  bmp.Height
 
 let setLine (C c) (x1:int,y1:int) (x2:int,y2:int) (Canvas bmp) : unit =
   let graphics = Graphics.FromImage bmp

@@ -26,3 +26,21 @@ do setLine blue (20,20) (90,150) canvas2
 
 do printfn "Writing file testfile2.png"
 do toPngFile "testfile2.png" canvas2
+
+let greyifyCol (c:color) =
+  let (a,r,g,b) = fromColor c
+  let avg = (r+g+b) / 3
+  in fromArgb(a,avg,avg,avg)
+
+let greyify (cnvs:canvas) : canvas =
+  let cnvs2 = mk (width cnvs) (height cnvs)
+  for y in [0..height cnvs - 1] do
+    for x in [0..width cnvs - 1] do
+      let col = greyifyCol (getPixel cnvs (x,y))
+      in setPixel col (x,y) cnvs2
+  cnvs2
+
+
+let canvas3 = greyify canvas2
+do printfn "Writing file testfile3.png"
+do toPngFile "testfile3.png" canvas3
