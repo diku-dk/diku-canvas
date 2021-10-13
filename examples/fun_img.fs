@@ -18,7 +18,7 @@ module FunImg
 
   // Some type abbreviations
   type frac = float                          // floats in interval [0;1]
-  type fcolor = frac * frac * frac * frac     // alpha,red,green,blue
+  type fcolor = frac * frac * frac * frac    // alpha,red,green,blue
 
   let toColor ((a,r,g,b):fcolor) : ImgUtil.color =
     ImgUtil.fromArgb (int(255.0*a),int(255.0*r),int(255.0*g),int(255.0*b))
@@ -35,6 +35,7 @@ module FunImg
   type point = float * float
   type 'a image = point -> 'a
   type region = bool image
+  type cimage = fcolor image                 // color images
 
   let vstrip : region =
     fun (x,y) -> abs x <= 0.5
@@ -64,7 +65,7 @@ module FunImg
   let wavDist : frac image =
     fun p -> (1.0 + cos (pi * distO p)) / 2.0
 
-  let imgToCanvas (C:ImgUtil.canvas) (width:float) (img:fcolor image): unit =
+  let imgToCanvas (C:ImgUtil.canvas) (width:float) (img:cimage): unit =
     let (w,h) = (ImgUtil.width C, ImgUtil.height C)
     for x in [0..w-1] do
       for y in [0..h-1] do
@@ -74,7 +75,7 @@ module FunImg
         let c = toColor fc
         in ImgUtil.setPixel c (x,y) C
 
-  let imgCanvas (width:float) (img:fcolor image) w h : ImgUtil.canvas =
+  let imgCanvas (width:float) (img:cimage) w h : ImgUtil.canvas =
     let C = ImgUtil.mk w h
     do imgToCanvas C width img
     C
@@ -102,15 +103,13 @@ module FunImg
   let lift2 h f1 f2 p = h (f1 p) (f2 p)
   let lift3 h f1 f2 f3 p = h (f1 p) (f2 p) (f3 p)
 
-  type imageC = fcolor image
-
-  let over : imageC -> imageC -> imageC =
+  let over : cimage -> cimage -> cimage =
     fun x y -> lift2 overC x y
 
   let cond : bool image -> 'a image -> 'a image -> 'a image =
     fun x y c -> lift3 (fun a b c -> if a then b else c) x y c
 
-  let lerpI : frac image -> imageC -> imageC -> imageC =
+  let lerpI : frac image -> cimage -> cimage -> cimage =
     fun x y z -> lift3 lerpC x y z
 
   let constant a (p:point) = a
@@ -120,5 +119,5 @@ module FunImg
   let yellowI = constant (1.0,0.0,1.0,1.0)
 
   let rbRings = lerpI wavDist redI blueI
-  let mystique : imageC =
+  let mystique : cimage =
     lerpI (constant 0.2) (boolToFunColor<<checker) rbRings
