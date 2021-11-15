@@ -66,7 +66,7 @@ MIT license
 
 ## Copyright
 
-Copyright 2018-2020 - Martin Elsman
+Copyright 2018-2021 - Martin Elsman
 
 ## Contributions
 
