@@ -19,8 +19,10 @@ let format = Imaging.PixelFormat.Format24bppRgb
 // canvas operations
 type canvas = Canvas of System.Drawing.Bitmap
 
+// Set a pixel in canvas if pixel is within bounds
 let setPixel (C c) (x,y) (Canvas bmp) : unit =
-  bmp.SetPixel (x,y,c)
+  if x < 0 || y < 0 || x >= bmp.Width || y >= bmp.Height then ()
+  else bmp.SetPixel (x,y,c)
 
 let getPixel (Canvas bmp) (x,y) : color =
   C(bmp.GetPixel (x,y))
