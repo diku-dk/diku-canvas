@@ -61,7 +61,7 @@ The best show-cases for using the library are
 
 Note that not all the examples are currently executable. 
 
-Not that not all the examples are currently executable. 
+Note that not all the examples are currently executable. 
 ## License
 
 MIT license
