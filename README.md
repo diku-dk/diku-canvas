@@ -15,8 +15,7 @@ The library API is available in the file [img_util.fsi](img_util.fsi).
 
 ## Quick and dirty port to SDL2
 
-First install [.NET Core SDK
-v3.1](https://dotnet.microsoft.com/download/dotnet-core/3.1) for your
+First install [.NET 6](https://dotnet.microsoft.com/en-us/download/dotnet/6.0) for your
 platform.
 
 Then install [SDL2](https://www.libsdl.org/index.php):
@@ -25,12 +24,16 @@ Then install [SDL2](https://www.libsdl.org/index.php):
 
         brew install sdl2
 
-  * On **Debian** and **Ubuntu**
+  * On **Debian** and **Ubuntu**:
 
         apt install libsdl2-dev
 
   * On **Windows** we got you back covered and have added a copy of
-    the SDL runtime in the file `SDL2.dll`
+    the SDL runtime in the file `SDL2.dll`:
+
+  * On **Arch** (and probably **Manjaro**), `sdl2` is available in `extra`:
+
+        sudo pacman -S sdl2
 
 Finally, compile and run the `turtle` example:
 
