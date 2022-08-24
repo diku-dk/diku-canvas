@@ -112,6 +112,27 @@ type key = Keysym of int
 open System.Runtime.InteropServices
 open System
 
+
+type ImgUtilKey =
+    | Unknown
+    | DownArrow
+    | UpArrow
+    | LeftArrow
+    | RightArrow
+    | Space
+
+
+let getKey (k:key) : ImgUtilKey =
+    let kval = match k with | Keysym k -> uint32 k
+    match kval with
+        | _ when kval = SDL.SDLK_SPACE -> Space
+        | _ when kval = SDL.SDLK_UP -> UpArrow
+        | _ when kval = SDL.SDLK_DOWN -> DownArrow
+        | _ when kval = SDL.SDLK_LEFT -> LeftArrow
+        | _ when kval = SDL.SDLK_RIGHT -> RightArrow
+        | _ -> Unknown
+
+
 let asUint32 (r, g, b) = BitConverter.ToUInt32 (ReadOnlySpan [|b; g; r; 255uy|])
 
 let white = asUint32 (255uy, 255uy, 255uy)

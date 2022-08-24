@@ -35,7 +35,20 @@ val runSimpleApp : string -> int -> int
                 -> (int -> int -> canvas)
                 -> unit
 
+// Simplification of SDL keys used for keypress/keydown/keyup events
 type key = Keysym of int
+// Wrappertype for supported keys in ImgUtil, for easier/prettier pattern-matching
+type ImgUtilKey =
+    | Unknown
+    | DownArrow
+    | UpArrow
+    | LeftArrow
+    | RightArrow
+    | Space
+
+/// Convert a `key : Keysym of int` into an `ImgUtilKey`
+/// Not pretty, but "good enough"
+val getKey : key -> ImgUtilKey
 
 // start an app that can listen to key-events
 val runApp    : string -> int -> int
