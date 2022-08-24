@@ -56,7 +56,7 @@ The best show-cases for using the library are
 - `examples/keyboard_example.fsx`
 - `examples/turtle.fsx`
 
-Not that not all the examples are currently executable. 
+Note that not all the examples are currently executable. 
 ## License
 
 MIT license
