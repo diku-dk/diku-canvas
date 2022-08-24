@@ -60,6 +60,8 @@ The best show-cases for using the library are
 - `examples/turtle.fsx`
 
 Note that not all the examples are currently executable. 
+
+Not that not all the examples are currently executable. 
 ## License
 
 MIT license
