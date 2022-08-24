@@ -1,3 +1,12 @@
+(*
+This example is currently not executable.
+It is a non-ported example from a very old version
+of ImgUtil.
+*)
+
+
+
+
 //
 // Library for Functional images
 // Inspired by Conal Elliott's paper on the topic from the

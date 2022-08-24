@@ -1,3 +1,9 @@
+(*
+This example is currently not executable.
+It is a non-ported example from a very old version
+of ImgUtil.
+*)
+
 type point = int * int          // a point (x, y) in the plane
 type colour = int * int * int   // (red, green, blue), 0..255 each
 type figure = point * point * point * colour
