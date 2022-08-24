@@ -10,7 +10,8 @@ let setBoxF c (x1,y1) (x2,y2) =
   setBox c (int(x1),int(y1)) (int(x2),int(y2))
 
 let rec tri bm T (w,h) (x,y) =
-  if w <= T then setBoxF red (x,y) (x+w,y+h) bm
+  let col = if int w % 5 < 3 then red else blue
+  if w <= T then setBoxF col (x,y) (x+w,y+h) bm
   else let (w_half,h_half) = (w/2.0, h/2.0)
        do tri bm T (w_half,h_half) (x+w_half/2.0,y)
        do tri bm T (w_half,h_half) (x,y+h_half)
