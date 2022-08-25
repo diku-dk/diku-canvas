@@ -1,26 +1,21 @@
 module ImgUtil
 
-//open SDL
-//open System
-
-// some utility functions
-let max x y = if x > y then x else y
-let abs a = if a < 0 then -a else a
-
 // colors
-type color = {a:byte;r:byte;g:byte;b:byte}
+type color = {r:byte;g:byte;b:byte;a:byte}
 
-let fromArgb (a:int,r:int,g:int,b:int) : color =
-  {a=byte(a); r=byte(r); g=byte(g); b=byte(b)}
+let fromArgb (r:int,g:int,b:int,a:int) : color =
+  {r=byte(r); g=byte(g); b=byte(b); a=byte(a)}
 
-let fromRgb (r:int,g:int,b:int) : color = fromArgb (255,r,g,b)
+let fromRgb (r:int,g:int,b:int) : color = fromArgb (r,g,b,255)
 
 let red : color = fromRgb(255,0,0)
 let green : color = fromRgb(0,255,0)
 let blue : color = fromRgb(0,0,255)
+let yellow : color = fromRgb(255,255,0)
+
 
 let fromColor (c: color) : int * int * int * int =
-  (int(c.a),int(c.r),int(c.g),int(c.b))
+  (int(c.r),int(c.g),int(c.b),int(c.a))
 
 // canvas - 4 bytes for each pixel (r,g,b,a)
 type canvas = {w:int;h:int;data:byte[]}
@@ -37,8 +32,13 @@ let width (C:canvas) = C.w
 let setPixel (c: color) (x,y) (C:canvas) : unit =
   if x < 0 || y < 0 || x >= C.w || y >= C.h then ()
   else let i = 4*(y*C.w+x)
-       in (C.data.[i] <- c.r; C.data.[i+1] <- c.g;
-           C.data.[i+2] <- c.b; C.data.[i+3] <- c.a)
+  // Even though SDL_PIXELFORMAT is RGBA8888
+  // We need to structure it in reverse, so in reality ABGR
+       in (C.data.[i]   <- c.a;
+           C.data.[i+1] <- c.b;
+           C.data.[i+2] <- c.g;
+           C.data.[i+3] <- c.r;
+           )
 
 // draw a line by linear interpolation
 let setLine (c: color) (x1:int,y1:int) (x2:int,y2:int) C : unit =
@@ -56,6 +56,12 @@ let setBox c (x1,y1) (x2,y2) C =
   do setLine c (x2,y2) (x1,y2) C
   do setLine c (x1,y2) (x1,y1) C
 
+let setFillBox c (x1,y1) (x2,y2) C =
+    for x in [x1..x2] do
+        for y in [y1..y2] do
+            do setPixel c (x,y) C
+
+
 // get a pixel color from a bitmap
 let getPixel (C:canvas) (x:int,y:int) : color =   // rgba
   let i = 4*(y*C.w+x)
@@ -69,10 +75,10 @@ let init (w:int) (h:int) (f:int*int->color) : canvas =    // rgba
     for x in [0..w-1] do
       let c = f (x,y)
       let i = 4*(y*w+x)
-      in (data.[i] <- c.r;
-          data.[i+1] <- c.g;
-          data.[i+2] <- c.b;
-          data.[i+3] <- c.a)
+      in (data.[i] <- c.a;
+          data.[i+1] <- c.b;
+          data.[i+2] <- c.g;
+          data.[i+3] <- c.r)
   {h=h;w=w;data=data}
 
 // scale a bitmap
@@ -112,10 +118,25 @@ type key = Keysym of int
 open System.Runtime.InteropServices
 open System
 
-let asUint32 (r, g, b) = BitConverter.ToUInt32 (ReadOnlySpan [|b; g; r; 255uy|])
 
-let white = asUint32 (255uy, 255uy, 255uy)
-let black = asUint32 (0uy, 0uy, 0uy)
+type ImgUtilKey =
+    | Unknown
+    | DownArrow
+    | UpArrow
+    | LeftArrow
+    | RightArrow
+    | Space
+
+
+let getKey (k:key) : ImgUtilKey =
+    let kval = match k with | Keysym k -> uint32 k
+    match kval with
+        | _ when kval = SDL.SDLK_SPACE -> Space
+        | _ when kval = SDL.SDLK_UP -> UpArrow
+        | _ when kval = SDL.SDLK_DOWN -> DownArrow
+        | _ when kval = SDL.SDLK_LEFT -> LeftArrow
+        | _ when kval = SDL.SDLK_RIGHT -> RightArrow
+        | _ -> Unknown
 
 
 // start an app that can listen to key-events
@@ -133,8 +154,7 @@ let runApp (t:string) (w:int) (h:int)
                       SDL.SDL_WindowFlags.SDL_WINDOW_INPUT_FOCUS
 
     SDL.SDL_CreateWindowAndRenderer(viewWidth, viewHeight, windowFlags, &window, &renderer) |> ignore
-
-    let texture = SDL.SDL_CreateTexture(renderer, SDL.SDL_PIXELFORMAT_ARGB8888, SDL.SDL_TEXTUREACCESS_STREAMING, viewWidth, viewHeight)
+    let texture = SDL.SDL_CreateTexture(renderer, SDL.SDL_PIXELFORMAT_RGBA8888, SDL.SDL_TEXTUREACCESS_STREAMING, viewWidth, viewHeight)
 
     let frameBuffer = Array.create (viewWidth * viewHeight *4 ) (byte(0))
     let bufferPtr = IntPtr ((Marshal.UnsafeAddrOfPinnedArrayElement (frameBuffer, 0)).ToPointer ())

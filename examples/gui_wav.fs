@@ -1,3 +1,8 @@
+(*
+This example is currently not executable.
+It is a non-ported example from a very old version
+of ImgUtil.
+*)
 
 open System.Windows.Forms
 open FunImg

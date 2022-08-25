@@ -1,3 +1,4 @@
+#r "../bin/Debug/net6.0/img_util.dll"
 open ImgUtil
 
 let rec spiral C s i x y =

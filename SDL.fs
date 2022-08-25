@@ -20,7 +20,14 @@ let SDL_PIXELFORMAT_RGBA8888 = 373694468u
 
 let SDL_KEYDOWN = 0x300u
 let SDL_KEYUP = 769u
+// Define keycodes for SDL
+// https://wiki.libsdl.org/SDLKeycodeLookup
 let SDLK_ESCAPE = 27u
+let SDLK_SPACE = 32u
+let SDLK_RIGHT = 1073741903u
+let SDLK_LEFT = 1073741904u
+let SDLK_DOWN = 1073741905u
+let SDLK_UP = 1073741906u
 let SDL_QUIT = 0x100u
 
 [<type:StructLayout(LayoutKind.Sequential)>]

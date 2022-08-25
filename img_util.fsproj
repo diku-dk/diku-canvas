@@ -9,7 +9,7 @@
     <Compile Include="SDL.fs" />
     <Compile Include="img_util.fsi" />
     <Compile Include="img_util.fs" />
-    <Compile Include="examples/turtle.fs" />
+    <Compile Include="examples/turtle.fsx" />
   </ItemGroup>
 
   <ItemGroup>
