@@ -3,12 +3,12 @@
 <img src="images/turtle.png" border="2" width="250" align="right">
 
 This library features a number of utility functions for drawing simple
-2d graphics on a canvas, including features for running simple user-interactive apps that display
-images. 
+2d graphics on a canvas, including features for running simple
+user-interactive apps that display images.
 
 Features for loading and saving images are planned, but not yet implemented.
 
-The library, which is based on SDL2, is portable, 
+The library, which is based on SDL2, is portable,
 in the sense that applications built using the library can execute on
 Linux, macOS, and Windows using .NET6.0.
 
@@ -17,7 +17,7 @@ available in the `mini/` folder.
 
 ## The API
 
-The library API is available in the file [img_util.fsi](img_util.fsi).
+The library API is available in the file [`img_util.fsi`](img_util.fsi).
 
 ## How to build
 
@@ -34,12 +34,13 @@ Then install [SDL2](https://www.libsdl.org/index.php):
 
         apt install libsdl2-dev
 
-  * On **Windows** we got you back covered and have added a copy of
-    the SDL runtime in the file `SDL2.dll`:
-
   * On **Arch** (and probably **Manjaro**), `sdl2` is available in `extra`:
 
         sudo pacman -S sdl2
+
+  * On **Windows** we got you back covered and have added a copy of
+    the SDL runtime in the file `SDL2.dll`:
+
 
 Finally, compile and run the `turtle` example:
 
@@ -52,16 +53,15 @@ Finally, compile and run the `turtle` example:
 
 <img src="images/applespiral.png" border="2" width="250" align="right">
 
-A number of examples are available in the `examples` folder. 
+A number of examples are available in the `examples` folder.
 
 The best show-cases for using the library are
 - `examples/color_boxes.fsx`
 - `examples/keyboard_example.fsx`
 - `examples/turtle.fsx`
 
-Note that not all the examples are currently executable. 
+Note that not all the examples are currently executable.
 
-Note that not all the examples are currently executable. 
 ## License
 
 MIT license
@@ -74,5 +74,6 @@ Copyright 2018-2021 - Martin Elsman
 
 The following individuals have contributed to the ImgUtil library:
 
+- Ken Friis Larsen
 - Mads Dyrvig Obitsø Thomsen
 - Jan Rolandsen
