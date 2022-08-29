@@ -67,8 +67,8 @@ let setFillBox c (x1,y1) (x2,y2) C =
 // get a pixel color from a bitmap
 let getPixel (C:canvas) (x:int,y:int) : color =   // rgba
   let i = 4*(y*C.w+x)
-  in {r=C.data.[i]; g=C.data.[i+1];
-      b=C.data.[i+2]; a=C.data.[i+3]}
+  in {a=C.data.[i]; b=C.data.[i+1];
+      g=C.data.[i+2]; r=C.data.[i+3]}
 
 // initialize a new bitmap
 let init (w:int) (h:int) (f:int*int->color) : canvas =    // rgba
