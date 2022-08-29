@@ -38,11 +38,36 @@
   </ItemGroup>
 
   <ItemGroup>
-    <Content Include="lib/*.dylib" >
-      <PackagePath>runtimes/osx-x64/native/%(Filename)%(Extension)</PackagePath>
+    <Content Include="lib/libSDL2-x64.dylib" >
+      <PackagePath>runtimes/osx-x64/native/libSDL2.dylib</PackagePath>
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
       <Pack>true</Pack>
     </Content>
   </ItemGroup>
+
+  <ItemGroup>
+    <Content Include="lib/libSDL2_image.dylib" >
+      <PackagePath>runtimes/osx-x64/native/libSDL2_image.dylib</PackagePath>
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+      <Pack>true</Pack>
+    </Content>
+  </ItemGroup>
+
+  <ItemGroup>
+    <Content Include="lib/libSDL2-arm64.dylib" >
+      <PackagePath>runtimes/osx.11.0-arm64/native/libSDL2.dylib</PackagePath>
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+      <Pack>true</Pack>
+    </Content>
+  </ItemGroup>
+
+  <ItemGroup>
+    <Content Include="lib/libSDL2-arm64.dylib" >
+      <PackagePath>runtimes/osx.12-arm64/native/libSDL2.dylib</PackagePath>
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+      <Pack>true</Pack>
+    </Content>
+  </ItemGroup>
+
 
 </Project>
