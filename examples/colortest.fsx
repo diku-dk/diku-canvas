@@ -1,6 +1,7 @@
 // Replace this path with wherever img_util.dll is located
 // Default path after `dotnet build` is the path below
-#r "../bin/Debug/net6.0/img_util.dll"
+//#r "../bin/Debug/net6.0/img_util.dll"
+#r "nuget:ImgUtil"
 
 open ImgUtil
 
