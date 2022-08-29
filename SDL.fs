@@ -1,5 +1,5 @@
 ﻿/// Wrappers and PInvoke of SDL2
-/// Note I have only implemented the methods and constants I actually use - this is not a complete set of SDL by any means.
+/// Stolen from https://github.com/ChrisPritchard/tiny-ray-caster
 module SDL
 
 open System.Runtime.InteropServices
@@ -110,3 +110,9 @@ extern unit SDL_DestroyWindow(IntPtr window)
 
 [<DllImport(libName, CallingConvention = CallingConvention.Cdecl)>]
 extern unit SDL_Quit()
+
+[<DllImport(libName, CallingConvention = CallingConvention.Cdecl)>]
+extern IntPtr SDL_CreateRGBSurfaceFrom (IntPtr pixels, int width, int height, int depth, int pitch, uint32 Rmask, uint32 Gmask, uint32 Bmask, uint32 Amask)
+
+[<DllImport(libName, CallingConvention = CallingConvention.Cdecl)>]
+extern unit SDL_FreeSurface(IntPtr surface)

@@ -1,4 +1,6 @@
 module ImgUtil
+open System.Runtime.InteropServices
+open System
 
 // colors
 type color = {r:byte;g:byte;b:byte;a:byte}
@@ -88,24 +90,43 @@ let scale (C:canvas) w2 h2 : canvas =
   in init w2 h2 (fun (x,y) -> getPixel C (scale_x x, scale_y y))
 
 // read a bitmap file
-let fromFile (fname : string) : canvas = failwith "not implemented, yet"
-  // use pb0 = new Gdk.Pixbuf(fname)
-  // use pb = pb0.AddAlpha(false,0x0uy,0x0uy,0x0uy)
-  // let h = pb.Height
-  // let w = pb.Width
-  // let len = h*w*4
-  // let data = Array.create len 0xffuy
-  // in (System.Runtime.InteropServices.Marshal.Copy(pb.Pixels,data,0,len);
-  //     {h=h;w=w;data=data})
+let fromFile (fname : string) : canvas =
+    // Grab a sweet-ass pointer to a C-struct, yeehaw
+    let surfacePtr = SDLImage.IMG_Load(fname)
+    // Copy the struct to managed memory
+    let surface = Marshal.PtrToStructure<SDLImage.SDL_Surface>(surfacePtr)
+    // Width in pixels
+    let w = surface.w
+    // Height in pixels
+    let h = surface.h
+    // Amount of bytes per row
+    let p = surface.pitch
+    let totalBytes = p * h
+    let data = Array.create totalBytes 0x00uy
+    Marshal.Copy(surface.pixels, data, 0, totalBytes)
+    // Free the surface, so we only have managed memory left
+    SDL.SDL_FreeSurface(surfacePtr) |> ignore
+    // Construct a Canvas and return it
+    {w=w; h=h; data=data}
+
 
 // create a pixbuf from a bitmap
 let toPixbuf (C:canvas) =
   failwith "Not implemented"
-//  new Gdk.Pixbuf(C.data,true,8,C.w,C.h,4*C.w)
 
 // save a bitmap as a png file
 let toPngFile (fname : string) (C:canvas) : unit =
-  failwith "Not implemented"
+    let w = C.w
+    let h = C.h
+    let pixels = C.data
+    let pixelsPtr = IntPtr ((Marshal.UnsafeAddrOfPinnedArrayElement (pixels, 0)).ToPointer ())
+    let surface = SDL.SDL_CreateRGBSurfaceFrom (pixelsPtr, w, h, 32, 4*w, 0xFF000000u, 0x00FF0000u, 0x0000FF00u, 0x000000FFu)
+    match SDLImage.IMG_SavePNG(surface, fname) with
+        | 0 -> ()
+        | _ -> printfn "Error when saving image to path %A" fname
+
+    SDL.SDL_FreeSurface(surface) |> ignore
+
 
 // start and run an application with an action
 let runApplication (action:unit -> unit) =
@@ -115,9 +136,6 @@ let runApplication (action:unit -> unit) =
   //  Application.Run())
 
 type key = Keysym of int
-open System.Runtime.InteropServices
-open System
-
 
 type ImgUtilKey =
     | Unknown
@@ -126,7 +144,6 @@ type ImgUtilKey =
     | LeftArrow
     | RightArrow
     | Space
-
 
 let getKey (k:key) : ImgUtilKey =
     let kval = match k with | Keysym k -> uint32 k
@@ -137,7 +154,6 @@ let getKey (k:key) : ImgUtilKey =
         | _ when kval = SDL.SDLK_LEFT -> LeftArrow
         | _ when kval = SDL.SDLK_RIGHT -> RightArrow
         | _ -> Unknown
-
 
 // start an app that can listen to key-events
 let runApp (t:string) (w:int) (h:int)

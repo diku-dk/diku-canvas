@@ -23,21 +23,21 @@ let initColor = ImgUtil.fromRgb (255,255,255)
 
 let pi = System.Math.PI
 
-let rec interp (p:point,d:int,c:color,up:bool) (cmds : cmd list) (acc:line list) : line list =
+let rec interp (p:point,d:int,c:color,up:bool) (cmds : cmd list) : line list =
   match cmds with
-    | [] -> acc
-    | SetColor c :: cmds -> interp (p,d,c,up) cmds acc
-    | Turn i :: cmds -> interp (p,d-i,c,up) cmds acc
-    | PenUp :: cmds -> interp (p,d,c,true) cmds acc
-    | PenDown :: cmds -> interp (p,d,c,false) cmds acc
+    | [] -> []
+    | SetColor c :: cmds -> interp (p,d,c,up) cmds
+    | Turn i :: cmds -> interp (p,d-i,c,up) cmds
+    | PenUp :: cmds -> interp (p,d,c,true) cmds
+    | PenDown :: cmds -> interp (p,d,c,false) cmds
     | Move i :: cmds ->
       let r = 2.0 * pi * float d / 360.0
       let dx = int(float i * cos r)
       let dy = -int(float i * sin r)
       let (x,y) = p
       let p2 = (x+dx,y+dy)
-      let acc2 = if up then acc else (p,p2,c)::acc
-      in interp (p2,d,c,up) cmds acc2
+      let lines = interp (p2,d,c,up) cmds
+      if up then lines else (p,p2,c)::lines
 
 let rec repeat n cmds =
   if n <= 0 then []
@@ -89,14 +89,15 @@ let white = ImgUtil.fromRgb (255,255,255)
 let black = ImgUtil.fromRgb (0,0,0)
 
 let draw (w,h) pic =
-  let C = ImgUtil.mk w h
-  let center = (w/2,h/2)
-  let dir_up = 90
-  let initState = (center,dir_up,black,false)
-  let lines = interp initState pic []
+  let bmp = ImgUtil.mk w h
+  for x in [0..w-1] do
+    for y in [0..h-1] do
+      ImgUtil.setPixel white (x,y) bmp
+  let initState = ((w/2,h/2),90,black,false)
+  let lines = interp initState pic
   for (p1,p2,c) in lines do
-    ImgUtil.setLine c p1 p2 C
-  ImgUtil.show "Logo" C
+    ImgUtil.setLine c p1 p2 bmp
+  ImgUtil.show "Logo" bmp
 
 do draw (600,600) pic
 
