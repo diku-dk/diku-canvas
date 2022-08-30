@@ -1,5 +1,8 @@
 ﻿/// Wrappers and PInvoke of SDL2
-/// Stolen from https://github.com/ChrisPritchard/tiny-ray-caster
+/// Originally taken from https://github.com/ChrisPritchard/tiny-ray-caster
+/// tiny-ray-caster uses Unlicense License
+/// parts from tiny-ray-case used with permission. (Obtained by Mads Obitsø via email)
+/// Extensions and modifications made by Ken Friis Larsen and Mads Obitsø
 module SDL
 
 open System.Runtime.InteropServices
