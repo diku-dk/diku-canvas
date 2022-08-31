@@ -1,0 +1,72 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net6.0</TargetFramework>
+    <PackageId>Canvas</PackageId>
+    <Version>1.0.0</Version>
+    <Authors>Martin Elsman, Ken Friis Larsen, Mads Obitsø, Jon Sporring</Authors>
+    <Company>DIKU</Company>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <Compile Include="SDL.fs" />
+    <Compile Include="SDL_image.fs" />
+    <Compile Include="canvas.fsi" />
+    <Compile Include="canvas.fs" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Include=".gitignore" />
+    <None Include="LICENSE" />
+    <None Include="README.md" />
+    <None Include="README-SDL.txt" />    
+  </ItemGroup>
+
+  <ItemGroup>
+    <Content Include="lib/*.so" >
+      <PackagePath>runtimes/linux-x64/native/%(Filename)%(Extension)</PackagePath>
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+      <Pack>true</Pack>
+    </Content>
+  </ItemGroup>
+
+  <ItemGroup>
+    <Content Include="lib/*.dll" >
+      <PackagePath>runtimes/win-x64/native/%(Filename)%(Extension)</PackagePath>
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+      <Pack>true</Pack>
+    </Content>
+  </ItemGroup>
+
+  <ItemGroup>
+    <Content Include="lib/libSDL2-x64.dylib" >
+      <PackagePath>runtimes/osx-x64/native/libSDL2.dylib</PackagePath>
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+      <Pack>true</Pack>
+    </Content>
+  </ItemGroup>
+
+  <ItemGroup>
+    <Content Include="lib/libSDL2_image.dylib" >
+      <PackagePath>runtimes/osx-x64/native/libSDL2_image.dylib</PackagePath>
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+      <Pack>true</Pack>
+    </Content>
+  </ItemGroup>
+
+  <ItemGroup>
+    <Content Include="lib/libSDL2-arm64.dylib" >
+      <PackagePath>runtimes/osx.11.0-arm64/native/libSDL2.dylib</PackagePath>
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+      <Pack>true</Pack>
+    </Content>
+  </ItemGroup>
+
+  <ItemGroup>
+    <Content Include="lib/libSDL2-arm64.dylib" >
+      <PackagePath>runtimes/osx.12-arm64/native/libSDL2.dylib</PackagePath>
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+      <Pack>true</Pack>
+    </Content>
+  </ItemGroup>
+</Project>
