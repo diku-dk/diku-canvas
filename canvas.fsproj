@@ -2,10 +2,17 @@
 
   <PropertyGroup>
     <TargetFramework>net6.0</TargetFramework>
-    <PackageId>Canvas</PackageId>
-    <Version>1.0.0</Version>
+    <PackageId>DIKU.Canvas</PackageId>
+    <Version>1.0.0-alpha1</Version>
+    <PackageLicenseFile>LICENSE</PackageLicenseFile>
     <Authors>Martin Elsman, Ken Friis Larsen, Mads Obitsø, Jon Sporring</Authors>
     <Company>DIKU</Company>
+    <RepositoryUrl>https://github.com/kfl/img-util-fs.git</RepositoryUrl>
+    <RepositoryType>git</RepositoryType>
+    <PackageReadmeFile>README.md</PackageReadmeFile>
+    <Description>
+    This library features a number of utility functions for drawing simple 2d graphics on a canvas, including features for running simple user-interactive apps that display such canvas.
+    </Description>
   </PropertyGroup>
 
   <ItemGroup>
@@ -17,9 +24,9 @@
 
   <ItemGroup>
     <None Include=".gitignore" />
-    <None Include="LICENSE" />
-    <None Include="README.md" />
-    <None Include="README-SDL.txt" />    
+    <None Include="LICENSE" Pack="true" PackagePath=""/>
+    <None Include="README.md" Pack="true" PackagePath=""/>
+    <None Include="README-SDL.txt" Pack="true" PackagePath=""/>
   </ItemGroup>
 
   <ItemGroup>
