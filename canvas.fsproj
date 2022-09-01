@@ -3,7 +3,7 @@
   <PropertyGroup>
     <TargetFramework>net6.0</TargetFramework>
     <PackageId>DIKU.Canvas</PackageId>
-    <Version>1.0.0-alpha1</Version>
+    <Version>1.0.0-alpha2</Version>
     <PackageLicenseFile>LICENSE</PackageLicenseFile>
     <Authors>Martin Elsman, Ken Friis Larsen, Mads Obitsø, Jon Sporring</Authors>
     <Company>DIKU</Company>
@@ -30,50 +30,23 @@
   </ItemGroup>
 
   <ItemGroup>
-    <Content Include="lib/*.so" >
-      <PackagePath>runtimes/linux-x64/native/%(Filename)%(Extension)</PackagePath>
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    <Content Include="runtimes\**\*">
       <Pack>true</Pack>
+      <PackagePath>%(Identity)</PackagePath>
     </Content>
   </ItemGroup>
 
   <ItemGroup>
-    <Content Include="lib/*.dll" >
-      <PackagePath>runtimes/win-x64/native/%(Filename)%(Extension)</PackagePath>
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-      <Pack>true</Pack>
-    </Content>
+    <None Include="runtimes\**\*">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
   </ItemGroup>
 
   <ItemGroup>
-    <Content Include="lib/libSDL2-x64.dylib" >
-      <PackagePath>runtimes/osx-x64/native/libSDL2.dylib</PackagePath>
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-      <Pack>true</Pack>
-    </Content>
-  </ItemGroup>
-
-  <ItemGroup>
-    <Content Include="lib/libSDL2_image.dylib" >
-      <PackagePath>runtimes/osx-x64/native/libSDL2_image.dylib</PackagePath>
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-      <Pack>true</Pack>
-    </Content>
-  </ItemGroup>
-
-  <ItemGroup>
-    <Content Include="lib/libSDL2-arm64.dylib" >
-      <PackagePath>runtimes/osx.11.0-arm64/native/libSDL2.dylib</PackagePath>
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-      <Pack>true</Pack>
-    </Content>
-  </ItemGroup>
-
-  <ItemGroup>
-    <Content Include="lib/libSDL2-arm64.dylib" >
-      <PackagePath>runtimes/osx.12-arm64/native/libSDL2.dylib</PackagePath>
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-      <Pack>true</Pack>
-    </Content>
+    <Folder Include="runtimes\linux-x64\native\" />
+    <Folder Include="runtimes\osx-x64\native\" />
+    <Folder Include="runtimes\osx-arm64\native\" />
+    <Folder Include="runtimes\win-x64\native\" />
+    <Folder Include="runtimes\win-x86\native\" />
   </ItemGroup>
 </Project>
