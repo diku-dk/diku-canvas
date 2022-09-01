@@ -1,6 +1,6 @@
 # The Canvas library
 
-<img src="images/turtle.png" border="2" width="250" align="right">
+<img src="https://raw.githubusercontent.com/kfl/img-util-fs/main/images/turtle.png" border="2" width="250" align="right">
 
 This library features a number of utility functions for drawing simple
 2d graphics on a canvas, including features for running simple
