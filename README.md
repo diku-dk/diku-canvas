@@ -41,13 +41,13 @@ Or, if you want a specific version:
 ## How to use Canvas in a F# project (that uses .fsproj)
 
 Make an new directory, say `mycanvasapp`, in that directory start a F#
-"Console App" project:
+"Console App" project with the command:
 
     dotnet new console -lang "F#"
 
 (This will give you both a `Program.fs` file and a `mycanvasapp.fsproj` file.)
 
-Now add a reference to the `DIKU.Canvas` package:
+Add a reference to the `DIKU.Canvas` package with the command:
 
     dotnet add package DIKU.Canvas
 
@@ -65,6 +65,8 @@ do Canvas.runSimpleApp "Hello from F#" 400 400 draw
 Run your app with the command:
 
     dotnet run
+
+This should result in a window with a blue background.
 
 
 ## Examples
