@@ -1,4 +1,4 @@
-#r "nuget:DIKU.Canvas, 1.0.0-alpha3"
+#r "nuget:DIKU.Canvas"
 open Canvas
 
 let rec spiral canvas s i x y =
