@@ -84,7 +84,7 @@ Test that everything worked with `dotnet fsi`
 
 ```
 dotnet fsi
->#r "nuget:Canvas";;
+>#r "nuget:DIKU.Canvas";;
 >open Canvas;;
 ```
 
@@ -100,9 +100,11 @@ A number of examples are available in the `examples` folder.
 The best show-cases for using the library are
 - `examples/color_boxes.fsx`
 - `examples/keyboard_example.fsx`
-- `examples/turtle.fsx`
+- `examples/spiral.fsx`
+- `examples/turtle.fsx` (eventually)
 
-Note that not all the examples are currently executable.
+Note that it is not all the examples in the `examples` directory that
+have been ported to the current version of the Canvas library.
 
 ## License
 

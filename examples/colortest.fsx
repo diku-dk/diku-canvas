@@ -1,9 +1,6 @@
-// Replace this path with wherever img_util.dll is located
-// Default path after `dotnet build` is the path below
-//#r "../bin/Debug/net6.0/img_util.dll"
-#r "nuget:ImgUtil"
+#r "nuget:DIKU.Canvas, 1.0.0-alpha3"
 
-open ImgUtil
+open Canvas
 
 type state =
     | Red
@@ -18,12 +15,12 @@ let getPalette = function
     | Yellow -> yellow
 
 let draw w h (s:state) =
-  let bm = ImgUtil.mk w h
+  let bm = Canvas.create w h
   let c = getPalette s
-  setFillBox c (0,0) (w,h) bm
+  setFillBox bm c (0,0) (w,h)
   bm
 
-let react (s:state) (k:ImgUtil.key) : state option =
+let react (s:state) (k:Canvas.key) : state option =
     match getKey k with
         | LeftArrow ->
             printfn "Going red!"
