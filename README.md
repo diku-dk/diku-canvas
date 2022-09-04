@@ -6,8 +6,7 @@ The DIKU.Canvas library
 This library features a number of utility functions for drawing simple
 2d graphics on a canvas, including features for running simple
 user-interactive apps that display such canvas.  A small DSL for
-drawing using [turtle
-graphics](https://en.wikipedia.org/wiki/Turtle_graphics) is included.
+drawing using [turtle graphics](https://en.wikipedia.org/wiki/Turtle_graphics) is included.
 
 Features for loading a canvas from an image file and saving canvas to
 `.png` are included.  They *should* work out of the box on Windows,
@@ -24,7 +23,67 @@ The library is intended to be built (and consumed) as a NuGet package.
 
 The library API is available in the file [`canvas.fsi`](canvas.fsi).
 
-## How to build
+## How to use Canvas in a F# script (.fsx)
+
+Make an F# script, say `example.fsx` and make a NuGet reference:
+
+```fsharp
+#r "nuget:DIKU.Canvas";;
+```
+
+Or, if you want a specific version:
+
+```fsharp
+#r "nuget:DIKU.Canvas, 1.0.0";;
+```
+
+
+## How to use Canvas in a F# project (that uses .fsproj)
+
+Make an new directory, say `mycanvasapp`, in that directory start a F#
+"Console App" project:
+
+    dotnet new console -lang "F#"
+
+(This will give you both a `Program.fs` file and a `mycanvasapp.fsproj` file.)
+
+Now add a reference to the `DIKU.Canvas` package:
+
+    dotnet add package DIKU.Canvas
+
+Edit `Program.fs` to have the content:
+
+```fsharp
+let draw width height =
+    let canvas = Canvas.create width height
+    Canvas.setFillBox canvas Canvas.blue (0,0) (width, height)
+    canvas
+
+do Canvas.runSimpleApp "Hello from F#" 400 400 draw
+```
+
+Run your app with the command:
+
+    dotnet run
+
+
+## Examples
+
+<img src="images/applespiral.png" border="2" width="250" align="right">
+
+A number of examples are available in the `examples` folder.
+
+The best show-cases for using the library are
+- `examples/color_boxes.fsx`
+- `examples/keyboard_example.fsx`
+- `examples/spiral.fsx`
+- `examples/turtle.fsx` (eventually)
+
+Note that it is not all the examples in the `examples` directory that
+have been ported to the current version of the Canvas library.
+
+
+## How to build the Canvas library itself (if you want to contribute)
 
 If you want to build the library and NuGet package yourself, you will
 need the `.NET6.0 SDK` and development versions of `SDL2` and
@@ -71,9 +130,9 @@ it to the `NuGet` sources list:
 
     dotnet nuget add source /full/path/to/the/directory
 
-Ensure the repository was added with
+Ensure the repository was added with:
 
-    dotnet nuget list source 
+    dotnet nuget list source
 
 Place `Canvas.X.y.z.nupkg` in the local repository.
 Now clear the nuget cache:
@@ -90,21 +149,6 @@ dotnet fsi
 
 Canvas is now available to use in projects through NuGet, both in the
 interpreter and in projects with e.g. `.fsproj` files.
-
-## Examples
-
-<img src="images/applespiral.png" border="2" width="250" align="right">
-
-A number of examples are available in the `examples` folder.
-
-The best show-cases for using the library are
-- `examples/color_boxes.fsx`
-- `examples/keyboard_example.fsx`
-- `examples/spiral.fsx`
-- `examples/turtle.fsx` (eventually)
-
-Note that it is not all the examples in the `examples` directory that
-have been ported to the current version of the Canvas library.
 
 ## License
 
