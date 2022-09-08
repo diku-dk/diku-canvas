@@ -13,9 +13,9 @@ Features for loading a canvas from an image file and saving canvas to
 but on Linux and MacOS they require the user to have `SDL2` installed
 locally.
 
-The library, which is based on SDL2, is portable, in the sense that
-applications built using the library can execute on Linux, macOS, and
-Windows using .NET6.0.
+The library, which is based on [SDL2](https://www.libsdl.org/), is
+portable, in the sense that applications built using the library can
+execute on Linux, macOS, and Windows using .NET6.0.
 
 The library is intended to be built (and consumed) as a NuGet package.
 
