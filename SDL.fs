@@ -78,6 +78,9 @@ extern int SDL_Init(uint32 flags)
 extern int SDL_CreateWindowAndRenderer (int width, int height, SDL_WindowFlags flags, IntPtr& window, IntPtr& renderer)
 
 [<DllImport(libName, CallingConvention = CallingConvention.Cdecl)>]
+extern unit SDL_SetWindowTitle (IntPtr window, [<MarshalAs(UnmanagedType.LPUTF8Str)>] string title)
+
+[<DllImport(libName, CallingConvention = CallingConvention.Cdecl)>]
 extern uint32 SDL_GetTicks();
 
 [<DllImport(libName, CallingConvention = CallingConvention.Cdecl)>]
