@@ -97,27 +97,23 @@ let scale (C:canvas) (w2:int) (h2:int) : canvas =
 
 
 // Files
-// read a bitmap file
-// TODO: Add exception handling in case SDL2_image is not found or fails to load
-// TODO: Add exception handling in case the file didn't exist and surfacePtr = null
+// read an image file
 let fromFile (fname : string) : canvas =
-    // Grab a sweet-ass pointer to a C-struct, yeehaw
-    let surfacePtr = SDLImage.IMG_Load(fname)
-    // Copy the struct to managed memory
-    let surface = Marshal.PtrToStructure<SDLImage.SDL_Surface>(surfacePtr)
-    // Width in pixels
-    let w = surface.w
-    // Height in pixels
-    let h = surface.h
-    // Amount of bytes per row
-    let p = surface.pitch
-    let totalBytes = p * h
-    let data = Array.create totalBytes 0x00uy
-    Marshal.Copy(surface.pixels, data, 0, totalBytes)
-    // Free the surface, so we only have managed memory left
-    SDL.SDL_FreeSurface(surfacePtr) |> ignore
-    // Construct a Canvas and return it
-    {w=w; h=h; data=data}
+    use stream = System.IO.File.OpenRead(fname)
+    let image = StbImageSharp.ImageResult.FromStream(stream, StbImageSharp.ColorComponents.RedGreenBlueAlpha);
+
+    let data = image.Data[0..]
+    for i in 0..(image.Width * image.Height - 1) do
+        let r = data[i*4]
+        let g = data[i*4 + 1]
+        let b = data[i*4 + 2]
+        let a = data[i*4 + 3]
+
+        data[i*4]     <- a
+        data[i*4 + 1] <- b
+        data[i*4 + 2] <- g
+        data[i*4 + 3] <- r
+    {h = image.Height; w = image.Width; data = data }
 
 // create a pixbuf from a bitmap
 let toPixbuf (C:canvas) =
