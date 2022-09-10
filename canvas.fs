@@ -127,15 +127,21 @@ let toPixbuf (C:canvas) =
 let toPngFile (C:canvas) (fname : string) : unit =
     let w = C.w
     let h = C.h
-    let pixels = C.data
-    let pixelsPtr = IntPtr ((Marshal.UnsafeAddrOfPinnedArrayElement (pixels, 0)).ToPointer ())
-    let surface = SDL.SDL_CreateRGBSurfaceFrom (pixelsPtr, w, h, 32, 4*w, 0xFF000000u, 0x00FF0000u, 0x0000FF00u, 0x000000FFu)
-    match SDLImage.IMG_SavePNG(surface, fname) with
-        | 0 -> ()
-        | _ -> printfn "Error when saving image to path %A" fname
+    let data = C.data[0..]
+    for i in 0..(w*h-1) do
+        let a = data[i*4]
+        let b = data[i*4 + 1]
+        let g = data[i*4 + 2]
+        let r = data[i*4 + 3]
 
-    SDL.SDL_FreeSurface(surface) |> ignore
+        data[i*4]     <- r
+        data[i*4 + 1] <- g
+        data[i*4 + 2] <- b
+        data[i*4 + 3] <- a
 
+    use stream = System.IO.File.OpenWrite(fname)
+    let imageWriter = new StbImageWriteSharp.ImageWriter()
+    imageWriter.WritePng(data, w, h, StbImageWriteSharp.ColorComponents.RedGreenBlueAlpha, stream)
 
 // start and run an application with an action
 let runApplication (action:unit -> unit) =
