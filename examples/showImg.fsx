@@ -8,4 +8,4 @@ let main =
         let canvas = Canvas.fromFile file
         let width = Canvas.width canvas
         let height = Canvas.height canvas
-        Canvas.runApp file width height (fun _ _ _ -> canvas) (fun _ _ -> None) ()
+        Canvas.show canvas file
