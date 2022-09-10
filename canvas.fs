@@ -220,8 +220,8 @@ let runSimpleApp t w h (f:int->int->canvas) : unit =
   runApp t w h (fun w h () -> f w h)
                (fun _ _ -> None) ()
 
-let show (C:canvas) (t:string) : unit =
-  runApp t (width C) (height C) (fun w h () -> scale C w h) (fun _ _ -> None) ()
+let show (canvas : canvas) (t:string) : unit =
+  runApp t (width canvas) (height canvas) (fun _ _ () -> canvas) (fun _ _ -> None) ()
 
 
 
