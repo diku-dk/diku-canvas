@@ -1,4 +1,4 @@
-#r "nuget:DIKU.Canvas, 1.0.1-alpha"
+#r "nuget:DIKU.Canvas, 1.0.1"
 
 let main =
     if Array.length fsi.CommandLineArgs < 2 then
