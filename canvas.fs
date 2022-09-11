@@ -100,28 +100,17 @@ let scale (C:canvas) (w2:int) (h2:int) : canvas =
 
 // Files
 // read an image file
-let fromFile (fname : string) : canvas =
-    use stream = System.IO.File.OpenRead(fname)
+let fromFile (filename : string) : canvas =
+    use stream = System.IO.File.OpenRead filename
     let image = StbImageSharp.ImageResult.FromStream(stream, StbImageSharp.ColorComponents.RedGreenBlueAlpha)
-    let data = image.Data
-    {h = image.Height; w = image.Width; data = data }
-
-// create a pixbuf from a bitmap
-let toPixbuf (C:canvas) =
-  failwith "Not implemented"
+    {h = image.Height; w = image.Width; data = image.Data }
 
 // save a bitmap as a png file
-let toPngFile (C:canvas) (fname : string) : unit =
-    let w = C.w
-    let h = C.h
-    let data = C.data
-    use stream = System.IO.File.OpenWrite(fname)
+let toPngFile (canvas : canvas) (filename : string) : unit =
+    use stream = System.IO.File.OpenWrite filename
     let imageWriter = new StbImageWriteSharp.ImageWriter()
-    imageWriter.WritePng(data, w, h, StbImageWriteSharp.ColorComponents.RedGreenBlueAlpha, stream)
-
-// start and run an application with an action
-let runApplication (action:unit -> unit) =
-  failwith "not implemented"
+    imageWriter.WritePng(canvas.data, canvas.w, canvas.h,
+                         StbImageWriteSharp.ColorComponents.RedGreenBlueAlpha, stream)
 
 type key = Keysym of int
 
@@ -159,20 +148,21 @@ let runApp (t:string) (w:int) (h:int)
 
     SDL.SDL_CreateWindowAndRenderer(viewWidth, viewHeight, windowFlags, &window, &renderer) |> ignore
     SDL.SDL_SetWindowTitle(window, t) |> ignore
-    let texture = SDL.SDL_CreateTexture(renderer, SDL.SDL_PIXELFORMAT_ABGR8888, SDL.SDL_TEXTUREACCESS_STREAMING, viewWidth, viewHeight)
+    let texture = SDL.SDL_CreateTexture(renderer, SDL.SDL_PIXELFORMAT_RGBA32, SDL.SDL_TEXTUREACCESS_STREAMING, viewWidth, viewHeight)
 
     let frameBuffer = Array.create (viewWidth * viewHeight *4 ) (byte(0))
     let bufferPtr = IntPtr ((Marshal.UnsafeAddrOfPinnedArrayElement (frameBuffer, 0)).ToPointer ())
     let mutable keyEvent = SDL.SDL_KeyboardEvent 0u
 
-    let rec drawLoop() =
-        let canvas = draw w h (!state)
-        Array.blit canvas.data 0 frameBuffer 0 canvas.data.Length
+    let rec drawLoop redraw =
+        if redraw then
+            let canvas = draw w h (!state)
+            Array.blit canvas.data 0 frameBuffer 0 canvas.data.Length
 
-        SDL.SDL_UpdateTexture(texture, IntPtr.Zero, bufferPtr, viewWidth * 4) |> ignore
-        SDL.SDL_RenderClear(renderer) |> ignore
-        SDL.SDL_RenderCopy(renderer, texture, IntPtr.Zero, IntPtr.Zero) |> ignore
-        SDL.SDL_RenderPresent(renderer) |> ignore
+            SDL.SDL_UpdateTexture(texture, IntPtr.Zero, bufferPtr, viewWidth * 4) |> ignore
+            SDL.SDL_RenderClear(renderer) |> ignore
+            SDL.SDL_RenderCopy(renderer, texture, IntPtr.Zero, IntPtr.Zero) |> ignore
+            SDL.SDL_RenderPresent(renderer) |> ignore
 
         let ret = SDL.SDL_WaitEvent(&keyEvent)
         if ret = 0 then () // an error happened so we exit
@@ -182,13 +172,15 @@ let runApp (t:string) (w:int) (h:int)
                  () // quit the game by exiting the loop
              else
                  let k = keyEvent.keysym.sym
-                 match onKeyDown (!state) (Keysym (int k)) with
-                     | Some s -> state := s
-                     | None   -> ()
-                 drawLoop()
+                 let redraw =
+                     match onKeyDown (!state) (Keysym (int k)) with
+                         | Some s -> (state := s; true)
+                         | None   -> false
+                 drawLoop redraw
         else
-            drawLoop()
-    drawLoop ()
+            drawLoop false
+
+    drawLoop true
 
     SDL.SDL_DestroyTexture texture
     SDL.SDL_DestroyRenderer renderer
