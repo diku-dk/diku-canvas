@@ -165,14 +165,15 @@ let runApp (t:string) (w:int) (h:int)
     let bufferPtr = IntPtr ((Marshal.UnsafeAddrOfPinnedArrayElement (frameBuffer, 0)).ToPointer ())
     let mutable keyEvent = SDL.SDL_KeyboardEvent 0u
 
-    let rec drawLoop() =
-        let canvas = draw w h (!state)
-        Array.blit canvas.data 0 frameBuffer 0 canvas.data.Length
+    let rec drawLoop redraw =
+        if redraw then
+            let canvas = draw w h (!state)
+            Array.blit canvas.data 0 frameBuffer 0 canvas.data.Length
 
-        SDL.SDL_UpdateTexture(texture, IntPtr.Zero, bufferPtr, viewWidth * 4) |> ignore
-        SDL.SDL_RenderClear(renderer) |> ignore
-        SDL.SDL_RenderCopy(renderer, texture, IntPtr.Zero, IntPtr.Zero) |> ignore
-        SDL.SDL_RenderPresent(renderer) |> ignore
+            SDL.SDL_UpdateTexture(texture, IntPtr.Zero, bufferPtr, viewWidth * 4) |> ignore
+            SDL.SDL_RenderClear(renderer) |> ignore
+            SDL.SDL_RenderCopy(renderer, texture, IntPtr.Zero, IntPtr.Zero) |> ignore
+            SDL.SDL_RenderPresent(renderer) |> ignore
 
         let ret = SDL.SDL_WaitEvent(&keyEvent)
         if ret = 0 then () // an error happened so we exit
@@ -182,13 +183,15 @@ let runApp (t:string) (w:int) (h:int)
                  () // quit the game by exiting the loop
              else
                  let k = keyEvent.keysym.sym
-                 match onKeyDown (!state) (Keysym (int k)) with
-                     | Some s -> state := s
-                     | None   -> ()
-                 drawLoop()
+                 let redraw =
+                     match onKeyDown (!state) (Keysym (int k)) with
+                         | Some s -> (state := s; true)
+                         | None   -> false
+                 drawLoop redraw
         else
-            drawLoop()
-    drawLoop ()
+            drawLoop false
+
+    drawLoop true
 
     SDL.SDL_DestroyTexture texture
     SDL.SDL_DestroyRenderer renderer
