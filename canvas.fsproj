@@ -7,7 +7,7 @@
     <PackageLicenseFile>LICENSE</PackageLicenseFile>
     <Authors>Martin Elsman, Ken Friis Larsen, Mads Obitsø, Jon Sporring</Authors>
     <Company>DIKU</Company>
-    <RepositoryUrl>https://github.com/kfl/img-util-fs.git</RepositoryUrl>
+    <RepositoryUrl>https://github.com/kfl/diku-canvas.git</RepositoryUrl>
     <RepositoryType>git</RepositoryType>
     <PackageReadmeFile>README.md</PackageReadmeFile>
     <Description>
