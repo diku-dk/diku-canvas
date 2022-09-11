@@ -22,13 +22,15 @@ let fromColor (c: color) : int * int * int * int =
   (int(c.r),int(c.g),int(c.b),int(c.a))
 
 // canvas - 4 bytes for each pixel (r,g,b,a)
-type canvas = {w:int;h:int;data:byte[]}
+type canvas = {w    : int;
+               h    : int;
+               data : byte[]}
 
 // create white opaque canvas
 let create (w:int) (h:int) : canvas =
-  {w=w;
-   h=h;
-   data=Array.create (h*w*4) 0xffuy}
+  {w = w;
+   h = h;
+   data = Array.create (h*w*4) 0xffuy}
 
 let height (C:canvas) = C.h
 let width (C:canvas) = C.w
@@ -38,12 +40,12 @@ let setPixel (C:canvas) (c: color) (x:int,y:int) : unit =
   if x < 0 || y < 0 || x >= C.w || y >= C.h then ()
   else 
     let i = 4*(y*C.w+x)
-    // Even though SDL_PIXELFORMAT is RGBA8888
-    // We need to structure it in reverse, so in reality ABGR
-    C.data.[i]   <- c.a;
-    C.data.[i+1] <- c.b;
-    C.data.[i+2] <- c.g;
-    C.data.[i+3] <- c.r;
+    // Even though SDL_PIXELFORMAT is ABGR8888
+    // We need to structure it in little endian order, that RGBA
+    C.data.[i]   <- c.r;
+    C.data.[i+1] <- c.g;
+    C.data.[i+2] <- c.b;
+    C.data.[i+3] <- c.a;
 
 // draw a line by linear interpolation
 let setLine (C:canvas) (c: color) (x1:int,y1:int) (x2:int,y2:int) : unit =
@@ -70,10 +72,10 @@ let setFillBox (C:canvas) (c:color) (x1:int,y1:int) (x2:int,y2:int) : unit =
 // get a pixel color from a bitmap
 let getPixel (C:canvas) (x:int,y:int) : color =   // rgba
   let i = 4*(y*C.w+x)
-  {a=C.data.[i]; 
-   b=C.data.[i+1];
-   g=C.data.[i+2]; 
-   r=C.data.[i+3]}
+  {r = C.data.[i];
+   g = C.data.[i+1];
+   b = C.data.[i+2];
+   a = C.data.[i+3]}
 
 // initialize a new bitmap
 let init (w:int) (h:int) (f:int*int->color) : canvas =    // rgba
@@ -82,11 +84,11 @@ let init (w:int) (h:int) (f:int*int->color) : canvas =    // rgba
     for x in [0..w-1] do
       let c = f (x,y)
       let i = 4*(y*w+x)
-      data.[i] <- c.a;
-      data.[i+1] <- c.b;
-      data.[i+2] <- c.g;
-      data.[i+3] <- c.r
-  {h=h;w=w;data=data}
+      data[i] <- c.r
+      data[i+1] <- c.g
+      data[i+2] <- c.b
+      data[i+3] <- c.a
+  {h = h; w = w; data = data}
 
 // scale a bitmap
 let scale (C:canvas) (w2:int) (h2:int) : canvas =
@@ -100,19 +102,8 @@ let scale (C:canvas) (w2:int) (h2:int) : canvas =
 // read an image file
 let fromFile (fname : string) : canvas =
     use stream = System.IO.File.OpenRead(fname)
-    let image = StbImageSharp.ImageResult.FromStream(stream, StbImageSharp.ColorComponents.RedGreenBlueAlpha);
-
-    let data = image.Data[0..]
-    for i in 0..(image.Width * image.Height - 1) do
-        let r = data[i*4]
-        let g = data[i*4 + 1]
-        let b = data[i*4 + 2]
-        let a = data[i*4 + 3]
-
-        data[i*4]     <- a
-        data[i*4 + 1] <- b
-        data[i*4 + 2] <- g
-        data[i*4 + 3] <- r
+    let image = StbImageSharp.ImageResult.FromStream(stream, StbImageSharp.ColorComponents.RedGreenBlueAlpha)
+    let data = image.Data
     {h = image.Height; w = image.Width; data = data }
 
 // create a pixbuf from a bitmap
@@ -123,18 +114,7 @@ let toPixbuf (C:canvas) =
 let toPngFile (C:canvas) (fname : string) : unit =
     let w = C.w
     let h = C.h
-    let data = C.data[0..]
-    for i in 0..(w*h-1) do
-        let a = data[i*4]
-        let b = data[i*4 + 1]
-        let g = data[i*4 + 2]
-        let r = data[i*4 + 3]
-
-        data[i*4]     <- r
-        data[i*4 + 1] <- g
-        data[i*4 + 2] <- b
-        data[i*4 + 3] <- a
-
+    let data = C.data
     use stream = System.IO.File.OpenWrite(fname)
     let imageWriter = new StbImageWriteSharp.ImageWriter()
     imageWriter.WritePng(data, w, h, StbImageWriteSharp.ColorComponents.RedGreenBlueAlpha, stream)
@@ -179,7 +159,7 @@ let runApp (t:string) (w:int) (h:int)
 
     SDL.SDL_CreateWindowAndRenderer(viewWidth, viewHeight, windowFlags, &window, &renderer) |> ignore
     SDL.SDL_SetWindowTitle(window, t) |> ignore
-    let texture = SDL.SDL_CreateTexture(renderer, SDL.SDL_PIXELFORMAT_RGBA8888, SDL.SDL_TEXTUREACCESS_STREAMING, viewWidth, viewHeight)
+    let texture = SDL.SDL_CreateTexture(renderer, SDL.SDL_PIXELFORMAT_ABGR8888, SDL.SDL_TEXTUREACCESS_STREAMING, viewWidth, viewHeight)
 
     let frameBuffer = Array.create (viewWidth * viewHeight *4 ) (byte(0))
     let bufferPtr = IntPtr ((Marshal.UnsafeAddrOfPinnedArrayElement (frameBuffer, 0)).ToPointer ())
