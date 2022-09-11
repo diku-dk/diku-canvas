@@ -152,7 +152,7 @@ let runApp (t:string) (w:int) (h:int)
 
     SDL.SDL_CreateWindowAndRenderer(viewWidth, viewHeight, windowFlags, &window, &renderer) |> ignore
     SDL.SDL_SetWindowTitle(window, t) |> ignore
-    let texture = SDL.SDL_CreateTexture(renderer, SDL.SDL_PIXELFORMAT_ABGR8888, SDL.SDL_TEXTUREACCESS_STREAMING, viewWidth, viewHeight)
+    let texture = SDL.SDL_CreateTexture(renderer, SDL.SDL_PIXELFORMAT_RGBA32, SDL.SDL_TEXTUREACCESS_STREAMING, viewWidth, viewHeight)
 
     let frameBuffer = Array.create (viewWidth * viewHeight *4 ) (byte(0))
     let bufferPtr = IntPtr ((Marshal.UnsafeAddrOfPinnedArrayElement (frameBuffer, 0)).ToPointer ())
