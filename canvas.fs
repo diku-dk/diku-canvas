@@ -165,7 +165,7 @@ let getKey (k:key) : ImgUtilKey =
 
 // start an app that can listen to key-events
 let runApp (t:string) (w:int) (h:int)
-           (f:int -> int -> 's -> canvas)
+           (draw: int -> int -> 's -> canvas)
            (onKeyDown: 's -> key -> 's option) (s:'s) : unit =
 
     let state = ref s
@@ -186,8 +186,8 @@ let runApp (t:string) (w:int) (h:int)
     let mutable keyEvent = SDL.SDL_KeyboardEvent 0u
 
     let rec drawLoop() =
-        let C = f w h (!state)
-        Array.blit C.data 0 frameBuffer 0 C.data.Length
+        let canvas = draw w h (!state)
+        Array.blit canvas.data 0 frameBuffer 0 canvas.data.Length
 
         SDL.SDL_UpdateTexture(texture, IntPtr.Zero, bufferPtr, viewWidth * 4) |> ignore
         SDL.SDL_RenderClear(renderer) |> ignore
@@ -210,17 +210,17 @@ let runApp (t:string) (w:int) (h:int)
             drawLoop()
     drawLoop ()
 
-    SDL.SDL_DestroyTexture(texture)
-    SDL.SDL_DestroyRenderer(renderer)
-    SDL.SDL_DestroyWindow(window)
+    SDL.SDL_DestroyTexture texture
+    SDL.SDL_DestroyRenderer renderer
+    SDL.SDL_DestroyWindow window
     SDL.SDL_Quit()
     ()
 
-let runSimpleApp t w h (f:int->int->canvas) : unit =
-  runApp t w h (fun w h () -> f w h)
+let runSimpleApp t w h (draw: int->int->canvas) : unit =
+  runApp t w h (fun w h () -> draw w h)
                (fun _ _ -> None) ()
 
-let show (canvas : canvas) (t:string) : unit =
+let show (canvas : canvas) (t : string) : unit =
   runApp t (width canvas) (height canvas) (fun _ _ () -> canvas) (fun _ _ -> None) ()
 
 
