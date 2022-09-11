@@ -3,7 +3,7 @@
   <PropertyGroup>
     <TargetFramework>net6.0</TargetFramework>
     <PackageId>DIKU.Canvas</PackageId>
-    <Version>1.0.1-alpha</Version>
+    <Version>1.0.1</Version>
     <PackageLicenseFile>LICENSE</PackageLicenseFile>
     <Authors>Martin Elsman, Ken Friis Larsen, Mads Obitsø, Jon Sporring</Authors>
     <Company>DIKU</Company>
@@ -21,7 +21,6 @@
 
   <ItemGroup>
     <Compile Include="SDL.fs" />
-    <Compile Include="SDL_image.fs" />
     <Compile Include="canvas.fsi" />
     <Compile Include="canvas.fs" />
   </ItemGroup>
