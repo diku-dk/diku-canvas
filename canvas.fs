@@ -112,10 +112,6 @@ let toPngFile (canvas : canvas) (filename : string) : unit =
     imageWriter.WritePng(canvas.data, canvas.w, canvas.h,
                          StbImageWriteSharp.ColorComponents.RedGreenBlueAlpha, stream)
 
-// start and run an application with an action
-let runApplication (action:unit -> unit) =
-  failwith "not implemented"
-
 type key = Keysym of int
 
 type ImgUtilKey =
