@@ -97,27 +97,23 @@ let scale (C:canvas) (w2:int) (h2:int) : canvas =
 
 
 // Files
-// read a bitmap file
-// TODO: Add exception handling in case SDL2_image is not found or fails to load
-// TODO: Add exception handling in case the file didn't exist and surfacePtr = null
+// read an image file
 let fromFile (fname : string) : canvas =
-    // Grab a sweet-ass pointer to a C-struct, yeehaw
-    let surfacePtr = SDLImage.IMG_Load(fname)
-    // Copy the struct to managed memory
-    let surface = Marshal.PtrToStructure<SDLImage.SDL_Surface>(surfacePtr)
-    // Width in pixels
-    let w = surface.w
-    // Height in pixels
-    let h = surface.h
-    // Amount of bytes per row
-    let p = surface.pitch
-    let totalBytes = p * h
-    let data = Array.create totalBytes 0x00uy
-    Marshal.Copy(surface.pixels, data, 0, totalBytes)
-    // Free the surface, so we only have managed memory left
-    SDL.SDL_FreeSurface(surfacePtr) |> ignore
-    // Construct a Canvas and return it
-    {w=w; h=h; data=data}
+    use stream = System.IO.File.OpenRead(fname)
+    let image = StbImageSharp.ImageResult.FromStream(stream, StbImageSharp.ColorComponents.RedGreenBlueAlpha);
+
+    let data = image.Data[0..]
+    for i in 0..(image.Width * image.Height - 1) do
+        let r = data[i*4]
+        let g = data[i*4 + 1]
+        let b = data[i*4 + 2]
+        let a = data[i*4 + 3]
+
+        data[i*4]     <- a
+        data[i*4 + 1] <- b
+        data[i*4 + 2] <- g
+        data[i*4 + 3] <- r
+    {h = image.Height; w = image.Width; data = data }
 
 // create a pixbuf from a bitmap
 let toPixbuf (C:canvas) =
@@ -127,15 +123,21 @@ let toPixbuf (C:canvas) =
 let toPngFile (C:canvas) (fname : string) : unit =
     let w = C.w
     let h = C.h
-    let pixels = C.data
-    let pixelsPtr = IntPtr ((Marshal.UnsafeAddrOfPinnedArrayElement (pixels, 0)).ToPointer ())
-    let surface = SDL.SDL_CreateRGBSurfaceFrom (pixelsPtr, w, h, 32, 4*w, 0xFF000000u, 0x00FF0000u, 0x0000FF00u, 0x000000FFu)
-    match SDLImage.IMG_SavePNG(surface, fname) with
-        | 0 -> ()
-        | _ -> printfn "Error when saving image to path %A" fname
+    let data = C.data[0..]
+    for i in 0..(w*h-1) do
+        let a = data[i*4]
+        let b = data[i*4 + 1]
+        let g = data[i*4 + 2]
+        let r = data[i*4 + 3]
 
-    SDL.SDL_FreeSurface(surface) |> ignore
+        data[i*4]     <- r
+        data[i*4 + 1] <- g
+        data[i*4 + 2] <- b
+        data[i*4 + 3] <- a
 
+    use stream = System.IO.File.OpenWrite(fname)
+    let imageWriter = new StbImageWriteSharp.ImageWriter()
+    imageWriter.WritePng(data, w, h, StbImageWriteSharp.ColorComponents.RedGreenBlueAlpha, stream)
 
 // start and run an application with an action
 let runApplication (action:unit -> unit) =
@@ -163,7 +165,7 @@ let getKey (k:key) : ImgUtilKey =
 
 // start an app that can listen to key-events
 let runApp (t:string) (w:int) (h:int)
-           (f:int -> int -> 's -> canvas)
+           (draw: int -> int -> 's -> canvas)
            (onKeyDown: 's -> key -> 's option) (s:'s) : unit =
 
     let state = ref s
@@ -184,8 +186,8 @@ let runApp (t:string) (w:int) (h:int)
     let mutable keyEvent = SDL.SDL_KeyboardEvent 0u
 
     let rec drawLoop() =
-        let C = f w h (!state)
-        Array.blit C.data 0 frameBuffer 0 C.data.Length
+        let canvas = draw w h (!state)
+        Array.blit canvas.data 0 frameBuffer 0 canvas.data.Length
 
         SDL.SDL_UpdateTexture(texture, IntPtr.Zero, bufferPtr, viewWidth * 4) |> ignore
         SDL.SDL_RenderClear(renderer) |> ignore
@@ -208,18 +210,18 @@ let runApp (t:string) (w:int) (h:int)
             drawLoop()
     drawLoop ()
 
-    SDL.SDL_DestroyTexture(texture)
-    SDL.SDL_DestroyRenderer(renderer)
-    SDL.SDL_DestroyWindow(window)
+    SDL.SDL_DestroyTexture texture
+    SDL.SDL_DestroyRenderer renderer
+    SDL.SDL_DestroyWindow window
     SDL.SDL_Quit()
     ()
 
-let runSimpleApp t w h (f:int->int->canvas) : unit =
-  runApp t w h (fun w h () -> f w h)
+let runSimpleApp t w h (draw: int->int->canvas) : unit =
+  runApp t w h (fun w h () -> draw w h)
                (fun _ _ -> None) ()
 
-let show (C:canvas) (t:string) : unit =
-  runApp t (width C) (height C) (fun w h () -> scale C w h) (fun _ _ -> None) ()
+let show (canvas : canvas) (t : string) : unit =
+  runApp t (width canvas) (height canvas) (fun _ _ () -> canvas) (fun _ _ -> None) ()
 
 
 
