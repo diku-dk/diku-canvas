@@ -106,10 +106,6 @@ let fromFile (fname : string) : canvas =
     let data = image.Data
     {h = image.Height; w = image.Width; data = data }
 
-// create a pixbuf from a bitmap
-let toPixbuf (C:canvas) =
-  failwith "Not implemented"
-
 // save a bitmap as a png file
 let toPngFile (C:canvas) (fname : string) : unit =
     let w = C.w
