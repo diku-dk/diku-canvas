@@ -2,7 +2,7 @@
 The DIKU.Canvas library
 =======================
 
-![Nuget](https://img.shields.io/nuget/v/DIKU.Canvas)
+[![Nuget](https://img.shields.io/nuget/v/DIKU.Canvas)](https://www.nuget.org/packages/DIKU.Canvas/)
 <img src="https://raw.githubusercontent.com/kfl/img-util-fs/main/images/turtle.png" border="2" width="250" align="right">
 
 This library features a number of utility functions for drawing simple
