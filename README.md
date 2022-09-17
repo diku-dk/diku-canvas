@@ -36,7 +36,7 @@ Make an F# script, say `example.fsx` and make a NuGet reference:
 Or, if you want a specific version:
 
 ```fsharp
-#r "nuget:DIKU.Canvas, 1.0.0";;
+#r "nuget:DIKU.Canvas, 1.0.1";;
 ```
 
 
