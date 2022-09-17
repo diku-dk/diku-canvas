@@ -40,8 +40,6 @@ let setPixel (C:canvas) (c: color) (x:int,y:int) : unit =
   if x < 0 || y < 0 || x >= C.w || y >= C.h then ()
   else 
     let i = 4*(y*C.w+x)
-    // Even though SDL_PIXELFORMAT is ABGR8888
-    // We need to structure it in little endian order, that RGBA
     C.data.[i]   <- c.r;
     C.data.[i+1] <- c.g;
     C.data.[i+2] <- c.b;
@@ -157,6 +155,8 @@ let runApp (t:string) (w:int) (h:int)
     let rec drawLoop redraw =
         if redraw then
             let canvas = draw w h (!state)
+            // FIXME: what if canvas does not have dimensions w*h? See issue #13
+
             Array.blit canvas.data 0 frameBuffer 0 canvas.data.Length
 
             SDL.SDL_UpdateTexture(texture, IntPtr.Zero, bufferPtr, viewWidth * 4) |> ignore
