@@ -150,7 +150,7 @@ let runApp (t:string) (w:int) (h:int)
 
     let frameBuffer = Array.create (viewWidth * viewHeight *4 ) (byte(0))
     let bufferPtr = IntPtr ((Marshal.UnsafeAddrOfPinnedArrayElement (frameBuffer, 0)).ToPointer ())
-    let mutable keyEvent = SDL.SDL_KeyboardEvent 0u
+    let mutable event = SDL.SDL_Event()
 
     let rec drawLoop redraw =
         if redraw then
@@ -164,21 +164,25 @@ let runApp (t:string) (w:int) (h:int)
             SDL.SDL_RenderCopy(renderer, texture, IntPtr.Zero, IntPtr.Zero) |> ignore
             SDL.SDL_RenderPresent(renderer) |> ignore
 
-        let ret = SDL.SDL_WaitEvent(&keyEvent)
+        let ret = SDL.SDL_WaitEvent(&event)
         if ret = 0 then () // an error happened so we exit
-        else if keyEvent.``type`` = SDL.SDL_QUIT then ()
-        else if (keyEvent.``type`` = SDL.SDL_KEYDOWN) then
-             if keyEvent.keysym.sym = SDL.SDLK_ESCAPE then
-                 () // quit the game by exiting the loop
-             else
-                 let k = keyEvent.keysym.sym
-                 let redraw =
-                     match onKeyDown (!state) (Keysym (int k)) with
-                         | Some s -> (state := s; true)
-                         | None   -> false
-                 drawLoop redraw
-        else
-            drawLoop false
+        else match SDL.convertEvent event with
+               | SDL.Quit -> ()
+               | SDL.KeyDown keyEvent ->
+                   if keyEvent.keysym.sym = SDL.SDLK_ESCAPE then
+                       () // quit the game by exiting the loop
+                   else
+                       let k = keyEvent.keysym.sym
+                       let redraw =
+                           match onKeyDown (!state) (Keysym (int k)) with
+                               | Some s -> (state := s; true)
+                               | None   -> false
+                       drawLoop redraw
+                | SDL.User _ ->
+                    printfn "Got a user event"
+                    drawLoop false
+                | _ ->
+                    drawLoop false
 
     drawLoop true
 
