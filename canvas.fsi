@@ -72,3 +72,14 @@ val runApp    : string -> int -> int
              -> (int -> int -> 's -> canvas)
              -> ('s -> key -> 's option)
              -> 's -> unit
+
+type event =
+    | KeyDown of key
+    | TimerTick
+
+
+/// Start an app that can listen to key-events and timer-events
+val runAppWithTimer: string -> int -> int -> int option
+             -> (int -> int -> 's -> canvas)
+             -> ('s -> event -> 's option)
+             -> 's -> unit

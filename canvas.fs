@@ -130,10 +130,13 @@ let getKey (k:key) : ImgUtilKey =
         | _ when kval = SDL.SDLK_RIGHT -> RightArrow
         | _ -> Unknown
 
-// start an app that can listen to key-events
-let runApp (t:string) (w:int) (h:int)
+type event =
+    | KeyDown of key
+    | TimerTick
+
+let runAppWithTimer (t:string) (w:int) (h:int) (interval:int option)
            (draw: int -> int -> 's -> canvas)
-           (onKeyDown: 's -> key -> 's option) (s:'s) : unit =
+           (react: 's -> event -> 's option) (s:'s) : unit =
 
     let state = ref s
 
@@ -150,6 +153,23 @@ let runApp (t:string) (w:int) (h:int)
 
     let frameBuffer = Array.create (viewWidth * viewHeight *4 ) (byte(0))
     let bufferPtr = IntPtr ((Marshal.UnsafeAddrOfPinnedArrayElement (frameBuffer, 0)).ToPointer ())
+
+    // Set up a timer
+    let TIMER_EVENT = SDL.SDL_RegisterEvents 1 // TODO: check that we succeed
+    match interval with
+        Some interv when interv > 0 ->
+            let ticker _ =
+                let mutable ev = SDL.SDL_Event()
+                ev.``type`` <- TIMER_EVENT
+                SDL.SDL_PushEvent(&ev) |> ignore
+
+            let timer = new System.Timers.Timer(float interv)
+            timer.AutoReset <- true
+            timer.Elapsed.Add ticker
+            timer.Start()
+        | _ -> // No timer
+            ()
+
     let mutable event = SDL.SDL_Event()
 
     let rec drawLoop redraw =
@@ -166,21 +186,24 @@ let runApp (t:string) (w:int) (h:int)
 
         let ret = SDL.SDL_WaitEvent(&event)
         if ret = 0 then () // an error happened so we exit
-        else match SDL.convertEvent event with
-               | SDL.Quit -> ()
-               | SDL.KeyDown keyEvent ->
-                   if keyEvent.keysym.sym = SDL.SDLK_ESCAPE then
-                       () // quit the game by exiting the loop
-                   else
-                       let k = keyEvent.keysym.sym
-                       let redraw =
-                           match onKeyDown (!state) (Keysym (int k)) with
-                               | Some s -> (state := s; true)
-                               | None   -> false
-                       drawLoop redraw
-                | SDL.User _ ->
-                    printfn "Got a user event"
-                    drawLoop false
+        else
+            match SDL.convertEvent event with
+                | SDL.Quit -> () // quit the game by exiting the loop
+                | SDL.KeyDown keyEvent when keyEvent.keysym.sym = SDL.SDLK_ESCAPE -> ()
+
+                | SDL.KeyDown keyEvent ->
+                    let k = keyEvent.keysym.sym |> int |> Keysym |> KeyDown
+                    let redraw =
+                        match react (!state) k with
+                            | Some s -> (state := s; true)
+                            | None   -> false
+                    drawLoop redraw
+                | SDL.User uev when uev.``type`` = TIMER_EVENT ->
+                    let redraw =
+                        match react (!state) TimerTick with
+                            | Some s -> (state := s; true)
+                            | None   -> false
+                    drawLoop redraw
                 | _ ->
                     drawLoop false
 
@@ -191,6 +214,17 @@ let runApp (t:string) (w:int) (h:int)
     SDL.SDL_DestroyWindow window
     SDL.SDL_Quit()
     ()
+
+
+
+// start an app that can listen to key-events
+let runApp (t:string) (w:int) (h:int)
+           (draw: int -> int -> 's -> canvas)
+           (onKeyDown: 's -> key -> 's option) (s:'s) : unit =
+    runAppWithTimer t w h None draw
+       (fun s -> function (KeyDown k) -> onKeyDown s k
+                        | _ -> None)
+       s
 
 let runSimpleApp t w h (draw: int->int->canvas) : unit =
   runApp t w h (fun w h () -> draw w h)
