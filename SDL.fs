@@ -160,16 +160,3 @@ extern IntPtr SDL_CreateRGBSurfaceFrom (IntPtr pixels, int width, int height, in
 
 [<DllImport(libName, CallingConvention = CallingConvention.Cdecl)>]
 extern unit SDL_FreeSurface(IntPtr surface)
-
-type SDL_TimerID = uint32
-type interval = uint32
-
-[<UnmanagedFunctionPointer(CallingConvention.Cdecl)>]
-type SDL_TimerCallback = delegate of (interval * IntPtr) -> interval
-
-[<DllImport(libName, CallingConvention = CallingConvention.Cdecl)>]
-extern SDL_TimerID SDL_AddTimer(interval interval, SDL_TimerCallback callback, IntPtr param)
-
-(* returns an SDL_Bool *)
-[<DllImport(libName, CallingConvention = CallingConvention.Cdecl)>]
-extern int SDL_RemoveTimer(SDL_TimerID tid)
