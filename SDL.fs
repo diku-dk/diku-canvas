@@ -99,7 +99,7 @@ let convertEvent (event: SDL_Event) =
         | c when c = SDL_QUIT -> Quit
         | c when c = SDL_KEYDOWN -> event.key |> KeyDown
         | c when c = SDL_KEYUP -> event.key |> KeyUp
-        | c when c = SDL_USEREVENT -> event.user |> User
+        | c when c >= SDL_USEREVENT -> event.user |> User
         | _ -> event |> Raw
 
 
