@@ -50,10 +50,10 @@ let setLine (C:canvas) (c: color) (x1:int,y1:int) (x2:int,y2:int) : unit =
   let m = max (abs(y2-y1)) (abs(x2-x1))
   if m = 0 then ()
   else 
-    for i in [0..m] do
-    let x = ((m-i)*x1 + i*x2) / m
-    let y = ((m-i)*y1 + i*y2) / m
-    setPixel C c (x,y)
+    for i in 0..m do
+        let x = ((m-i)*x1 + i*x2) / m
+        let y = ((m-i)*y1 + i*y2) / m
+        setPixel C c (x,y)
 
 // draw a box
 let setBox (C:canvas) (c:color) (x1:int,y1:int) (x2:int,y2:int) : unit =
@@ -63,9 +63,9 @@ let setBox (C:canvas) (c:color) (x1:int,y1:int) (x2:int,y2:int) : unit =
   do setLine C c (x1,y2) (x1,y1)
 
 let setFillBox (C:canvas) (c:color) (x1:int,y1:int) (x2:int,y2:int) : unit =
-  for x in [x1..x2] do
-    for y in [y1..y2] do
-      do setPixel C c (x,y)
+  for x in x1..x2 do
+    for y in y1..y2 do
+      setPixel C c (x,y)
 
 // get a pixel color from a bitmap
 let getPixel (C:canvas) (x:int,y:int) : color =   // rgba
@@ -78,8 +78,8 @@ let getPixel (C:canvas) (x:int,y:int) : color =   // rgba
 // initialize a new bitmap
 let init (w:int) (h:int) (f:int*int->color) : canvas =    // rgba
   let data = Array.create (h*w*4) 0xffuy
-  for y in [0..h-1] do
-    for x in [0..w-1] do
+  for y in 0..h-1 do
+    for x in 0..w-1 do
       let c = f (x,y)
       let i = 4*(y*w+x)
       data[i] <- c.r
