@@ -26,4 +26,4 @@ let react (s:state) (ev:Canvas.event) : state option =
         | _ -> None
 
 let main =
-    runAppWithTimer "Timer Test" 1024 840 (Some 17) draw react (0, 5)
+    runAppWithTimer "Timer Test" WIDTH 840 (Some 17) draw react (0, 5)

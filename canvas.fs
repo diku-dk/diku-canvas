@@ -147,8 +147,11 @@ let runAppWithTimer (t:string) (w:int) (h:int) (interval:int option)
     let windowFlags = SDL.SDL_WindowFlags.SDL_WINDOW_SHOWN |||
                       SDL.SDL_WindowFlags.SDL_WINDOW_INPUT_FOCUS
 
-    SDL.SDL_CreateWindowAndRenderer(viewWidth, viewHeight, windowFlags, &window, &renderer) |> ignore
-    SDL.SDL_SetWindowTitle(window, t) |> ignore
+    window <- SDL.SDL_CreateWindow(t, SDL.SDL_WINDOWPOS_CENTERED, SDL.SDL_WINDOWPOS_CENTERED,
+                                   viewWidth, viewHeight, windowFlags)
+    renderer <- SDL.SDL_CreateRenderer(window, -1, SDL.SDL_RendererFlags.SDL_RENDERER_ACCELERATED |||
+                                                   SDL.SDL_RendererFlags.SDL_RENDERER_PRESENTVSYNC)
+
     let texture = SDL.SDL_CreateTexture(renderer, SDL.SDL_PIXELFORMAT_RGBA32, SDL.SDL_TEXTUREACCESS_STREAMING, viewWidth, viewHeight)
 
     let frameBuffer = Array.create (viewWidth * viewHeight *4 ) (byte(0))
