@@ -17,6 +17,8 @@ type SDL_WindowFlags =
 | SDL_WINDOW_SHOWN = 0x00000004
 | SDL_WINDOW_INPUT_FOCUS = 0x00000200
 
+let SDL_WINDOWPOS_CENTERED = 0x2FFF0000u
+
 let SDL_TEXTUREACCESS_STREAMING = 1
 let SDL_PIXELFORMAT_ARGB8888 = 372645892u
 let SDL_PIXELFORMAT_RGBA8888 = 373694468u
@@ -102,12 +104,27 @@ let convertEvent (event: SDL_Event) =
         | c when c >= SDL_USEREVENT -> event.user |> User
         | _ -> event |> Raw
 
+type SDL_RendererFlags =
+    | SDL_RENDERER_SOFTWARE      = 0x00000001
+    | SDL_RENDERER_ACCELERATED   = 0x00000002
+    | SDL_RENDERER_PRESENTVSYNC  = 0x00000004
+    | SDL_RENDERER_TARGETTEXTURE = 0x00000008
+
 
 [<DllImport(libName, CallingConvention = CallingConvention.Cdecl)>]
 extern int SDL_Init(uint32 flags)
 
 [<DllImport(libName, CallingConvention = CallingConvention.Cdecl)>]
 extern int SDL_CreateWindowAndRenderer (int width, int height, SDL_WindowFlags flags, IntPtr& window, IntPtr& renderer)
+
+[<DllImport(libName, CallingConvention = CallingConvention.Cdecl)>]
+extern IntPtr SDL_CreateWindow([<MarshalAs(UnmanagedType.LPUTF8Str)>] string title,
+                               uint x, uint y, int width, int height, SDL_WindowFlags flags)
+
+
+[<DllImport(libName, CallingConvention = CallingConvention.Cdecl)>]
+extern IntPtr SDL_CreateRenderer(IntPtr window, int index, SDL_RendererFlags flags)
+
 
 [<DllImport(libName, CallingConvention = CallingConvention.Cdecl)>]
 extern unit SDL_SetWindowTitle (IntPtr window, [<MarshalAs(UnmanagedType.LPUTF8Str)>] string title)
