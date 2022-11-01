@@ -67,9 +67,9 @@ let setFillBox (C:canvas) (c:color) (x1:int,y1:int) (x2:int,y2:int) : unit =
     for y in [y1..y2] do
       do setPixel C c (x,y)
 
-// Generate all the points on the circle in the first octant (45 degrees) centered at (0,0)
+// Generate all the points on the circle
 let circlePoints (r: int) : (int * int) list =
-  // Function to find the first 45 degrees of the circle
+  // Function to find the first 45 degrees of the circle centered at (0,0)
   // using the midpoint circle algorithm
   let rec findOctantPoints (x: int) (y: int) (p: int) : (int * int) list =
     if x > y-1 // Sub by 1 to count the last point in the 
