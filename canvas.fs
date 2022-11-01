@@ -67,9 +67,9 @@ let setFillBox (C:canvas) (c:color) (x1:int,y1:int) (x2:int,y2:int) : unit =
     for y in [y1..y2] do
       do setPixel C c (x,y)
 
-// Generate all the points on the circle
+// Generate all the points on the circle in the first octant (45 degrees) centered at (0,0)
 let circlePoints (r: int) : (int * int) list =
-  // Function to find the first 45 degrees of the circle centered at (0,0)
+  // Function to find the first 45 degrees of the circle
   // using the midpoint circle algorithm
   let rec findOctantPoints (x: int) (y: int) (p: int) : (int * int) list =
     if x > y-1 // Sub by 1 to count the last point in the 
@@ -103,26 +103,60 @@ let setCircle (canvas:canvas) (color:color) (x0:int, y0:int) (r:int) : unit =
   for (x,y) in recenteredPoints do
     setPixel canvas color (x, y)
 
+let setFillCircle (canvas: canvas) (color: color) (x0, y0) (r: int) =
+    // This is here since the equality check doesn't produce the same perimeter as the midpoint algorithm.
+    setCircle canvas color (x0, y0) r
 
+    // Find all points within the circle and draw them.
+
+    let rSquared = r * r
+    for x in -r .. r do
+        for y in -r .. r do
+            if x * x + y * y <= rSquared then
+                setPixel canvas color (x0 + x, y0 + y)
+  
 // Draw an arc centered at (x0,y0) with radius r with a start angle and end angle
+// Modulo used to normalise the angles                    
+let inline (%!) a b = (a % b + b) % b
+
+// Find angle interval when normalised to [0, 2PI]
+let withinAngleSector (x: int) (y: int) (startAngle: float) (endAngle: float) =
+    let angle = atan2 (float y) (float x)
+    let angle = angle %! (2.0 * System.Math.PI)
+    (angle >= startAngle && angle <= endAngle) || (angle >= startAngle - 2.0 * System.Math.PI && angle <= endAngle - 2.0 * System.Math.PI)
+
 let strokeArc (canvas: canvas) (color: color) (x0: int, y0: int) (r: int) (startAngle: float) (endAngle: float) : unit =
-  let circle: (int * int) list = circlePoints r
+  // If ∣θ₁-θ₀∣ ≥ 2π then draw a full circle since it is a more efficient implementation.
+  if abs(endAngle - startAngle) >= 2.0 * System.Math.PI
+  then setCircle canvas color (x0, y0) r
+  // Else draw using the arc drawing algorithm.
+  else
+    let startAngle = startAngle %! (2.0 * System.Math.PI)
+    let endAngle = endAngle %! (2.0 * System.Math.PI)
+    let endAngle = if startAngle >= endAngle then endAngle + 2.0 * System.Math.PI else endAngle
 
-  // Get all points within the arc interval
-  let getArc (points: (int * int) list) (startAngle: float) (endAngle: float) : (int * int) list =
-    let getAngle (x: int) (y: int) : float =
-      let angle = atan2 (float y) (float x)
-      if angle < 0.0 then angle + 2.0 * System.Math.PI else angle
+    let filteredPoints = circlePoints r |> List.filter (fun (x, y) -> withinAngleSector x y startAngle endAngle)
 
-    List.filter (fun (x, y) -> 
-      let angle = getAngle x y
-      angle >= startAngle && angle <= endAngle) points
+    filteredPoints |> List.iter (fun (x, y) -> setPixel canvas color (x0 + x, y0 + y))
 
-  let arc: (int * int) list = getArc circle startAngle endAngle
-  let recenteredPoints: (int * int) list = List.map (fun (x, y) -> (x + x0, y + y0)) arc
+let fillArc (canvas: canvas) (color: color) (x0: int, y0: int) (r: int) (startAngle: float) (endAngle: float) : unit =
+  // If ∣θ₁-θ₀∣ ≥ 2π then draw a full circle since it is a more efficient implementation.
+  if abs(endAngle - startAngle) >= 2.0 * System.Math.PI
+  then setFillCircle canvas color (x0, y0) r
+  // Else draw using the arc drawing algorithm.
+  else
+    let startAngle = startAngle %! (2.0 * System.Math.PI)
+    let endAngle = endAngle %! (2.0 * System.Math.PI)
+    let endAngle = if startAngle >= endAngle then endAngle + 2.0 * System.Math.PI else endAngle
 
-  for (x,y) in recenteredPoints do
-    setPixel canvas color (x, y)
+    let rSquared = r * r
+    for x in -r .. r do
+        for y in -r .. r do
+            if x * x + y * y <= rSquared then
+                if withinAngleSector x y startAngle endAngle then
+                    setPixel canvas color (x0 + x, y0 + y)
+
+
 
 // get a pixel color from a bitmap
 let getPixel (C:canvas) (x:int,y:int) : color =   // rgba

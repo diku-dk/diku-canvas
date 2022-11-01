@@ -2,12 +2,14 @@
 open Canvas
 
 
-setCircle canvas black (200, 200) 150
-strokeArc canvas green (200, 200) 100 (1.0*System.Math.PI) (2.0*System.Math.PI) 
-strokeArc canvas blue (200, 200) 100 (0.0*System.Math.PI) (1.0*System.Math.PI) 
-strokeArc canvas red (200, 200) 125 (0.5*System.Math.PI) (1.5*System.Math.PI) 
+let canvas = create 600 600
 
-// Show that arc can draw circle
-strokeArc canvas black (200, 200) 50 (0) (2.0*System.Math.PI) 
+let center = (300, 300) 
+
+for i, angle in [-2.0 * System.Math.PI .. 0.1 * System.Math.PI .. 4.0 * System.Math.PI] |> List.indexed do
+    strokeArc canvas black center (5*(i+1)) (angle) (angle + 1.5 * System.Math.PI)
+
+
+fillArc canvas black (300, 300) 150 0.0 (1.0 * System.Math.PI)
+
 show canvas "Circle test"
-

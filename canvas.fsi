@@ -22,12 +22,15 @@ val getPixel    : canvas -> int * int -> color
 val setLine     : canvas -> color -> int * int -> int * int -> unit
 val setBox      : canvas -> color -> int * int -> int * int -> unit
 val setFillBox  : canvas -> color -> int * int -> int * int -> unit
+// Sector drawing functions
 val setCircle   : canvas -> color -> int * int -> int -> unit
+val setFillCircle : canvas -> color -> int * int -> int -> unit
 val strokeArc   : canvas -> color -> int * int -> int -> float -> float -> unit
+val fillArc     : canvas -> color -> int * int -> int -> float -> float -> unit
+
 val width       : canvas -> int
 val height      : canvas -> int
 val scale       : canvas -> int -> int -> canvas
-val circlePoints: int -> (int*int) list
 
 /// Turtle graphics
 type turtleCmd = 
