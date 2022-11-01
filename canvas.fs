@@ -67,6 +67,63 @@ let setFillBox (C:canvas) (c:color) (x1:int,y1:int) (x2:int,y2:int) : unit =
     for y in [y1..y2] do
       do setPixel C c (x,y)
 
+// Generate all the points on the circle in the first octant (45 degrees) centered at (0,0)
+let circlePoints (r: int) : (int * int) list =
+  // Function to find the first 45 degrees of the circle
+  // using the midpoint circle algorithm
+  let rec findOctantPoints (x: int) (y: int) (p: int) : (int * int) list =
+    if x > y-1 // Sub by 1 to count the last point in the 
+    then 
+      let y' = y + 1
+      if p <= 0
+      then 
+        let p' = p + 2*y' + 1
+        (x, y) :: findOctantPoints x y' p'
+      else
+        let x' = x - 1
+        let p' = p + 2*y' + 1 - 2*x'
+        (x, y) :: findOctantPoints x' y' p'
+    else []
+
+  let eightPoints (x: int) (y: int) = 
+      [(x, y); (-x, y); (x, -y); (-x, -y); 
+        (y, x); (-y, x); (y, -x); (-y, -x)]
+
+  // Initial variables for midpoint circle algorithm
+  let x = r
+  let p = 1-r
+  let y = 0
+
+  List.map (fun (x, y) -> eightPoints x y) (findOctantPoints x y p) |> List.concat
+
+// Draw a circle centered at (x0,y0) with radius r
+let setCircle (canvas:canvas) (color:color) (x0:int, y0:int) (r:int) : unit =
+  let circle = circlePoints r
+  let recenteredPoints: (int * int) list = List.map (fun (x, y) -> (x + x0, y + y0)) circle
+  for (x,y) in recenteredPoints do
+    setPixel canvas color (x, y)
+
+
+// Draw an arc centered at (x0,y0) with radius r with a start angle and end angle
+let strokeArc (canvas: canvas) (color: color) (x0: int, y0: int) (r: int) (startAngle: float) (endAngle: float) : unit =
+  let circle: (int * int) list = circlePoints r
+
+  // Get all points within the arc interval
+  let getArc (points: (int * int) list) (startAngle: float) (endAngle: float) : (int * int) list =
+    let getAngle (x: int) (y: int) : float =
+      let angle = atan2 (float y) (float x)
+      if angle < 0.0 then angle + 2.0 * System.Math.PI else angle
+
+    List.filter (fun (x, y) -> 
+      let angle = getAngle x y
+      angle >= startAngle && angle <= endAngle) points
+
+  let arc: (int * int) list = getArc circle startAngle endAngle
+  let recenteredPoints: (int * int) list = List.map (fun (x, y) -> (x + x0, y + y0)) arc
+
+  for (x,y) in recenteredPoints do
+    setPixel canvas color (x, y)
+
 // get a pixel color from a bitmap
 let getPixel (C:canvas) (x:int,y:int) : color =   // rgba
   let i = 4*(y*C.w+x)
