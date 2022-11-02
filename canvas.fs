@@ -146,20 +146,23 @@ let runApp (t:string) (w:int) (h:int)
 
     SDL.SDL_CreateWindowAndRenderer(viewWidth, viewHeight, windowFlags, &window, &renderer) |> ignore
     SDL.SDL_SetWindowTitle(window, t) |> ignore
-    let texture = SDL.SDL_CreateTexture(renderer, SDL.SDL_PIXELFORMAT_RGBA32, SDL.SDL_TEXTUREACCESS_STREAMING, viewWidth, viewHeight)
+    
+    //Our buffer and texture size is dependent on the first frame. 
+    let firstFrame = draw w h (!state)
 
-    let frameBuffer = Array.create (viewWidth * viewHeight *4 ) (byte(0))
+    let texture = SDL.SDL_CreateTexture(renderer, SDL.SDL_PIXELFORMAT_RGBA32, SDL.SDL_TEXTUREACCESS_STREAMING, firstFrame.w, firstFrame.h)
+    let frameBuffer = Array.create (firstFrame.w * firstFrame.h * 4) (byte(0))
+    
     let bufferPtr = IntPtr ((Marshal.UnsafeAddrOfPinnedArrayElement (frameBuffer, 0)).ToPointer ())
     let mutable keyEvent = SDL.SDL_KeyboardEvent 0u
 
     let rec drawLoop redraw =
         if redraw then
             let canvas = draw w h (!state)
-            // FIXME: what if canvas does not have dimensions w*h? See issue #13
-
+            
             Array.blit canvas.data 0 frameBuffer 0 canvas.data.Length
-
-            SDL.SDL_UpdateTexture(texture, IntPtr.Zero, bufferPtr, viewWidth * 4) |> ignore
+            
+            SDL.SDL_UpdateTexture(texture, IntPtr.Zero, bufferPtr, canvas.w * 4) |> ignore
             SDL.SDL_RenderClear(renderer) |> ignore
             SDL.SDL_RenderCopy(renderer, texture, IntPtr.Zero, IntPtr.Zero) |> ignore
             SDL.SDL_RenderPresent(renderer) |> ignore
