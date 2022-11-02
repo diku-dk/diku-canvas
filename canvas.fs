@@ -147,12 +147,11 @@ let runApp (t:string) (w:int) (h:int)
     SDL.SDL_CreateWindowAndRenderer(viewWidth, viewHeight, windowFlags, &window, &renderer) |> ignore
     SDL.SDL_SetWindowTitle(window, t) |> ignore
     
-    //Our buffer and texture size is dependent on the first frame. 
     let firstFrame = draw w h (!state)
 
     let texture = SDL.SDL_CreateTexture(renderer, SDL.SDL_PIXELFORMAT_RGBA32, SDL.SDL_TEXTUREACCESS_STREAMING, firstFrame.w, firstFrame.h)
-    let frameBuffer = Array.create (firstFrame.w * firstFrame.h * 4) (byte(0))
     
+    let frameBuffer = Array.create (firstFrame.w * firstFrame.h * 4) (byte(0))
     let bufferPtr = IntPtr ((Marshal.UnsafeAddrOfPinnedArrayElement (frameBuffer, 0)).ToPointer ())
     let mutable keyEvent = SDL.SDL_KeyboardEvent 0u
 
