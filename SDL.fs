@@ -25,7 +25,11 @@ let SDL_PIXELFORMAT_RGBA32 = if BitConverter.IsLittleEndian
                              then SDL_PIXELFORMAT_ABGR8888
                              else SDL_PIXELFORMAT_RGBA8888
 let SDL_KEYDOWN = 0x300u
-let SDL_KEYUP = 769u
+let SDL_KEYUP = 0x301u
+let SDL_MOUSEMOTION = 0x400u;
+let SDL_MOUSEBUTTONDOWN = 0x401u;
+let SDL_MOUSEBUTTONUP = 0x402u;
+
 // Define keycodes for SDL
 // https://wiki.libsdl.org/SDLKeycodeLookup
 let SDLK_ESCAPE = 27u
@@ -36,11 +40,11 @@ let SDLK_DOWN = 1073741905u
 let SDLK_UP = 1073741906u
 let SDL_QUIT = 0x100u
 
-[<type:StructLayout(LayoutKind.Sequential)>]
+[<type:StructLayout(LayoutKind.Sequential, Size=16)>]
 type SDL_Keysym = {
-    scancode: SDL_Scancode
+    scancode: uint32 //SDL_Scancode
     sym: uint32
-    ``mod``: SDL_Keymod
+    ``mod``: uint32 //SDL_Keymod
     unicode: uint32
 }
 and SDL_Scancode =
@@ -48,30 +52,146 @@ and SDL_Scancode =
 and SDL_Keymod =
 | KMOD_NONE = 0x0000
 
-[<type:StructLayout(LayoutKind.Sequential)>]
-type SDL_KeyboardEvent =
-    struct
-        val ``type``: uint32
-        val timestamp: uint32
-        val windowID: uint32
-        val state: byte
-        val repeat: byte
-        val private padding2: byte
-        val private padding3: byte
-        val keysym: SDL_Keysym
-        new (t) =     { ``type`` = t ;
-                       timestamp = 0u;
-                       windowID = 0u;
-                       state = 0uy;
-                       repeat = 0uy;
-                       padding2 = 0uy;
-                       padding3 = 0uy;
-                       keysym = { scancode = SDL_Scancode.SDL_SCANCODE_ESCAPE;
-                                  sym = 0u;
-                                  ``mod`` = SDL_Keymod.KMOD_NONE;
-                                  unicode = 0u }}
 
+// dotnet is not fond of the SDL_Event which is a union of different structs
+// So instead, we write this beautiful struct of chunks
+// And process the individual bytes into records
+[<type:StructLayout(LayoutKind.Explicit, Size=32)>]
+type SDL_Event =
+    struct
+        [<FieldOffset(0)>]
+        val ``type``: uint32
+        [<FieldOffset(4)>]
+        val timestamp: uint32
+        [<FieldOffset(8)>]
+        val chunk1: uint32
+        [<FieldOffset(12)>]
+        val chunk2: uint32
+        [<FieldOffset(16)>]
+        val chunk3: uint32
+        [<FieldOffset(20)>]
+        val chunk4: uint32
+        [<FieldOffset(24)>]
+        val chunk5: uint32
+        [<FieldOffset(28)>]
+        val chunk6: uint32
+        [<FieldOffset(32)>]
+        val chunk7: uint32
+        [<FieldOffset(36)>]
+        val chunk8: uint32
+        [<FieldOffset(40)>]
+        val chunk9: uint32
+        [<FieldOffset(44)>]
+        val chunk10: uint32
+        [<FieldOffset(48)>]
+        val chunk11: uint32
+        [<FieldOffset(52)>]
+        val chunk12: uint32
+        
+        new (t) = {
+                    ``type`` = t;
+                    timestamp = 0u;
+                    chunk1 = 0u;
+                    chunk2 = 0u;
+                    chunk3 = 0u;
+                    chunk4 = 0u;
+                    chunk5 = 0u;
+                    chunk6 = 0u;
+                    chunk7 = 0u;
+                    chunk8 = 0u;
+                    chunk9 = 0u;
+                    chunk10 = 0u;
+                    chunk11 = 0u;
+                    chunk12 = 0u;
+                  }
     end
+
+
+type SDL_KeyboardEvent =
+    {
+        ``type``: uint32
+        timestamp: uint32
+        windowID: uint32
+        state: byte
+        repeat: byte
+        padding2: byte
+        padding3: byte
+        keysym: SDL_Keysym
+    }
+
+type SDL_MouseButtonEvent =
+    {
+        ``type``: uint32
+        timestamp: uint32
+        windowID: uint32
+        which: uint32
+        button: byte
+        state: byte
+        clicks: byte
+        padding1: byte
+        x: int32
+        y: int32
+    }
+
+
+type SDL_MouseMotionEvent =
+    {
+        ``type``: uint32
+        timestamp: uint32
+        windowID: uint32
+        which: uint32
+        state: uint32
+        x: int32
+        y: int32
+        xrel: int32
+        yrel: int32
+    }
+    
+
+    
+
+let toKeyboardEvent (event:SDL_Event) =    
+    { ``type`` = event.``type``;
+      timestamp = event.timestamp;
+      windowID = event.chunk1;
+      state = byte (event.chunk2 &&& 255u);
+      repeat = byte ((event.chunk2 &&& 0xff00u) >>> 8);
+      padding2 = 0uy;
+      padding3 = 0uy;
+      keysym = {
+                   scancode = event.chunk3;
+                   sym = event.chunk4;
+                   ``mod`` = event.chunk5 &&& 0xFFFFu;
+                   unicode = event.chunk6;
+               }
+    }
+
+
+let toMouseButtonEvent (event:SDL_Event) =    
+    { ``type`` = event.``type``;
+      timestamp = event.timestamp;
+      windowID = event.chunk1;
+      which = event.chunk2;
+      button = byte (event.chunk3 &&& 255u);
+      state = byte ((event.chunk3 &&& 0xff00u) >>> 8);
+      clicks = byte ((event.chunk3 &&& 0xff0000u) >>> 16);
+      padding1 = 0uy;
+      x = int event.chunk4;
+      y = int event.chunk5;      
+    }
+
+let toMouseMotionEvent (event:SDL_Event) =    
+    { ``type`` = event.``type``;
+      timestamp = event.timestamp;
+      windowID = event.chunk1;
+      which = event.chunk2;
+      state = event.chunk3;
+      x = int event.chunk4;
+      y = int event.chunk5;
+      xrel = int event.chunk6;
+      yrel = int event.chunk7;
+    }
+
 
 
 [<DllImport(libName, CallingConvention = CallingConvention.Cdecl)>]
@@ -87,11 +207,12 @@ extern unit SDL_SetWindowTitle (IntPtr window, [<MarshalAs(UnmanagedType.LPUTF8S
 extern uint32 SDL_GetTicks();
 
 [<DllImport(libName, CallingConvention = CallingConvention.Cdecl)>]
-extern int SDL_PollEvent(SDL_KeyboardEvent& _event)
+// extern int SDL_PollEvent(SDL_KeyboardEvent& _event)
+extern int SDL_PollEvent(SDL_Event& _event)
 
 [<DllImport(libName, CallingConvention = CallingConvention.Cdecl)>]
-extern int SDL_WaitEvent(SDL_KeyboardEvent& _event)
-
+// extern int SDL_WaitEvent(SDL_KeyboardEvent& _event)
+extern int SDL_WaitEvent(SDL_Event& _event)
 
 [<DllImport(libName, CallingConvention = CallingConvention.Cdecl)>]
 extern IntPtr SDL_CreateTexture (IntPtr renderer, uint32 format, int access, int width, int height)

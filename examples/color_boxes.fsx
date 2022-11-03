@@ -1,4 +1,5 @@
-#r "nuget:DIKU.Canvas"
+#i "nuget:/home/mads/Documents/diku/instruktor/pop2022/imgUtilTesting/diku-canvas/bin/Debug"
+#r "nuget:DIKU.Canvas, 1.0.3"
 
 open Canvas
 

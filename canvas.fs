@@ -150,8 +150,7 @@ let runApp (t:string) (w:int) (h:int)
 
     let frameBuffer = Array.create (viewWidth * viewHeight *4 ) (byte(0))
     let bufferPtr = IntPtr ((Marshal.UnsafeAddrOfPinnedArrayElement (frameBuffer, 0)).ToPointer ())
-    let mutable keyEvent = SDL.SDL_KeyboardEvent 0u
-
+    let mutable sdlEvent = SDL.SDL_Event 0u
     let rec drawLoop redraw =
         if redraw then
             let canvas = draw w h (!state)
@@ -164,19 +163,28 @@ let runApp (t:string) (w:int) (h:int)
             SDL.SDL_RenderCopy(renderer, texture, IntPtr.Zero, IntPtr.Zero) |> ignore
             SDL.SDL_RenderPresent(renderer) |> ignore
 
-        let ret = SDL.SDL_WaitEvent(&keyEvent)
+        let ret = SDL.SDL_WaitEvent(&sdlEvent)
         if ret = 0 then () // an error happened so we exit
-        else if keyEvent.``type`` = SDL.SDL_QUIT then ()
-        else if (keyEvent.``type`` = SDL.SDL_KEYDOWN) then
-             if keyEvent.keysym.sym = SDL.SDLK_ESCAPE then
+        if sdlEvent.``type`` = SDL.SDL_QUIT then ()
+        else if (sdlEvent.``type`` = SDL.SDL_KEYDOWN) then
+            let ke = SDL.toKeyboardEvent sdlEvent
+            let k = ke.keysym.sym
+            if k = SDL.SDLK_ESCAPE then
                  () // quit the game by exiting the loop
-             else
-                 let k = keyEvent.keysym.sym
-                 let redraw =
-                     match onKeyDown (!state) (Keysym (int k)) with
-                         | Some s -> (state := s; true)
-                         | None   -> false
-                 drawLoop redraw
+            else
+                let redraw =
+                    match onKeyDown (!state) (Keysym (int k)) with
+                        | Some s -> (state := s; true)
+                        | None   -> false
+                drawLoop redraw
+        else if (sdlEvent.``type`` = SDL.SDL_MOUSEBUTTONDOWN) then
+            let me = SDL.toMouseButtonEvent sdlEvent
+            // printfn "x: %d, y: %d, button: %A" me.x me.y me.button
+            drawLoop false
+        else if (sdlEvent.``type`` = SDL.SDL_MOUSEMOTION) then
+            let me = SDL.toMouseMotionEvent sdlEvent
+            // printfn "x: %d, y: %d, xrel: %d, yrel: %d" me.x me.y me.xrel me.yrel
+            drawLoop false
         else
             drawLoop false
 
