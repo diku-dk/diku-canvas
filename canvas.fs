@@ -130,9 +130,15 @@ let getKey (k:key) : ImgUtilKey =
         | _ when kval = SDL.SDLK_RIGHT -> RightArrow
         | _ -> Unknown
 
+
+
 type event =
     | KeyDown of key
     | TimerTick
+    | MouseButtonDown of int * int // x,y
+    | MouseButtonUp of int * int // x,y
+    | MouseMotion of int * int * int * int // x,y, relx, rely
+
 
 let runAppWithTimer (t:string) (w:int) (h:int) (interval:int option)
            (draw: int -> int -> 's -> canvas)
@@ -206,6 +212,27 @@ let runAppWithTimer (t:string) (w:int) (h:int) (interval:int option)
                         match react (!state) TimerTick with
                             | Some s -> (state := s; true)
                             | None   -> false
+                    drawLoop redraw
+                | SDL.MouseButtonDown mouseButtonEvent ->
+                    let mouseEvent = (mouseButtonEvent.x,mouseButtonEvent.y) |> MouseButtonDown
+                    let redraw =
+                        match react (!state) mouseEvent with
+                            | Some s -> (state := s; true)
+                            | None -> false
+                    drawLoop redraw
+                | SDL.MouseButtonUp mouseButtonEvent ->
+                    let mouseEvent = (mouseButtonEvent.x,mouseButtonEvent.y) |> MouseButtonUp
+                    let redraw =
+                        match react (!state) mouseEvent with
+                            | Some s -> (state := s; true)
+                            | None -> false
+                    drawLoop redraw
+                | SDL.MouseMotion mouseMotion ->
+                    let mouseEvent = (mouseMotion.x,mouseMotion.y,mouseMotion.xrel, mouseMotion.yrel) |> MouseMotion
+                    let redraw =
+                        match react (!state) mouseEvent with
+                            | Some s -> (state := s; true)
+                            | None -> false
                     drawLoop redraw
                 | _ ->
                     drawLoop false
