@@ -129,9 +129,9 @@ type Event =
     | Quit
     | KeyDown of SDL_KeyboardEvent
     | KeyUp of SDL_KeyboardEvent
+    | MouseMotion of SDL_MouseMotionEvent
     | MouseButtonDown of SDL_MouseButtonEvent
     | MouseButtonUp of SDL_MouseButtonEvent
-    | MouseMotion of SDL_MouseMotionEvent
     | User of SDL_UserEvent
     | Raw of SDL_Event
 
@@ -140,10 +140,10 @@ let convertEvent (event: SDL_Event) =
         | c when c = SDL_QUIT -> Quit
         | c when c = SDL_KEYDOWN -> event.key |> KeyDown
         | c when c = SDL_KEYUP -> event.key |> KeyUp
-        | c when c >= SDL_USEREVENT -> event.user |> User
+        | c when c = SDL_MOUSEMOTION -> event.motion |> MouseMotion
         | c when c = SDL_MOUSEBUTTONDOWN -> event.button |> MouseButtonDown
         | c when c = SDL_MOUSEBUTTONUP -> event.button |> MouseButtonUp
-        | c when c = SDL_MOUSEMOTION -> event.motion |> MouseMotion
+        | c when c >= SDL_USEREVENT -> event.user |> User
         | _ -> event |> Raw
 
 type SDL_RendererFlags =
