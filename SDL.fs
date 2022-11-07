@@ -28,6 +28,9 @@ let SDL_PIXELFORMAT_RGBA32 = if BitConverter.IsLittleEndian
                              else SDL_PIXELFORMAT_RGBA8888
 let SDL_KEYDOWN = 0x300u
 let SDL_KEYUP = 0x301u
+let SDL_MOUSEMOTION = 0x400u
+let SDL_MOUSEBUTTONDOWN = 0x401u
+let SDL_MOUSEBUTTONUP = 0x402u
 // Define keycodes for SDL
 // https://wiki.libsdl.org/SDLKeycodeLookup
 let SDLK_ESCAPE = 27u
@@ -76,6 +79,35 @@ type SDL_UserEvent=
         val data2: IntPtr
     end
 
+[<StructLayout(LayoutKind.Sequential)>]
+type SDL_MouseButtonEvent=
+    struct
+        val ``type``: uint32
+        val timestamp: uint32
+        val windowID: uint32
+        val which: uint32
+        val button: byte
+        val state: byte
+        val clicks: byte
+        val padding1: byte
+        val x: int32
+        val y: int32
+    end
+
+[<StructLayout(LayoutKind.Sequential)>]
+type SDL_MouseMotionEvent=
+    struct
+        val ``type``: uint32
+        val timestamp: uint32
+        val windowID: uint32
+        val which: uint32
+        val state: uint32
+        val x: int32
+        val y: int32
+        val xrel: int32
+        val yrel: int32
+    end
+
 // Trick to encode a C union type
 #nowarn "9"
 [<StructLayout(LayoutKind.Explicit, Size=56)>]
@@ -87,12 +119,19 @@ type SDL_Event =
         val key: SDL_KeyboardEvent
         [<FieldOffset(0)>]
         val user: SDL_UserEvent
+        [<FieldOffset(0)>]
+        val button: SDL_MouseButtonEvent
+        [<FieldOffset(0)>]
+        val motion: SDL_MouseMotionEvent
     end
 
 type Event =
     | Quit
     | KeyDown of SDL_KeyboardEvent
     | KeyUp of SDL_KeyboardEvent
+    | MouseButtonDown of SDL_MouseButtonEvent
+    | MouseButtonUp of SDL_MouseButtonEvent
+    | MouseMotion of SDL_MouseMotionEvent
     | User of SDL_UserEvent
     | Raw of SDL_Event
 
@@ -102,6 +141,9 @@ let convertEvent (event: SDL_Event) =
         | c when c = SDL_KEYDOWN -> event.key |> KeyDown
         | c when c = SDL_KEYUP -> event.key |> KeyUp
         | c when c >= SDL_USEREVENT -> event.user |> User
+        | c when c = SDL_MOUSEBUTTONDOWN -> event.button |> MouseButtonDown
+        | c when c = SDL_MOUSEBUTTONUP -> event.button |> MouseButtonUp
+        | c when c = SDL_MOUSEMOTION -> event.motion |> MouseMotion
         | _ -> event |> Raw
 
 type SDL_RendererFlags =
