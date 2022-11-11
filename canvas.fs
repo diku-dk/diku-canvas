@@ -219,7 +219,7 @@ let runApp (title:string) (width:int) (height:int)
     SDL.SDL_Quit()
     ()
 
-let runSimpleApp title width height (draw: int->int->canvas) : unit =
+let runSimpleApp title width height (draw: int -> int -> canvas) : unit =
   runApp title width height (fun width height () -> draw width height)
                (fun _ _ -> None) ()
 
