@@ -212,28 +212,28 @@ type turtleCmd =
 // Interpreter turning commands into lines
 type line = point * point * color
 
-let rec interp (point:point, angle:int, color:color, up:bool) (cmds : turtleCmd list) (acc:line list) : line list =
+let rec turtleInterpreter (point:point, angle:int, color:color, isDrawing:bool) (cmds : turtleCmd list) (acc:line list) : line list =
   match cmds with
     | [] -> acc
-    | SetColor color :: cmds -> interp (point, angle, color, up) cmds acc
-    | Turn dAngle :: cmds -> interp (point, angle-dAngle, color, up) cmds acc
-    | PenUp :: cmds -> interp (point, angle, color, true) cmds acc
-    | PenDown :: cmds -> interp (point, angle, color, false) cmds acc
+    | SetColor color :: cmds -> turtleInterpreter (point, angle, color, isDrawing) cmds acc
+    | Turn dAngle :: cmds -> turtleInterpreter (point, angle-dAngle, color, isDrawing) cmds acc
+    | PenUp :: cmds -> turtleInterpreter (point, angle, color, false) cmds acc
+    | PenDown :: cmds -> turtleInterpreter (point, angle, color, true) cmds acc
     | Move length :: cmds ->
       let red = 2.0 * System.Math.PI * float angle / 360.0
       let dx = int(float length * cos red)
       let dy = -int(float length * sin red)
       let (x,y) = point
       let point2 = (x+dx,y+dy)
-      let acc2 = if up then acc else (point, point2, color)::acc
-      interp (point2, angle, color, up) cmds acc2
+      let acc2 = if isDrawing then (point, point2, color) :: acc else acc
+      turtleInterpreter (point2, angle, color, up) cmds acc2
 
-let turtleDraw (width:int,height:int) (title:string) (pic:turtleCmd list) : unit =
+let turtleDraw (width:int, height:int) (title:string) (pic:turtleCmd list) : unit =
   let canvas = create width height
   let center = (width/2, height/2)
-  let dir_up = 90
-  let initState = (center, dir_up, black, false)
-  let lines = interp initState pic []
-  for (p1, point2, color) in lines do
-    do setLine canvas color p1 point2
+  let dir_up = 90 // Turtle is initialised to pointing upwards
+  let initialState = (center, dir_up, black, true)
+  let lines = turtleInterpreter initialState pic []
+  for (point1, point2, color) in lines do
+    do setLine canvas color point1 point2
   do show canvas title
