@@ -1,14 +1,21 @@
-open ImgUtil
+#r "nuget:DIKU.Canvas"
 
-let rec triangle bm len (x,y) =
-  if len < 12 then
-    setBox blue (x,y) (x+len,y+len) bm
-  else let half = len / 2
-       do triangle bm half (x+half/2,y)
-       do triangle bm half (x,y+half)
-       do triangle bm half (x+half,y+half)
+open Canvas
 
-do runSimpleApp "Sierpinski" 600 600
-      (fun w h -> let bm = mk w h
-                  in triangle bm 512 (44,44);
-                     bm)
+// This program draws a Sierpinski triangle. An interactive version
+// can be found in "keyboard_example.fsx".
+let rec triangle (canvas:canvas) length (x, y) =
+  if length < 12 then
+    setBox canvas blue (x,y) (x+length,y+length) 
+  else 
+    let halfLen = length / 2
+    triangle canvas halfLen (x+halfLen/2, y)
+    triangle canvas halfLen (x, y+halfLen)
+    triangle canvas halfLen (x+halfLen, y+halfLen)
+
+let draw w h = 
+  let canvas = Canvas.create w h
+  triangle canvas 512 (44, 44)
+  canvas
+
+runSimpleApp "Sierpinski" 600 600 draw

@@ -28,14 +28,14 @@ let getPalette (c:state) : (color * color * color * color) =
         | YellowStart -> (yellow,red,green,blue)
 
 let draw w h (s:state) =
-  let bm = Canvas.create w h
+  let canvas = Canvas.create w h
   let half = w / 2
   let (c1,c2,c3,c4) = getPalette s
-  setFillBox bm c1 (0, 0) (half-1,half-1)
-  setFillBox bm c2 (0,half-1) (half-1,h)
-  setFillBox bm c3 (half,half) (w,h)
-  setFillBox bm c4 (half,0) (w,half-1)
-  bm
+  setFillBox canvas c1 (0, 0) (half-1,half-1)
+  setFillBox canvas c2 (0,half-1) (half-1,h)
+  setFillBox canvas c3 (half,half) (w,h)
+  setFillBox canvas c4 (half,0) (w,half-1)
+  canvas
 
 let react (s:state) (k:Canvas.key) : state option =
     match getKey k with
