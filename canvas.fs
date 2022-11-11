@@ -249,19 +249,27 @@ let rec turtleInterpreter (point:point, angle:int, color:color, isDrawing:bool) 
     | PenUp :: cmds -> turtleInterpreter (point, angle, color, false) cmds acc
     | PenDown :: cmds -> turtleInterpreter (point, angle, color, true) cmds acc
     | Move length :: cmds ->
-      let radius = System.Math.PI * float angle / 180.0
-      let dx = int(float length * cos radius)
-      let dy = -int(float length * sin radius)
-      let (x, y) = point
-      let point2 = (x+dx, y+dy)
-      let acc2 = if isDrawing then (point, point2, color) :: acc else acc
-      turtleInterpreter (point2, angle, color, isDrawing) cmds acc2
+
+      let point2 = 
+        let radius = System.Math.PI * float angle / 180.0
+        let dx = int(float length * cos radius)
+        let dy = -int(float length * sin radius)
+        let (x,y) = point
+        (x+dx, y+dy)
+
+      let acc2 = 
+        if isDrawing then 
+          (point, point2, color) :: acc 
+        else 
+          acc turtleInterpreter (point2, angle, color, isDrawing) cmds acc2
 
 let turtleDraw (width:int, height:int) (title:string) (pic:turtleCmd list) : unit =
+  let initialState = 
+    let center = (width/2, height/2)
+    let dir_up = 90 // Turtle is initialised to pointing upwards
+    (center, dir_up, black, true)
+
   let canvas = create width height
-  let center = (width/2, height/2)
-  let dir_up = 90 // Turtle is initialised to pointing upwards
-  let initialState = (center, dir_up, black, true)
   let lines = turtleInterpreter initialState pic []
   for (point1, point2, color) in lines do
     do setLine canvas color point1 point2
