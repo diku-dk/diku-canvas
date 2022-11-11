@@ -3,23 +3,33 @@ open System.Runtime.InteropServices
 open System
 
 // colors
-type color = {red:byte;green:byte;blue:byte;alpha:byte}
+type color = {red:byte; green:byte; blue:byte; alpha:byte}
 
-let fromArgb (red:int,green:int,blue:int,alpha:int) : color =
-  {red=byte(red); green=byte(green); blue=byte(blue); alpha=byte(alpha)}
+let fromArgb (red:int, green:int, blue:int, alpha:int) : color =
+  {
+    red = byte(red);
+    green = byte(green);
+    blue = byte(blue);
+    alpha = byte(alpha)
+  }
 
-let fromRgb (red:int,green:int,blue:int) : color = fromArgb (red,green,blue,255)
+let fromRgb (red:int, green:int, blue:int) : color = fromArgb (red, green, blue, 255)
 
-let red : color = fromRgb(255,0,0)
-let green : color = fromRgb(0,255,0)
-let blue : color = fromRgb(0,0,255)
-let yellow : color = fromRgb(255,255,0)
-let lightgrey : color = fromRgb (220,220,220)
-let white : color = fromRgb (255,255,255)
-let black : color = fromRgb (0,0,0)
+let red : color = fromRgb(255, 0, 0)
+let green : color = fromRgb(0, 255, 0)
+let blue : color = fromRgb(0, 0, 255)
+let yellow : color = fromRgb(255, 255, 0)
+let lightgrey : color = fromRgb (220, 220, 220)
+let white : color = fromRgb (255, 255, 255)
+let black : color = fromRgb (0, 0, 0)
 
 let fromColor (color: color) : int * int * int * int =
-  (int(color.red),int(color.green),int(color.blue),int(color.alpha))
+  (
+    int(color.red),
+    int(color.green),
+    int(color.blue),
+    int(color.alpha)
+  )
 
 // canvas - 4 bytes for each pixel (red,green,blue,alpha)
 type canvas = {width    : int;
@@ -72,10 +82,12 @@ let setFillBox (canvas:canvas) (color:color) ((x1, y1):point) ((x2,y2):point) : 
 // get a pixel color from a bitmap
 let getPixel (canvas:canvas) ((x, y):point) : color =   // rgba
   let i = 4*(y*canvas.width+x)
-  {red = canvas.data.[i];
-   green = canvas.data.[i+1];
-   blue = canvas.data.[i+2];
-   alpha = canvas.data.[i+3]}
+  {
+    red = canvas.data.[i];
+    green = canvas.data.[i+1];
+    blue = canvas.data.[i+2];
+    alpha = canvas.data.[i+3]
+  }
 
 // initialize a new bitmap
 let init (width:int) (height:int) (f:point->color) : canvas =    // rgba
@@ -88,13 +100,17 @@ let init (width:int) (height:int) (f:point->color) : canvas =    // rgba
       data[i+1] <- color.green
       data[i+2] <- color.blue
       data[i+3] <- color.alpha
-  {height = height; width = width; data = data}
+  {
+    height = height; 
+    width = width;
+    data = data
+  }
 
 // scale a bitmap
-let scale (canvas:canvas) (w2:int) (h2:int) : canvas =
-  let scale_x x = (x * canvas.width) / w2
-  let scale_y y = (y * canvas.height) / h2
-  init w2 h2 (fun (x,y) -> getPixel canvas (scale_x x, scale_y y))
+let scale (canvas:canvas) (w:int) (h:int) : canvas =
+  let scale_x x = (x * canvas.width) / w
+  let scale_y y = (y * canvas.height) / h
+  init w h (fun (x,y) -> getPixel canvas (scale_x x, scale_y y))
 
 
 
@@ -102,15 +118,22 @@ let scale (canvas:canvas) (w2:int) (h2:int) : canvas =
 // read an image file
 let fromFile (filename : string) : canvas =
     use stream = System.IO.File.OpenRead filename
-    let image = StbImageSharp.ImageResult.FromStream(stream, StbImageSharp.ColorComponents.RedGreenBlueAlpha)
-    {height = image.Height; width = image.Width; data = image.Data }
+    let image = StbImageSharp.ImageResult.FromStream(stream, StbImageSharp.ColorComponents.RedGreenBlueAlpha) {
+      height = image.Height;
+      width = image.Width;
+      data = image.Data
+    }
 
 // save a bitmap as a png file
 let toPngFile (canvas : canvas) (filename : string) : unit =
     use stream = System.IO.File.OpenWrite filename
     let imageWriter = new StbImageWriteSharp.ImageWriter()
-    imageWriter.WritePng(canvas.data, canvas.width, canvas.height,
-                         StbImageWriteSharp.ColorComponents.RedGreenBlueAlpha, stream)
+    imageWriter.WritePng(
+      canvas.data, 
+      canvas.width, 
+      canvas.height,
+      StbImageWriteSharp.ColorComponents.RedGreenBlueAlpha, 
+      stream)
 
 type key = Keysym of int
 
@@ -148,7 +171,11 @@ let runApp (title:string) (width:int) (height:int)
 
     SDL.SDL_CreateWindowAndRenderer(view, height, windowFlags, &window, &renderer) |> ignore
     SDL.SDL_SetWindowTitle(window, title) |> ignore
-    let texture = SDL.SDL_CreateTexture(renderer, SDL.SDL_PIXELFORMAT_RGBA32, SDL.SDL_TEXTUREACCESS_STREAMING, view, height)
+    let texture = SDL.SDL_CreateTexture(
+      renderer, SDL.SDL_PIXELFORMAT_RGBA32, 
+      SDL.SDL_TEXTUREACCESS_STREAMING, 
+      view, 
+      height)
 
     let frameBuffer = Array.create (view * height * 4) (byte(0))
     let bufferPtr = IntPtr ((Marshal.UnsafeAddrOfPinnedArrayElement (frameBuffer, 0)).ToPointer ())
@@ -220,11 +247,11 @@ let rec turtleInterpreter (point:point, angle:int, color:color, isDrawing:bool) 
     | PenUp :: cmds -> turtleInterpreter (point, angle, color, false) cmds acc
     | PenDown :: cmds -> turtleInterpreter (point, angle, color, true) cmds acc
     | Move length :: cmds ->
-      let red = 2.0 * System.Math.PI * float angle / 360.0
-      let dx = int(float length * cos red)
-      let dy = -int(float length * sin red)
-      let (x,y) = point
-      let point2 = (x+dx,y+dy)
+      let radius = System.Math.PI * float angle / 180.0
+      let dx = int(float length * cos radius)
+      let dy = -int(float length * sin radius)
+      let (x, y) = point
+      let point2 = (x+dx, y+dy)
       let acc2 = if isDrawing then (point, point2, color) :: acc else acc
       turtleInterpreter (point2, angle, color, isDrawing) cmds acc2
 
