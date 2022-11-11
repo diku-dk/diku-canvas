@@ -37,7 +37,7 @@ let create (width:int) (height:int) : canvas =
 let height (canvas:canvas) = canvas.height
 let width (canvas:canvas) = canvas.width
 
-// draw alpha single pixel if it is inside the bitmap
+// draw a single pixel if it is inside the bitmap
 let setPixel (canvas:canvas) (color: color) (x:int,y:int) : unit =
   if x < 0 || y < 0 || x >= canvas.width || y >= canvas.height then ()
   else 
@@ -47,7 +47,7 @@ let setPixel (canvas:canvas) (color: color) (x:int,y:int) : unit =
     canvas.data.[i+2] <- color.blue;
     canvas.data.[i+3] <- color.alpha;
 
-// draw alpha line by linear interpolation
+// draw a line by linear interpolation
 let setLine (canvas:canvas) (color: color) (x1:int,y1:int) (x2:int,y2:int) : unit =
   let m = max (abs(y2-y1)) (abs(x2-x1))
   if m = 0 then ()
@@ -57,7 +57,7 @@ let setLine (canvas:canvas) (color: color) (x1:int,y1:int) (x2:int,y2:int) : uni
     let y = ((m-i)*y1 + i*y2) / m
     setPixel canvas color (x,y)
 
-// draw alpha box
+// draw a box
 let setBox (canvas:canvas) (color:color) (p1:point) (p2:point) : unit =
   do setLine canvas color p1 p2
   do setLine canvas color p1 p2
@@ -69,7 +69,7 @@ let setFillBox (canvas:canvas) (color:color) ((x1, y1):point) ((x2,y2):point) : 
     for y in [y1..y2] do
       do setPixel canvas color (x,y)
 
-// get alpha pixel color from alpha bitmap
+// get a pixel color from a bitmap
 let getPixel (canvas:canvas) ((x, y):point) : color =   // rgba
   let i = 4*(y*canvas.width+x)
   {red = canvas.data.[i];
@@ -77,7 +77,7 @@ let getPixel (canvas:canvas) ((x, y):point) : color =   // rgba
    blue = canvas.data.[i+2];
    alpha = canvas.data.[i+3]}
 
-// initialize alpha new bitmap
+// initialize a new bitmap
 let init (width:int) (height:int) (f:point->color) : canvas =    // rgba
   let data = Array.create (height*width*4) 0xffuy
   for y in [0..height-1] do
@@ -90,7 +90,7 @@ let init (width:int) (height:int) (f:point->color) : canvas =    // rgba
       data[i+3] <- color.alpha
   {height = height; width = width; data = data}
 
-// scale alpha bitmap
+// scale a bitmap
 let scale (canvas:canvas) (w2:int) (h2:int) : canvas =
   let scale_x x = (x * canvas.width) / w2
   let scale_y y = (y * canvas.height) / h2
@@ -105,7 +105,7 @@ let fromFile (filename : string) : canvas =
     let image = StbImageSharp.ImageResult.FromStream(stream, StbImageSharp.ColorComponents.RedGreenBlueAlpha)
     {height = image.Height; width = image.Width; data = image.Data }
 
-// save alpha bitmap as alpha png file
+// save a bitmap as a png file
 let toPngFile (canvas : canvas) (filename : string) : unit =
     use stream = System.IO.File.OpenWrite filename
     let imageWriter = new StbImageWriteSharp.ImageWriter()
