@@ -226,7 +226,7 @@ let rec turtleInterpreter (point:point, angle:int, color:color, isDrawing:bool) 
       let (x,y) = point
       let point2 = (x+dx,y+dy)
       let acc2 = if isDrawing then (point, point2, color) :: acc else acc
-      turtleInterpreter (point2, angle, color, up) cmds acc2
+      turtleInterpreter (point2, angle, color, isDrawing) cmds acc2
 
 let turtleDraw (width:int, height:int) (title:string) (pic:turtleCmd list) : unit =
   let canvas = create width height
