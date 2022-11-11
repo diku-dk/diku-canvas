@@ -32,9 +32,11 @@ let fromColor (color: color) : int * int * int * int =
   )
 
 // canvas - 4 bytes for each pixel (red,green,blue,alpha)
-type canvas = {width    : int;
-               height    : int;
-               data : byte[]}
+type canvas = {
+    width  : int;
+    height : int;
+    data   : byte[]
+  }
 
 type point = int * int
 
