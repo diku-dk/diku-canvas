@@ -15,13 +15,14 @@ val fromColor : color -> int * int * int * int
 
 // canvas
 type canvas
+type point = int * int
 val create      : int -> int -> canvas
-val init        : int -> int -> (int*int -> color) -> canvas
-val setPixel    : canvas -> color -> int * int -> unit
-val getPixel    : canvas -> int * int -> color
-val setLine     : canvas -> color -> int * int -> int * int -> unit
-val setBox      : canvas -> color -> int * int -> int * int -> unit
-val setFillBox  : canvas -> color -> int * int -> int * int -> unit
+val init        : int -> int -> (point -> color) -> canvas
+val setPixel    : canvas -> color -> point -> unit
+val getPixel    : canvas -> point -> color
+val setLine     : canvas -> color -> point -> point -> unit
+val setBox      : canvas -> color -> point -> point -> unit
+val setFillBox  : canvas -> color -> point -> point -> unit
 val width       : canvas -> int
 val height      : canvas -> int
 val scale       : canvas -> int -> int -> canvas
@@ -33,7 +34,7 @@ type turtleCmd =
   | Move of int       // 1 unit = 1 pixel
   | PenUp
   | PenDown
-val turtleDraw : int*int -> string -> turtleCmd list -> unit
+val turtleDraw : point -> string -> turtleCmd list -> unit
 
 
 /// Load a canvas from an image file (e.g., a png-file)
