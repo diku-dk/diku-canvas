@@ -158,7 +158,7 @@ let getKey (k:key) : ImgUtilKey =
         | _ -> Unknown
 
 // start an app that can listen to key-events
-let runApp (title:string) (width:int) (height:int)
+let runApp (title:string) (viewWidth:int) (viewHeight:int)
            (draw: int -> int -> 's -> canvas)
            (onKeyDown: 's -> key -> 's option) (s:'s) : unit =
 
@@ -166,31 +166,30 @@ let runApp (title:string) (width:int) (height:int)
 
     SDL.SDL_Init(SDL.SDL_INIT_VIDEO) |> ignore
 
-    let view, height = width, height
     let mutable window, renderer = IntPtr.Zero, IntPtr.Zero
     let windowFlags = SDL.SDL_WindowFlags.SDL_WINDOW_SHOWN |||
                       SDL.SDL_WindowFlags.SDL_WINDOW_INPUT_FOCUS
 
-    SDL.SDL_CreateWindowAndRenderer(view, height, windowFlags, &window, &renderer) |> ignore
+    SDL.SDL_CreateWindowAndRenderer(viewWidth, viewHeight, windowFlags, &window, &renderer) |> ignore
     SDL.SDL_SetWindowTitle(window, title) |> ignore
     let texture = SDL.SDL_CreateTexture(
       renderer, SDL.SDL_PIXELFORMAT_RGBA32, 
       SDL.SDL_TEXTUREACCESS_STREAMING, 
-      view, 
-      height)
+      viewWidth, 
+      viewHeight)
 
-    let frameBuffer = Array.create (view * height * 4) (byte(0))
+    let frameBuffer = Array.create (viewWidth * viewHeight * 4) (byte(0))
     let bufferPtr = IntPtr ((Marshal.UnsafeAddrOfPinnedArrayElement (frameBuffer, 0)).ToPointer ())
     let mutable keyEvent = SDL.SDL_KeyboardEvent 0u
 
     let rec drawLoop redraw =
         if redraw then
-            let canvas = draw width height (!state)
+            let canvas = draw viewWidth viewHeight (!state)
             // FIXME: what if canvas does not have dimensions width*height? See issue #13
 
             Array.blit canvas.data 0 frameBuffer 0 canvas.data.Length
 
-            SDL.SDL_UpdateTexture(texture, IntPtr.Zero, bufferPtr, view * 4) |> ignore
+            SDL.SDL_UpdateTexture(texture, IntPtr.Zero, bufferPtr, viewWidth * 4) |> ignore
             SDL.SDL_RenderClear(renderer) |> ignore
             SDL.SDL_RenderCopy(renderer, texture, IntPtr.Zero, IntPtr.Zero) |> ignore
             SDL.SDL_RenderPresent(renderer) |> ignore
