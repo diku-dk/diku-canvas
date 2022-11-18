@@ -120,7 +120,8 @@ let scale (canvas:canvas) (w:int) (h:int) : canvas =
 // read an image file
 let fromFile (filename : string) : canvas =
     use stream = System.IO.File.OpenRead filename
-    let image = StbImageSharp.ImageResult.FromStream(stream, StbImageSharp.ColorComponents.RedGreenBlueAlpha) {
+    let image = StbImageSharp.ImageResult.FromStream(stream, StbImageSharp.ColorComponents.RedGreenBlueAlpha) 
+    {
       height = image.Height;
       width = image.Width;
       data = image.Data
@@ -260,7 +261,9 @@ let rec turtleInterpreter (point:point, angle:int, color:color, isDrawing:bool) 
         if isDrawing then 
           (point, point2, color) :: acc 
         else 
-          acc turtleInterpreter (point2, angle, color, isDrawing) cmds acc2
+          acc 
+      
+      turtleInterpreter (point2, angle, color, isDrawing) cmds acc2
 
 let turtleDraw (width:int, height:int) (title:string) (pic:turtleCmd list) : unit =
   let initialState = 
