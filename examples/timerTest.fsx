@@ -1,5 +1,5 @@
-#i "nuget:/Users/kfl/projects/fsharp-experiments/diku-canvas/bin/Debug"
-#r "nuget:DIKU.Canvas, 1.0.2-alpha1"
+//#i "nuget:/Users/kfl/projects/fsharp-experiments/diku-canvas/bin/Debug"
+#r "nuget:DIKU.Canvas, 1.0.2"
 
 open Canvas
 
