@@ -177,3 +177,16 @@ val runApp    : title: string -> width: int -> height: int
              -> draw: (int -> int -> 's -> canvas)
              -> react: ('s -> key -> 's option)
              -> state: 's -> unit
+
+type event =
+    | KeyDown of key
+    | TimerTick
+    | MouseButtonDown of int * int // x,y
+    | MouseButtonUp of int * int // x,y
+    | MouseMotion of int * int * int * int // x,y, relx, rely
+
+/// Start an app that can listen to key-events and timer-events
+val runAppWithTimer: string -> int -> int -> int option
+             -> (int -> int -> 's -> canvas)
+             -> ('s -> event -> 's option)
+             -> 's -> unit

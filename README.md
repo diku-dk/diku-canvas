@@ -3,7 +3,7 @@ The DIKU.Canvas library
 =======================
 
 [![Nuget](https://img.shields.io/nuget/v/DIKU.Canvas)](https://www.nuget.org/packages/DIKU.Canvas/)
-<img src="https://raw.githubusercontent.com/kfl/img-util-fs/main/images/turtle.png" border="2" width="250" align="right">
+<img src="https://raw.githubusercontent.com/kfl/diku-canvas/main/images/turtle.png" border="2" width="250" align="right">
 
 This library features a number of utility functions for drawing simple
 2d graphics on a canvas, including features for running simple
@@ -162,12 +162,15 @@ MIT license
 
 Copyright 2018-2021 - Martin Elsman
 
+Copyright 2022-2023 - Ken Friis Larsen
+
 ## Contributions
 
 The following individuals have contributed to the DIKU.Canvas (previosly ImgUtil) library:
 
 - Ken Friis Larsen
+- Martin Elsman
 - Mads Dyrvig Obitsø Thomsen
-- Jan Rolandsen
 - Jon Sporring
-- Chris Pritchard (SDL P/Invoke)
+- Jan Rolandsen
+- Chris Pritchard (original SDL P/Invoke)

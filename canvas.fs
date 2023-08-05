@@ -50,10 +50,10 @@ let setLine (C:canvas) (c: color) (x1:int,y1:int) (x2:int,y2:int) : unit =
   let m = max (abs(y2-y1)) (abs(x2-x1))
   if m = 0 then ()
   else 
-    for i in [0..m] do
-    let x = ((m-i)*x1 + i*x2) / m
-    let y = ((m-i)*y1 + i*y2) / m
-    setPixel C c (x,y)
+    for i in 0..m do
+        let x = ((m-i)*x1 + i*x2) / m
+        let y = ((m-i)*y1 + i*y2) / m
+        setPixel C c (x,y)
 
 // draw a box
 let setBox (C:canvas) (c:color) (x1:int,y1:int) (x2:int,y2:int) : unit =
@@ -63,9 +63,9 @@ let setBox (C:canvas) (c:color) (x1:int,y1:int) (x2:int,y2:int) : unit =
   do setLine C c (x1,y2) (x1,y1)
 
 let setFillBox (C:canvas) (c:color) (x1:int,y1:int) (x2:int,y2:int) : unit =
-  for x in [x1..x2] do
-    for y in [y1..y2] do
-      do setPixel C c (x,y)
+  for x in x1..x2 do
+    for y in y1..y2 do
+      setPixel C c (x,y)
 
 // get a pixel color from a bitmap
 let getPixel (C:canvas) (x:int,y:int) : color =   // rgba
@@ -78,8 +78,8 @@ let getPixel (C:canvas) (x:int,y:int) : color =   // rgba
 // initialize a new bitmap
 let init (w:int) (h:int) (f:int*int->color) : canvas =    // rgba
   let data = Array.create (h*w*4) 0xffuy
-  for y in [0..h-1] do
-    for x in [0..w-1] do
+  for y in 0..h-1 do
+    for x in 0..w-1 do
       let c = f (x,y)
       let i = 4*(y*w+x)
       data[i] <- c.r
@@ -130,10 +130,19 @@ let getKey (k:key) : ImgUtilKey =
         | _ when kval = SDL.SDLK_RIGHT -> RightArrow
         | _ -> Unknown
 
-// start an app that can listen to key-events
-let runApp (t:string) (w:int) (h:int)
+
+
+type event =
+    | KeyDown of key
+    | TimerTick
+    | MouseButtonDown of int * int // x,y
+    | MouseButtonUp of int * int // x,y
+    | MouseMotion of int * int * int * int // x,y, relx, rely
+
+
+let runAppWithTimer (t:string) (w:int) (h:int) (interval:int option)
            (draw: int -> int -> 's -> canvas)
-           (onKeyDown: 's -> key -> 's option) (s:'s) : unit =
+           (react: 's -> event -> 's option) (s:'s) : unit =
 
     let state = ref s
 
@@ -144,13 +153,33 @@ let runApp (t:string) (w:int) (h:int)
     let windowFlags = SDL.SDL_WindowFlags.SDL_WINDOW_SHOWN |||
                       SDL.SDL_WindowFlags.SDL_WINDOW_INPUT_FOCUS
 
-    SDL.SDL_CreateWindowAndRenderer(viewWidth, viewHeight, windowFlags, &window, &renderer) |> ignore
-    SDL.SDL_SetWindowTitle(window, t) |> ignore
+    window <- SDL.SDL_CreateWindow(t, SDL.SDL_WINDOWPOS_CENTERED, SDL.SDL_WINDOWPOS_CENTERED,
+                                   viewWidth, viewHeight, windowFlags)
+    renderer <- SDL.SDL_CreateRenderer(window, -1, SDL.SDL_RendererFlags.SDL_RENDERER_ACCELERATED |||
+                                                   SDL.SDL_RendererFlags.SDL_RENDERER_PRESENTVSYNC)
+
     let texture = SDL.SDL_CreateTexture(renderer, SDL.SDL_PIXELFORMAT_RGBA32, SDL.SDL_TEXTUREACCESS_STREAMING, viewWidth, viewHeight)
 
     let frameBuffer = Array.create (viewWidth * viewHeight *4 ) (byte(0))
     let bufferPtr = IntPtr ((Marshal.UnsafeAddrOfPinnedArrayElement (frameBuffer, 0)).ToPointer ())
-    let mutable keyEvent = SDL.SDL_KeyboardEvent 0u
+
+    // Set up a timer
+    let TIMER_EVENT = SDL.SDL_RegisterEvents 1 // TODO: check that we succeed
+    match interval with
+        Some interv when interv > 0 ->
+            let ticker _ =
+                let mutable ev = SDL.SDL_Event()
+                ev.``type`` <- TIMER_EVENT
+                SDL.SDL_PushEvent(&ev) |> ignore
+
+            let timer = new System.Timers.Timer(float interv)
+            timer.AutoReset <- true
+            timer.Elapsed.Add ticker
+            timer.Start()
+        | _ -> // No timer
+            ()
+
+    let mutable event = SDL.SDL_Event()
 
     let rec drawLoop redraw =
         if redraw then
@@ -164,21 +193,49 @@ let runApp (t:string) (w:int) (h:int)
             SDL.SDL_RenderCopy(renderer, texture, IntPtr.Zero, IntPtr.Zero) |> ignore
             SDL.SDL_RenderPresent(renderer) |> ignore
 
-        let ret = SDL.SDL_WaitEvent(&keyEvent)
+        let ret = SDL.SDL_WaitEvent(&event)
         if ret = 0 then () // an error happened so we exit
-        else if keyEvent.``type`` = SDL.SDL_QUIT then ()
-        else if (keyEvent.``type`` = SDL.SDL_KEYDOWN) then
-             if keyEvent.keysym.sym = SDL.SDLK_ESCAPE then
-                 () // quit the game by exiting the loop
-             else
-                 let k = keyEvent.keysym.sym
-                 let redraw =
-                     match onKeyDown (!state) (Keysym (int k)) with
-                         | Some s -> (state := s; true)
-                         | None   -> false
-                 drawLoop redraw
         else
-            drawLoop false
+            match SDL.convertEvent event with
+                | SDL.Quit -> () // quit the game by exiting the loop
+                | SDL.KeyDown keyEvent when keyEvent.keysym.sym = SDL.SDLK_ESCAPE -> ()
+
+                | SDL.KeyDown keyEvent ->
+                    let k = keyEvent.keysym.sym |> int |> Keysym |> KeyDown
+                    let redraw =
+                        match react (!state) k with
+                            | Some s -> (state := s; true)
+                            | None   -> false
+                    drawLoop redraw
+                | SDL.User uev when uev.``type`` = TIMER_EVENT ->
+                    let redraw =
+                        match react (!state) TimerTick with
+                            | Some s -> (state := s; true)
+                            | None   -> false
+                    drawLoop redraw
+                | SDL.MouseButtonDown mouseButtonEvent ->
+                    let mouseEvent = (mouseButtonEvent.x,mouseButtonEvent.y) |> MouseButtonDown
+                    let redraw =
+                        match react (!state) mouseEvent with
+                            | Some s -> (state := s; true)
+                            | None -> false
+                    drawLoop redraw
+                | SDL.MouseButtonUp mouseButtonEvent ->
+                    let mouseEvent = (mouseButtonEvent.x,mouseButtonEvent.y) |> MouseButtonUp
+                    let redraw =
+                        match react (!state) mouseEvent with
+                            | Some s -> (state := s; true)
+                            | None -> false
+                    drawLoop redraw
+                | SDL.MouseMotion mouseMotion ->
+                    let mouseEvent = (mouseMotion.x,mouseMotion.y,mouseMotion.xrel, mouseMotion.yrel) |> MouseMotion
+                    let redraw =
+                        match react (!state) mouseEvent with
+                            | Some s -> (state := s; true)
+                            | None -> false
+                    drawLoop redraw
+                | _ ->
+                    drawLoop false
 
     drawLoop true
 
@@ -187,6 +244,17 @@ let runApp (t:string) (w:int) (h:int)
     SDL.SDL_DestroyWindow window
     SDL.SDL_Quit()
     ()
+
+
+
+// start an app that can listen to key-events
+let runApp (t:string) (w:int) (h:int)
+           (draw: int -> int -> 's -> canvas)
+           (onKeyDown: 's -> key -> 's option) (s:'s) : unit =
+    runAppWithTimer t w h None draw
+       (fun s -> function (KeyDown k) -> onKeyDown s k
+                        | _ -> None)
+       s
 
 let runSimpleApp t w h (draw: int->int->canvas) : unit =
   runApp t w h (fun w h () -> draw w h)

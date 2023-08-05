@@ -15,10 +15,10 @@ let getPalette = function
     | Yellow -> yellow
 
 let draw w h (s:state) =
-  let bm = Canvas.create w h
+  let canvas = create w h
   let c = getPalette s
-  setFillBox bm c (0,0) (w,h)
-  bm
+  setFillBox canvas c (0,0) (w,h)
+  canvas
 
 let react (s:state) (k:Canvas.key) : state option =
     match getKey k with
