@@ -5,10 +5,10 @@ open System
 // colors
 type color = {r:byte;g:byte;b:byte;a:byte}
 
-let fromArgb (r:int,g:int,b:int,a:int) : color =
-  {r=byte(r); g=byte(g); b=byte(b); a=byte(a)}
+let fromArgb (red:int,green:int,blue:int,alpha:int) : color =
+  {r=byte(red); g=byte(green); b=byte(blue); a=byte(alpha)}
 
-let fromRgb (r:int,g:int,b:int) : color = fromArgb (r,g,b,255)
+let fromRgb (red:int,green:int,blue:int) : color = fromArgb (red,green,blue,255)
 
 let red : color = fromRgb(255,0,0)
 let green : color = fromRgb(0,255,0)
@@ -18,8 +18,8 @@ let lightgrey : color = fromRgb (220,220,220)
 let white : color = fromRgb (255,255,255)
 let black : color = fromRgb (0,0,0)
 
-let fromColor (c: color) : int * int * int * int =
-  (int(c.r),int(c.g),int(c.b),int(c.a))
+let fromColor (color: color) : int * int * int * int =
+  (int(color.r),int(color.g),int(color.b),int(color.a))
 
 // canvas - 4 bytes for each pixel (r,g,b,a)
 type canvas = {w    : int;
@@ -27,48 +27,48 @@ type canvas = {w    : int;
                data : byte[]}
 
 // create white opaque canvas
-let create (w:int) (h:int) : canvas =
-  {w = w;
-   h = h;
-   data = Array.create (h*w*4) 0xffuy}
+let create (width:int) (height:int) : canvas =
+  {w = width;
+   h = height;
+   data = Array.create (height*width*4) 0xffuy}
 
 let height (C:canvas) = C.h
 let width (C:canvas) = C.w
 
 // draw a single pixel if it is inside the bitmap
-let setPixel (C:canvas) (c: color) (x:int,y:int) : unit =
+let setPixel (C:canvas) (color: color) ((x:int,y:int) as point) : unit =
   if x < 0 || y < 0 || x >= C.w || y >= C.h then ()
   else 
     let i = 4*(y*C.w+x)
-    C.data.[i]   <- c.r;
-    C.data.[i+1] <- c.g;
-    C.data.[i+2] <- c.b;
-    C.data.[i+3] <- c.a;
+    C.data.[i]   <- color.r;
+    C.data.[i+1] <- color.g;
+    C.data.[i+2] <- color.b;
+    C.data.[i+3] <- color.a;
 
 // draw a line by linear interpolation
-let setLine (C:canvas) (c: color) (x1:int,y1:int) (x2:int,y2:int) : unit =
+let setLine (C:canvas) (color: color) ((x1:int,y1:int) as pointA) ((x2:int,y2:int) as pointB) : unit =
   let m = max (abs(y2-y1)) (abs(x2-x1))
   if m = 0 then ()
   else 
     for i in 0..m do
         let x = ((m-i)*x1 + i*x2) / m
         let y = ((m-i)*y1 + i*y2) / m
-        setPixel C c (x,y)
+        setPixel C color (x,y)
 
 // draw a box
-let setBox (C:canvas) (c:color) (x1:int,y1:int) (x2:int,y2:int) : unit =
+let setBox (C:canvas) (c:color) ((x1:int,y1:int) as pointA) ((x2:int,y2:int) as pointB) : unit =
   do setLine C c (x1,y1) (x2,y1)
   do setLine C c (x2,y1) (x2,y2)
   do setLine C c (x2,y2) (x1,y2)
   do setLine C c (x1,y2) (x1,y1)
 
-let setFillBox (C:canvas) (c:color) (x1:int,y1:int) (x2:int,y2:int) : unit =
+let setFillBox (C:canvas) (c:color) ((x1:int,y1:int) as pointA) ((x2:int,y2:int) as pointB): unit =
   for x in x1..x2 do
     for y in y1..y2 do
       setPixel C c (x,y)
 
 // get a pixel color from a bitmap
-let getPixel (C:canvas) (x:int,y:int) : color =   // rgba
+let getPixel (C:canvas) ((x:int,y:int) as point) : color =   // rgba
   let i = 4*(y*C.w+x)
   {r = C.data.[i];
    g = C.data.[i+1];
@@ -76,36 +76,36 @@ let getPixel (C:canvas) (x:int,y:int) : color =   // rgba
    a = C.data.[i+3]}
 
 // initialize a new bitmap
-let init (w:int) (h:int) (f:int*int->color) : canvas =    // rgba
-  let data = Array.create (h*w*4) 0xffuy
-  for y in 0..h-1 do
-    for x in 0..w-1 do
-      let c = f (x,y)
-      let i = 4*(y*w+x)
+let init (width:int) (height:int) (colorMapping:int*int->color) : canvas =    // rgba
+  let data = Array.create (height*width*4) 0xffuy
+  for y in 0..height-1 do
+    for x in 0..width-1 do
+      let c = colorMapping (x,y)
+      let i = 4*(y*width+x)
       data[i] <- c.r
       data[i+1] <- c.g
       data[i+2] <- c.b
       data[i+3] <- c.a
-  {h = h; w = w; data = data}
+  {h = height; w = width; data = data}
 
 // scale a bitmap
-let scale (C:canvas) (w2:int) (h2:int) : canvas =
-  let scale_x x = (x * C.w) / w2
-  let scale_y y = (y * C.h) / h2
-  init w2 h2 (fun (x,y) -> getPixel C (scale_x x, scale_y y))
+let scale (C:canvas) (width:int) (height:int) : canvas =
+  let scale_x x = (x * C.w) / width
+  let scale_y y = (y * C.h) / height
+  init width height (fun (x,y) -> getPixel C (scale_x x, scale_y y))
 
 
 
 // Files
 // read an image file
-let fromFile (filename : string) : canvas =
-    use stream = System.IO.File.OpenRead filename
+let fromFile (filePath : string) : canvas =
+    use stream = System.IO.File.OpenRead filePath
     let image = StbImageSharp.ImageResult.FromStream(stream, StbImageSharp.ColorComponents.RedGreenBlueAlpha)
     {h = image.Height; w = image.Width; data = image.Data }
 
 // save a bitmap as a png file
-let toPngFile (canvas : canvas) (filename : string) : unit =
-    use stream = System.IO.File.OpenWrite filename
+let toPngFile (canvas : canvas) (filePath : string) : unit =
+    use stream = System.IO.File.OpenWrite filePath
     let imageWriter = new StbImageWriteSharp.ImageWriter()
     imageWriter.WritePng(canvas.data, canvas.w, canvas.h,
                          StbImageWriteSharp.ColorComponents.RedGreenBlueAlpha, stream)
@@ -248,20 +248,20 @@ let runAppWithTimer (t:string) (w:int) (h:int) (interval:int option)
 
 
 // start an app that can listen to key-events
-let runApp (t:string) (w:int) (h:int)
+let runApp (title:string) (width:int) (height:int)
            (draw: int -> int -> 's -> canvas)
-           (onKeyDown: 's -> key -> 's option) (s:'s) : unit =
-    runAppWithTimer t w h None draw
-       (fun s -> function (KeyDown k) -> onKeyDown s k
+           (react: 's -> key -> 's option) (state:'s) : unit =
+    runAppWithTimer title width height None draw
+       (fun s -> function (KeyDown k) -> react s k
                         | _ -> None)
-       s
+       state
 
-let runSimpleApp t w h (draw: int->int->canvas) : unit =
-  runApp t w h (fun w h () -> draw w h)
+let runSimpleApp title width height (draw: int->int->canvas) : unit =
+  runApp title width height (fun w h () -> draw w h)
                (fun _ _ -> None) ()
 
-let show (canvas : canvas) (t : string) : unit =
-  runApp t (width canvas) (height canvas) (fun _ _ () -> canvas) (fun _ _ -> None) ()
+let show (canvas : canvas) (title : string) : unit =
+  runApp title (width canvas) (height canvas) (fun _ _ () -> canvas) (fun _ _ -> None) ()
 
 
 
@@ -298,12 +298,12 @@ let rec interp (p:point,d:int,c:color,up:bool) (cmds : turtleCmd list) (acc:line
       let acc2 = if up then acc else (p,p2,c)::acc
       interp (p2,d,c,up) cmds acc2
 
-let turtleDraw (w:int,h:int) (title:string) (pic:turtleCmd list) : unit =
+let turtleDraw ((w:int,h:int) as dimentions) (title:string) (turtleCommands:turtleCmd list) : unit =
   let C = create w h
   let center = (w/2,h/2)
   let dir_up = 90
   let initState = (center,dir_up,black,false)
-  let lines = interp initState pic []
+  let lines = interp initState turtleCommands []
   for (p1,p2,c) in lines do
     do setLine C c p1 p2
   do show C title
