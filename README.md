@@ -162,12 +162,15 @@ MIT license
 
 Copyright 2018-2021 - Martin Elsman
 
+Copyright 2022-2023 - Ken Friis Larsen
+
 ## Contributions
 
 The following individuals have contributed to the DIKU.Canvas (previosly ImgUtil) library:
 
 - Ken Friis Larsen
+- Martin Elsman
 - Mads Dyrvig Obitsø Thomsen
-- Jan Rolandsen
 - Jon Sporring
-- Chris Pritchard (SDL P/Invoke)
+- Jan Rolandsen
+- Chris Pritchard (original SDL P/Invoke)
