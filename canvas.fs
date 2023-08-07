@@ -312,7 +312,6 @@ let turtleDraw ((w:int,h:int) as dimentions) (title:string) (turtleCommands:turt
 // Jon's work on the interface //
 /////////////////////////////////
 
- // "combine p1 Horizontal or Vertical pos p2" will combine p2 to the right or bottom of p1 
 type HPosition = Top | Center | Bottom 
 type VPosition = Left | Center | Right 
 type Draw = int -> int -> int -> int -> unit // A function that draws a shape
@@ -323,9 +322,9 @@ type Picture =
   | Vertical of Picture*Picture*int*int
 let getSize (p:Picture): int*int =
   match p with
-    Empty(w, h) -> w,h 
-    | Leaf(_,w,h) -> w,h 
-    | Horizontal(_,_,w,h) -> w,h
+    Empty(w, h)
+    | Leaf(_,w,h)
+    | Horizontal(_,_,w,h)
     | Vertical(_,_,w,h) -> w,h
 let rec horizontal (pic1:Picture) (pos:HPosition) (pic2:Picture): Picture =
   let w1,h1 = getSize pic1
@@ -336,44 +335,67 @@ let rec horizontal (pic1:Picture) (pos:HPosition) (pic2:Picture): Picture =
   let half1 = Empty(w1,dh/2)
   let full2 = Empty(w2,dh)
   let half2 = Empty(w2,dh/2)
-  let q1, q2 =
-    match pos with
-      Top -> 
-        if h1 > h2 then pic1, vertical pic2 Left full2
-        elif h1 = h2 then pic1, pic2
-        else vertical pic1 Left full1, pic2
-      | HPosition.Center ->
-        if h1 > h2 then pic1, (vertical half2 Left (vertical pic2 Left half2))
-        elif h1 = h2 then pic1, pic2
-        else (vertical half1 Left (vertical pic1 Left half1)), pic2 
-      | Bottom ->
-        if h1 > h2 then pic1, vertical full2 Left pic2
-        elif h1 = h2 then pic1, pic2
-        else vertical full1 Left pic1, pic2
-  Horizontal(q1, q2, w, h)
+  match pos with
+    Top -> 
+      if h1 > h2 then Horizontal(pic1, vertical pic2 Left full2, w, h)
+      elif h1 = h2 then Horizontal(pic1, pic2, w, h)
+      else Horizontal(vertical pic1 Left full1, pic2, w, h)
+    | HPosition.Center ->
+      if h1 > h2 then horizontal pic1 Top (vertical half2 Left pic2)
+      elif h1 = h2 then Horizontal(pic1, pic2, w, h)
+      else horizontal (vertical half1 Left pic1) Top pic2
+    | Bottom ->
+      if h1 > h2 then Horizontal(pic1, vertical full2 Left pic2, w, h)
+      elif h1 = h2 then Horizontal(pic1, pic2, w, h)
+      else Horizontal(vertical full1 Left pic1, pic2, w, h)
 and vertical (pic1:Picture) (pos:VPosition) (pic2:Picture): Picture =
   let w1,h1 = getSize pic1
   let w2,h2 = getSize pic2
-  let w, h = w1+w2, (max h1 h2)
+  let w, h = (max w1 w2), h1 + h2
   let dw = abs (w1-w2)
   let full1 = Empty(dw,h1)
   let half1 = Empty(dw/2,h1)
   let full2 = Empty(dw,h2)
   let half2 = Empty(dw/2,h2)
-  let q1, q2 =
-    match pos with
-      Left -> 
-        if w1 > w2 then pic1, horizontal pic2 Top full2
-        elif w1 = w2 then pic1, pic2
-        else horizontal pic1 Top full1, pic2
-      | VPosition.Center ->
-        if w1 > w2 then pic1, (horizontal half2 Top (horizontal pic2 Top half2))
-        elif w1 = w2 then pic1, pic2
-        else (horizontal full1 Top (horizontal pic1 Top full1)), pic2 
-      | Right ->
-        if w1 > w2 then pic1, horizontal full2 Top pic2
-        elif w1 = w2 then pic1, pic2
-        else horizontal full1 Top pic1, pic2
-  Vertical(q1, q2, w, h)
+  match pos with
+    Left -> 
+      if w1 > w2 then Vertical(pic1, horizontal pic2 Top full2, w, h)
+      elif w1 = w2 then Vertical(pic1, pic2, w, h)
+      else Vertical(horizontal pic1 Top full1, pic2, w, h)
+    | VPosition.Center ->
+      if w1 > w2 then vertical pic1 Left (horizontal half2 Top pic2)
+      elif w1 = w2 then Vertical(pic1, pic2, w, h)
+      else vertical (horizontal half1 Top pic1) Left pic2 
+    | Right ->
+      if w1 > w2 then Vertical(pic1, horizontal full2 Top pic2, w, h)
+      elif w1 = w2 then Vertical(pic1, pic2, w, h)
+      else Vertical(horizontal full1 Top pic1, pic2, w, h)
+
+(* 
+let p = Empty(3,5)
+let q = Leaf((fun x y w h -> ()),5,4)
+let lst = [p;q]
+List.iter (fun s -> printfn "%A" (getSize s)) lst
+let hPos = [Top; HPosition.Center; Bottom];
+let lstHorisontal0 = List.map (fun pos -> horizontal p pos p) hPos
+printfn "%A" (List.zip hPos lstHorisontal0)
+let lstHorisontal1 = List.map (fun pos -> horizontal p pos q) hPos
+printfn "%A" (List.zip hPos lstHorisontal1)
+let lstHorisontal2 = List.map (fun pos -> horizontal q pos p) hPos
+printfn "%A" (List.zip hPos lstHorisontal2)
+let vPos = [Left; VPosition.Center; Right];
+let lstVertical0 = List.map (fun pos -> vertical p pos p) vPos
+printfn "%A" (List.zip vPos lstVertical0)
+let lstVertical1 = List.map (fun pos -> vertical p pos q) vPos
+printfn "%A" (List.zip vPos lstVertical1)
+let lstVertical2 = List.map (fun pos -> vertical q pos p) vPos
+printfn "%A" (List.zip vPos lstVertical2)
+
+let r = horizontal p Top q
+let s = vertical p Center q
+let lst2 = [r;s]
+List.iter (fun s -> printfn "%A" (getSize s)) lst2
+printfn "horizontal %A Bottom %A = %A" r s (horizontal r Bottom s)
+*)
 
 /////////////////////////////////
