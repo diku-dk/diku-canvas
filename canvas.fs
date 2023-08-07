@@ -10,13 +10,13 @@ let fromArgb (red:int,green:int,blue:int,alpha:int) : color =
 
 let fromRgb (red:int,green:int,blue:int) : color = fromArgb (red,green,blue,255)
 
-let red : color = fromRgb(255,0,0)
-let green : color = fromRgb(0,255,0)
-let blue : color = fromRgb(0,0,255)
-let yellow : color = fromRgb(255,255,0)
-let lightgrey : color = fromRgb (220,220,220)
-let white : color = fromRgb (255,255,255)
-let black : color = fromRgb (0,0,0)
+let red : color = fromRgb(255, 0, 0)
+let green : color = fromRgb(0, 255, 0)
+let blue : color = fromRgb(0, 0, 255)
+let yellow : color = fromRgb(255, 255, 0)
+let lightgrey : color = fromRgb (220, 220, 220)
+let white : color = fromRgb (255, 255, 255)
+let black : color = fromRgb (0, 0, 0)
 
 let fromColor (color: color) : int * int * int * int =
   (int(color.r),int(color.g),int(color.b),int(color.a))
