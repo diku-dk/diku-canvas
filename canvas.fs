@@ -307,3 +307,73 @@ let turtleDraw ((w:int,h:int) as dimentions) (title:string) (turtleCommands:turt
   for (p1,p2,c) in lines do
     do setLine C c p1 p2
   do show C title
+
+/////////////////////////////////
+// Jon's work on the interface //
+/////////////////////////////////
+
+ // "combine p1 Horizontal or Vertical pos p2" will combine p2 to the right or bottom of p1 
+type HPosition = Top | Center | Bottom 
+type VPosition = Left | Center | Right 
+type Draw = int -> int -> int -> int -> unit // A function that draws a shape
+type Picture = 
+  Empty of int*int 
+  | Leaf of Draw*int*int 
+  | Horizontal of Picture*Picture*int*int 
+  | Vertical of Picture*Picture*int*int
+let getSize (p:Picture): int*int =
+  match p with
+    Empty(w, h) -> w,h 
+    | Leaf(_,w,h) -> w,h 
+    | Horizontal(_,_,w,h) -> w,h
+    | Vertical(_,_,w,h) -> w,h
+let rec horizontal (pic1:Picture) (pos:HPosition) (pic2:Picture): Picture =
+  let w1,h1 = getSize pic1
+  let w2,h2 = getSize pic2
+  let w, h = w1+w2, (max h1 h2)
+  let dh = abs (h1-h2)
+  let full1 = Empty(w1,dh)
+  let half1 = Empty(w1,dh/2)
+  let full2 = Empty(w2,dh)
+  let half2 = Empty(w2,dh/2)
+  let q1, q2 =
+    match pos with
+      Top -> 
+        if h1 > h2 then pic1, vertical pic2 Left full2
+        elif h1 = h2 then pic1, pic2
+        else vertical pic1 Left full1, pic2
+      | HPosition.Center ->
+        if h1 > h2 then pic1, (vertical half2 Left (vertical pic2 Left half2))
+        elif h1 = h2 then pic1, pic2
+        else (vertical half1 Left (vertical pic1 Left half1)), pic2 
+      | Bottom ->
+        if h1 > h2 then pic1, vertical full2 Left pic2
+        elif h1 = h2 then pic1, pic2
+        else vertical full1 Left pic1, pic2
+  Horizontal(q1, q2, w, h)
+and vertical (pic1:Picture) (pos:VPosition) (pic2:Picture): Picture =
+  let w1,h1 = getSize pic1
+  let w2,h2 = getSize pic2
+  let w, h = w1+w2, (max h1 h2)
+  let dw = abs (w1-w2)
+  let full1 = Empty(dw,h1)
+  let half1 = Empty(dw/2,h1)
+  let full2 = Empty(dw,h2)
+  let half2 = Empty(dw/2,h2)
+  let q1, q2 =
+    match pos with
+      Left -> 
+        if w1 > w2 then pic1, horizontal pic2 Top full2
+        elif w1 = w2 then pic1, pic2
+        else horizontal pic1 Top full1, pic2
+      | VPosition.Center ->
+        if w1 > w2 then pic1, (horizontal half2 Top (horizontal pic2 Top half2))
+        elif w1 = w2 then pic1, pic2
+        else (horizontal full1 Top (horizontal pic1 Top full1)), pic2 
+      | Right ->
+        if w1 > w2 then pic1, horizontal full2 Top pic2
+        elif w1 = w2 then pic1, pic2
+        else horizontal full1 Top pic1, pic2
+  Vertical(q1, q2, w, h)
+
+/////////////////////////////////
