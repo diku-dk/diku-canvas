@@ -314,18 +314,21 @@ let turtleDraw ((w:int,h:int) as dimentions) (title:string) (turtleCommands:turt
 
 type HPosition = Top | Center | Bottom 
 type VPosition = Left | Center | Right 
+type TPosition = NorthWest | North | NorthEast | East | Center | West | SouthWest | South | SouthEast
 type Draw = int -> int -> int -> int -> unit // A function that draws a shape
 type Picture = 
   Empty of int*int 
   | Leaf of Draw*int*int 
   | Horizontal of Picture*Picture*int*int 
   | Vertical of Picture*Picture*int*int
+  | OnTop of Picture*Picture*int*int
 let getSize (p:Picture): int*int =
   match p with
     Empty(w, h)
     | Leaf(_,w,h)
     | Horizontal(_,_,w,h)
-    | Vertical(_,_,w,h) -> w,h
+    | Vertical(_,_,w,h)
+    | OnTop(_,_,w,h) -> w,h
 let rec horizontal (pic1:Picture) (pos:HPosition) (pic2:Picture): Picture =
   let w1,h1 = getSize pic1
   let w2,h2 = getSize pic2
@@ -335,20 +338,17 @@ let rec horizontal (pic1:Picture) (pos:HPosition) (pic2:Picture): Picture =
   let half1 = Empty(w1,dh/2)
   let full2 = Empty(w2,dh)
   let half2 = Empty(w2,dh/2)
-  match pos with
-    Top -> 
-      if h1 > h2 then Horizontal(pic1, vertical pic2 Left full2, w, h)
-      elif h1 = h2 then Horizontal(pic1, pic2, w, h)
-      else Horizontal(vertical pic1 Left full1, pic2, w, h)
-    | HPosition.Center ->
-      if h1 > h2 then horizontal pic1 Top (vertical half2 Left pic2)
-      elif h1 = h2 then Horizontal(pic1, pic2, w, h)
-      else horizontal (vertical half1 Left pic1) Top pic2
-    | Bottom ->
-      if h1 > h2 then Horizontal(pic1, vertical full2 Left pic2, w, h)
-      elif h1 = h2 then Horizontal(pic1, pic2, w, h)
-      else Horizontal(vertical full1 Left pic1, pic2, w, h)
-and vertical (pic1:Picture) (pos:VPosition) (pic2:Picture): Picture =
+  match pos, h1, h2 with
+    | Top, h1, h2 when h1 > h2 -> Horizontal(pic1, vertical pic2 Left full2, w, h)
+    | Top, h1, h2 when h1 = h2 -> Horizontal(pic1, pic2, w, h)
+    | Top, _, _ -> Horizontal(vertical pic1 Left full1, pic2, w, h)
+    | HPosition.Center, h1, h2 when h1 > h2 -> horizontal pic1 Top (vertical half2 Left pic2)
+    | HPosition.Center, h1, h2 when h1 = h2 -> Horizontal(pic1, pic2, w, h)
+    | HPosition.Center, _, _ -> horizontal (vertical half1 Left pic1) Top pic2
+    | Bottom, h1, h2 when h1 > h2 -> Horizontal(pic1, vertical full2 Left pic2, w, h)
+    | Bottom, h1, h2 when h1 = h2 -> Horizontal(pic1, pic2, w, h)
+    | Bottom, _, _ -> Horizontal(vertical full1 Left pic1, pic2, w, h)
+and vertical (pic1:Picture) (pos:float) (pic2:Picture): Picture =
   let w1,h1 = getSize pic1
   let w2,h2 = getSize pic2
   let w, h = (max w1 w2), h1 + h2
@@ -357,19 +357,36 @@ and vertical (pic1:Picture) (pos:VPosition) (pic2:Picture): Picture =
   let half1 = Empty(dw/2,h1)
   let full2 = Empty(dw,h2)
   let half2 = Empty(dw/2,h2)
-  match pos with
-    Left -> 
-      if w1 > w2 then Vertical(pic1, horizontal pic2 Top full2, w, h)
-      elif w1 = w2 then Vertical(pic1, pic2, w, h)
-      else Vertical(horizontal pic1 Top full1, pic2, w, h)
-    | VPosition.Center ->
-      if w1 > w2 then vertical pic1 Left (horizontal half2 Top pic2)
-      elif w1 = w2 then Vertical(pic1, pic2, w, h)
-      else vertical (horizontal half1 Top pic1) Left pic2 
-    | Right ->
-      if w1 > w2 then Vertical(pic1, horizontal full2 Top pic2, w, h)
-      elif w1 = w2 then Vertical(pic1, pic2, w, h)
-      else Vertical(horizontal full1 Top pic1, pic2, w, h)
+  match pos, w1, w2 with
+    | Left, w1, w2 when w1 > w2 -> Vertical(pic1, horizontal pic2 Top full2, w, h)
+    | Left, w1, w2 when w1 = w2 -> Vertical(pic1, pic2, w, h)
+    | Left, _, _ -> Vertical(horizontal pic1 Top full1, pic2, w, h)
+    | VPosition.Center, w1, w2 when w1 > w2 -> vertical pic1 Left (horizontal half2 Top pic2)
+    | VPosition.Center, w1, w2 when w1 = w2 -> Vertical(pic1, pic2, w, h)
+    | VPosition.Center, _, _ -> vertical (horizontal half1 Top pic1) Left pic2 
+    | Right, w1, w2 when w1 > w2 -> Vertical(pic1, horizontal full2 Top pic2, w, h)
+    | Right, w1, w2 when w1 = w2 -> Vertical(pic1, pic2, w, h)
+    | Right, _, _ -> Vertical(horizontal full1 Top pic1, pic2, w, h)
+let round (a:float): int = int (a+0.5)
+let ontop (pic1:Picture) (a:float) (b:float) (pic2:Picture): Picture =
+  if a < 0 || a > 1 || b < 0 || b > 1 then 
+    raise (System.ArgumentOutOfRangeException ("a and b must be in [0,1]"))
+  let w1,h1 = getSize pic1
+  let w2,h2 = getSize pic2
+  let w, h = (max w1 w2), (max h1 h2)
+  let s = round (a*(w1-w2))
+  let pic3, pic4 = match s with
+    | s when s > 0 -> pic1, horizontal (horizontal Empty(s, h2) Top pic2) Top Empty(w1-s-w2,h2)
+    | s when s = 0 -> pic1, pic2
+    | s when s < 0 -> horizontal (horizontal Empty(-s, h1) Top pic1) Top Empty(w2+s-w1,h1), pic2
+  let _,h3 = getSize pic3
+  let _,h4 = getSize pic4
+  let t = h3-h4
+  let pic5, pic6 = match t with
+    | t when t > 0 -> pic3, vertical (vertical Empty(w, t) Left pic4) Left Empty(w, h3-t-h4)
+    | t when t = 0 -> pic3, pic4
+    | t when t < 0 -> vertical (vertical Empty(w,-t) Left pic3) Left Empty(w, h4+t-h3), pic4
+  OnTop(pic5, pic6, w, h)
 
 (* 
 let p = Empty(3,5)
