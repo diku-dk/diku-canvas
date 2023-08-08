@@ -374,18 +374,20 @@ let ontop (pic1:Picture) (a:float) (b:float) (pic2:Picture): Picture =
   let w1,h1 = getSize pic1
   let w2,h2 = getSize pic2
   let w, h = (max w1 w2), (max h1 h2)
-  let s = round (a*(w1-w2))
-  let pic3, pic4 = match s with
-    | s when s > 0 -> pic1, horizontal (horizontal Empty(s, h2) Top pic2) Top Empty(w1-s-w2,h2)
-    | s when s = 0 -> pic1, pic2
-    | s when s < 0 -> horizontal (horizontal Empty(-s, h1) Top pic1) Top Empty(w2+s-w1,h1), pic2
+  let s = round (a*float (w1-w2))
+  let pic3, pic4 = 
+    match s with
+      | s when s > 0 -> pic1, (horizontal (horizontal (Empty(s, h2)) Top pic2) Top (Empty(w1-s-w2,h2)))
+      | s when s < 0 -> (horizontal (horizontal (Empty(-s, h1)) Top pic1) Top (Empty(w2+s-w1,h1))), pic2
+      | _ -> pic1, pic2
   let _,h3 = getSize pic3
   let _,h4 = getSize pic4
-  let t = h3-h4
-  let pic5, pic6 = match t with
-    | t when t > 0 -> pic3, vertical (vertical Empty(w, t) Left pic4) Left Empty(w, h3-t-h4)
-    | t when t = 0 -> pic3, pic4
-    | t when t < 0 -> vertical (vertical Empty(w,-t) Left pic3) Left Empty(w, h4+t-h3), pic4
+  let t = round (b*float (h3-h4))
+  let pic5, pic6 = 
+    match t with
+      | t when t > 0 -> pic3, (vertical (vertical (Empty(w, t)) Left pic4) Left (Empty(w, h3-t-h4)))
+      | t when t < 0 -> (vertical (vertical (Empty(w,-t)) Left pic3) Left (Empty(w, h4+t-h3))), pic4
+      | _ -> pic3, pic4
   OnTop(pic5, pic6, w, h)
 
 (* 
@@ -407,6 +409,14 @@ let lstVertical1 = List.map (fun pos -> vertical p pos q) vPos
 printfn "%A" (List.zip vPos lstVertical1)
 let lstVertical2 = List.map (fun pos -> vertical q pos p) vPos
 printfn "%A" (List.zip vPos lstVertical2)
+printfn "%A" (List.zip hPos lstHorisontal2)
+let tPos = [0.0; 0.5; 1.0];
+let lstOnTop0 = List.map (fun a -> List.map (fun b -> ontop p a b p) tPos) tPos
+printfn "%A" (List.zip tPos (List.map (fun lst -> List.zip tPos lst) lstOnTop0))
+let lstOnTop1 = List.map (fun a -> List.map (fun b -> ontop p a b q) tPos) tPos
+printfn "%A" (List.zip tPos (List.map (fun lst -> List.zip tPos lst) lstOnTop1))
+let lstOnTop1 = List.map (fun a -> List.map (fun b -> ontop q a b p) tPos) tPos
+printfn "%A" (List.zip tPos (List.map (fun lst -> List.zip tPos lst) lstOnTop2))
 
 let r = horizontal p Top q
 let s = vertical p Center q
