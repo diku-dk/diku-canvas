@@ -314,7 +314,6 @@ let turtleDraw ((w:int,h:int) as dimentions) (title:string) (turtleCommands:turt
 
 type HPosition = Top | Center | Bottom 
 type VPosition = Left | Center | Right 
-type TPosition = NorthWest | North | NorthEast | East | Center | West | SouthWest | South | SouthEast
 type Draw = int -> int -> int -> int -> unit // A function that draws a shape
 type Picture = 
   Empty of int*int 
@@ -348,7 +347,7 @@ let rec horizontal (pic1:Picture) (pos:HPosition) (pic2:Picture): Picture =
     | Bottom, h1, h2 when h1 > h2 -> Horizontal(pic1, vertical full2 Left pic2, w, h)
     | Bottom, h1, h2 when h1 = h2 -> Horizontal(pic1, pic2, w, h)
     | Bottom, _, _ -> Horizontal(vertical full1 Left pic1, pic2, w, h)
-and vertical (pic1:Picture) (pos:float) (pic2:Picture): Picture =
+and vertical (pic1:Picture) (pos:VPosition) (pic2:Picture): Picture =
   let w1,h1 = getSize pic1
   let w2,h2 = getSize pic2
   let w, h = (max w1 w2), h1 + h2
@@ -373,28 +372,35 @@ let ontop (pic1:Picture) (a:float) (b:float) (pic2:Picture): Picture =
     raise (System.ArgumentOutOfRangeException ("a and b must be in [0,1]"))
   let w1,h1 = getSize pic1
   let w2,h2 = getSize pic2
+  let s = float (w1-w2)
   let w, h = (max w1 w2), (max h1 h2)
-  let s = round (a*float (w1-w2))
   let pic3, pic4 = 
-    match s with
-      | s when s > 0 -> pic1, (horizontal (horizontal (Empty(s, h2)) Top pic2) Top (Empty(w1-s-w2,h2)))
-      | s when s < 0 -> (horizontal (horizontal (Empty(-s, h1)) Top pic1) Top (Empty(w2+s-w1,h1))), pic2
+    match s, int (a*s) with
+      | s, 0 when s > 0.0 -> pic1, (horizontal pic2 Top (Empty(w1-w2,h2)))
+      | s, dw when s > 0.0 && dw = w1-w2 -> pic1, horizontal (Empty(dw, h2)) Top pic2
+      | s, dw when s > 0.0 -> pic1, (horizontal (horizontal (Empty(dw, h2)) Top pic2) Top (Empty(w1-dw-w2,h2)))
+      | s, 0 when s < 0.0 -> (horizontal pic1 Top (Empty(w2-w1,h1))), pic2
+      | s, dw when s < 0.0 && dw = w1-w2 -> horizontal (Empty(-dw, h1)) Top pic1, pic2
+      | s, dw when s < 0.0 -> (horizontal (horizontal (Empty(-dw, h1)) Top pic1) Top (Empty(w2+dw-w1,h1))), pic2
       | _ -> pic1, pic2
   let _,h3 = getSize pic3
   let _,h4 = getSize pic4
-  let t = round (b*float (h3-h4))
+  let t = float (h3-h4)
   let pic5, pic6 = 
-    match t with
-      | t when t > 0 -> pic3, (vertical (vertical (Empty(w, t)) Left pic4) Left (Empty(w, h3-t-h4)))
-      | t when t < 0 -> (vertical (vertical (Empty(w,-t)) Left pic3) Left (Empty(w, h4+t-h3))), pic4
+    match t, int (b*t) with
+      | t, 0 when t > 0.0 -> pic3, (vertical pic4 Left (Empty(w, h3-h4)))
+      | t, dh when t > 0.0 && dh = h3-h4 -> pic3, vertical (Empty(w, dh)) Left pic4
+      | t, dh when t > 0.0 -> pic3, (vertical (vertical (Empty(w, dh)) Left pic4) Left (Empty(w, h3-dh-h4)))
+      | t, 0 when t < 0.0 -> (vertical pic3 Left (Empty(w, h4-h3))), pic4
+      | t, dh when t < 0.0 && dh = h3-h4 -> vertical (Empty(w,-dh)) Left pic3, pic4
+      | t, dh when t < 0.0 -> (vertical (vertical (Empty(w,-dh)) Left pic3) Left (Empty(w, h4+dh-h3))), pic4
       | _ -> pic3, pic4
   OnTop(pic5, pic6, w, h)
 
 (* 
 let p = Empty(3,5)
-let q = Leaf((fun x y w h -> ()),5,4)
-let lst = [p;q]
-List.iter (fun s -> printfn "%A" (getSize s)) lst
+let q = Leaf((fun x y w h -> ()),5,3)
+List.iter (fun s -> printfn "%A" (getSize s)) [p;q]
 let hPos = [Top; HPosition.Center; Bottom];
 let lstHorisontal0 = List.map (fun pos -> horizontal p pos p) hPos
 printfn "%A" (List.zip hPos lstHorisontal0)
@@ -415,13 +421,12 @@ let lstOnTop0 = List.map (fun a -> List.map (fun b -> ontop p a b p) tPos) tPos
 printfn "%A" (List.zip tPos (List.map (fun lst -> List.zip tPos lst) lstOnTop0))
 let lstOnTop1 = List.map (fun a -> List.map (fun b -> ontop p a b q) tPos) tPos
 printfn "%A" (List.zip tPos (List.map (fun lst -> List.zip tPos lst) lstOnTop1))
-let lstOnTop1 = List.map (fun a -> List.map (fun b -> ontop q a b p) tPos) tPos
+let lstOnTop2 = List.map (fun a -> List.map (fun b -> ontop q a b p) tPos) tPos
 printfn "%A" (List.zip tPos (List.map (fun lst -> List.zip tPos lst) lstOnTop2))
 
 let r = horizontal p Top q
-let s = vertical p Center q
-let lst2 = [r;s]
-List.iter (fun s -> printfn "%A" (getSize s)) lst2
+let s = vertical p VPosition.Center q
+List.iter (fun s -> printfn "%A" (getSize s)) [r;s]
 printfn "horizontal %A Bottom %A = %A" r s (horizontal r Bottom s)
 *)
 
