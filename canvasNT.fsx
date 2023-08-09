@@ -1,7 +1,11 @@
 #r "nuget:SixLabors.ImageSharp"
+#r "nuget: SixLabors.ImageSharp.Drawing, 1.0.0-beta15"
 open SixLabors.ImageSharp
 open SixLabors.ImageSharp.PixelFormats
 open SixLabors.ImageSharp.Processing
+open SixLabors.ImageSharp.Drawing
+open SixLabors.ImageSharp.Drawing.Processing
+open SixLabors.Fonts
 #r "nuget:DIKU.Canvas"
 open Canvas
 
@@ -118,26 +122,26 @@ let rec sharpDraw (pic:Picture) : Image<Rgba32> =
         let I = Image<Rgba32>(a,b)
         let left = sharpDraw p1
         let right = sharpDraw p2
-        I.Mutate(fun o -> 
-          o.DrawImage(left, Point(0, 0), 1f);
-          o.DrawImage(right, Point(w1, 0), 1f) |> ignore)
+        I.Mutate(fun x -> 
+          x.DrawImage(left, Point(0, 0), 1f);
+          x.DrawImage(right, Point(w1, 0), 1f) |> ignore)
         I
     | Vertical(p1, p2, a, b) ->
         let _,h1 = getSize p1
         let I = Image<Rgba32>(a,b)
         let top = sharpDraw p1
         let bottom = sharpDraw p2
-        I.Mutate(fun o -> 
-          o.DrawImage(top, Point(0, 0), 1f);
-          o.DrawImage(bottom, Point(0, h1), 1f) |> ignore)
+        I.Mutate(fun x -> 
+          x.DrawImage(top, Point(0, 0), 1f);
+          x.DrawImage(bottom, Point(0, h1), 1f) |> ignore)
         I
     | OnTop(p1, p2, a, b) ->
         let I = Image<Rgba32>(a,b)
         let lower = sharpDraw p1
         let upper = sharpDraw p2
-        I.Mutate(fun o -> 
-          o.DrawImage(top, Point(0, 0), 1f);
-          o.DrawImage(bottom, Point(0, 0), 1f) |> ignore)
+        I.Mutate(fun x -> 
+          x.DrawImage(lower, Point(0, 0), 1f);
+          x.DrawImage(upper, Point(0, 0), 1f) |> ignore)
         I
 
 let p = Empty(30,50)
