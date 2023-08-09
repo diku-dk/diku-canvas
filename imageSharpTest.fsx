@@ -7,7 +7,7 @@ open SixLabors.ImageSharp.Drawing
 open SixLabors.ImageSharp.Drawing.Processing
 open SixLabors.Fonts
 
-let J = Image<Rgba32>(50,30,Color.LightGray)
+let J = new Image<Rgba32>(50,30,Color.LightGray)
 J.Save("empty.jpg")
 
 let imageInfo = Image.Identify("foo.jpg")
@@ -25,7 +25,7 @@ im.Save("bar.jpg")
 im.Mutate(fun x -> x.Resize(im.Width / 2, im.Height / 2) |>ignore)
 im.Save("small.jpg")
 
-let image = Image<Rgba32>(512,512)
+let image = new Image<Rgba32>(512,512)
 let poly = Star(PointF(100F, 100F), 5, 20F, 30F, 0F)
 image.Mutate(fun x -> x.Fill(Color.Red, poly) |> ignore)
 image.Save("star.jpg")
@@ -46,3 +46,9 @@ let atb = AffineTransformBuilder()
 atb.AppendMatrix(A)
 image.Mutate(fun x -> x.Transform(atb).Crop(512,512)|>ignore)
 image.Save("textT.jpg")
+
+let I = new Image<Rgba32>(50,30,Color.LightGray)
+let linePen = new Pen(Color.Black, 3f);
+let points = [|PointF(10f,10f); PointF(20f, 25f)|]
+I.Mutate(fun x -> x.DrawLines(linePen, points)|>ignore)
+I.Save("line.jpg")
