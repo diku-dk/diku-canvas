@@ -52,3 +52,10 @@ StbImageSharp.2.27.11/StbImageSharp.2.27.11.nupkg
 StbImageWriteSharp.1.16.7/.signature.p7s
 StbImageWriteSharp.1.16.7/lib/netstandard2.0/StbImageWriteSharp.dll
 StbImageWriteSharp.1.16.7/StbImageWriteSharp.1.16.7.nupkg
+bar.jpg
+empty.jpg
+nonTrivial.jpg
+p.jpg
+q.jpg
+small.jpg
+test.jpg

@@ -1,3 +1,7 @@
+#r "nuget:SixLabors.ImageSharp"
+open SixLabors.ImageSharp
+open SixLabors.ImageSharp.PixelFormats
+open SixLabors.ImageSharp.Processing
 #r "nuget:DIKU.Canvas"
 open Canvas
 
@@ -90,7 +94,7 @@ let ontop (pic1:Picture) (a:float) (b:float) (pic2:Picture): Picture =
       | _ -> pic3, pic4
   OnTop(pic5, pic6, w, h)
 
-let draw (pic:Picture) (title:string): unit =
+let draw (pic:Picture) (title:string) : unit =
   let rec drawPart (c:canvas) ((x,y): int*int) (pic:Picture) : unit =
     match pic with
       | Empty(a,b) -> setFillBox c lightgrey (x+1,y+1) (x+a-2,y+b-2); ()
@@ -103,13 +107,54 @@ let draw (pic:Picture) (title:string): unit =
   drawPart c (0,0) pic |> ignore
   show c title
 
+let rec sharpDraw (pic:Picture) : Image<Rgba32> =
+  match pic with
+    | Empty(a,b) -> 
+        Image<Rgba32>(a,b,Color.LightGray)
+    | Leaf(f, a, b) ->
+        Image<Rgba32>(a,b,Color.Red) //f c x y; (a, b)
+    | Horizontal(p1, p2, a, b) ->
+        let w1,_ = getSize p1
+        let I = Image<Rgba32>(a,b)
+        let left = sharpDraw p1
+        let right = sharpDraw p2
+        I.Mutate(fun o -> 
+          o.DrawImage(left, Point(0, 0), 1f);
+          o.DrawImage(right, Point(w1, 0), 1f) |> ignore)
+        I
+    | Vertical(p1, p2, a, b) ->
+        let _,h1 = getSize p1
+        let I = Image<Rgba32>(a,b)
+        let top = sharpDraw p1
+        let bottom = sharpDraw p2
+        I.Mutate(fun o -> 
+          o.DrawImage(top, Point(0, 0), 1f);
+          o.DrawImage(bottom, Point(0, h1), 1f) |> ignore)
+        I
+    | OnTop(p1, p2, a, b) ->
+        let I = Image<Rgba32>(a,b)
+        let lower = sharpDraw p1
+        let upper = sharpDraw p2
+        I.Mutate(fun o -> 
+          o.DrawImage(top, Point(0, 0), 1f);
+          o.DrawImage(bottom, Point(0, 0), 1f) |> ignore)
+        I
+
 let p = Empty(30,50)
 printfn "\nAn empty box:\n %A" p
-draw p "p"
+//draw p "p"
+(sharpDraw p).Save("p.jpg")
 let q = Leaf((fun x y w h -> ()),50,30)
 printfn "\nA full box: %A" q
-draw q "q"
+//draw q "q"
+(sharpDraw q).Save("q.jpg")
 
+let r = horizontal p Top q
+let s = vertical p VPosition.Center q
+let t = horizontal r Bottom s;
+(sharpDraw t).Save("nonTrivial.jpg")
+
+(*
 let hPos = [Top; HPosition.Center; Bottom];
 let lstHorisontal0 = List.map (fun pos -> horizontal p pos p) hPos
 printfn "\nHorizontally empty-empty: %A" (List.zip hPos lstHorisontal0)
@@ -151,5 +196,5 @@ let t = horizontal r Bottom s;
 List.iter (fun s -> printfn "%A" (getSize s)) [r;s]
 printfn "horizontal %A Bottom %A = %A" r s t
 draw t "non-trivial tree"
-
+*)
 /////////////////////////////////
