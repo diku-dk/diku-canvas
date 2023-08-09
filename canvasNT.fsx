@@ -6,8 +6,6 @@ open SixLabors.ImageSharp.Processing
 open SixLabors.ImageSharp.Drawing
 open SixLabors.ImageSharp.Drawing.Processing
 open SixLabors.Fonts
-#r "nuget:DIKU.Canvas"
-open Canvas
 
 /////////////////////////////////
 // Jon's work on the interface //
@@ -22,13 +20,23 @@ type Picture =
   | Horizontal of Picture*Picture*int*int
   | Vertical of Picture*Picture*int*int
   | OnTop of Picture*Picture*int*int
+  | AffineTransform of Picture*System.Numerics.Matrix3x2*Color*int*int
+  | Scale of Picture*float*float*int*int
+  | Rotate of Picture*int*int*float*Color*int*int
+  | Translate of Picture*int*int*Color*int*int
+  | Crop of Picture*int*int*int*int
 let getSize (p:Picture): int*int =
   match p with
     Empty(w, h)
     | Leaf(_,w,h)
     | Horizontal(_,_,w,h)
     | Vertical(_,_,w,h)
-    | OnTop(_,_,w,h) -> w,h
+    | OnTop(_,_,w,h)
+    | AffineTransform(_,_,_,w,h)
+    | Scale(_,_,_,w,h)
+    | Rotate(_,_,_,_,_,w,h)
+    | Translate(_,_,_,_,w,h)
+    | Crop(_,_,_,w,h) -> w,h
 let rec horizontal (pic1:Picture) (pos:HPosition) (pic2:Picture): Picture =
   let w1,h1 = getSize pic1
   let w2,h2 = getSize pic2
@@ -98,59 +106,72 @@ let ontop (pic1:Picture) (a:float) (b:float) (pic2:Picture): Picture =
       | _ -> pic3, pic4
   OnTop(pic5, pic6, w, h)
 
-let draw (pic:Picture) (title:string) : unit =
-  let rec drawPart (c:canvas) ((x,y): int*int) (pic:Picture) : unit =
-    match pic with
-      | Empty(a,b) -> setFillBox c lightgrey (x+1,y+1) (x+a-2,y+b-2); ()
-      | Leaf(f, a, b) -> setFillBox c red (x+1,y+1) (x+a-2,y+b-2) //f c x y; (a, b)
-      | Horizontal(p1, p2, a, b) -> setFillBox c black (x+1,y+1) (x+a-2,y+b-2); drawPart c (x,y) p1; let w,_ = getSize p1 in drawPart c (x+w,y) p2
-      | Vertical(p1, p2, a, b) -> setFillBox c black (x+1,y+1) (x+a-2,y+b-2); drawPart c (x,y) p1; let _,h = getSize p1 in drawPart c (x,y+h) p2
-      | OnTop(p1, p2, a, b) -> setFillBox c black (x+1,y+1) (x+a-2,y+b-2); drawPart c (x,y) p1; drawPart c (x,y) p2
-  let w,h = getSize pic
-  let c = create w h
-  drawPart c (0,0) pic |> ignore
-  show c title
-
 let rec sharpDraw (pic:Picture) : Image<Rgba32> =
+  let affinetransform (p:Picture) (M:System.Numerics.Matrix3x2) (c: Color) (w:int) (h:int): Image<Rgba32> =
+    let I = sharpDraw p
+    let transformation = AffineTransformBuilder().AppendMatrix(M)
+    I.Mutate(fun x -> x.Transform(transformation)|>ignore)
+    I.Mutate(fun x -> x.Crop(min I.Width w, min I.Height h)
+                       .Resize(ResizeOptions(Position = AnchorPositionMode.TopLeft,
+                                             Size = Size(w, h), 
+                                             Mode = ResizeMode.BoxPad))
+                       .BackgroundColor(c)|>ignore)
+    I
+
   match pic with
     | Empty(a,b) -> 
-        Image<Rgba32>(a,b,Color.LightGray)
+      new Image<Rgba32>(a,b,Color.LightGray)
     | Leaf(f, a, b) ->
-        Image<Rgba32>(a,b,Color.Red) //f c x y; (a, b)
+      new Image<Rgba32>(a,b,Color.Red) //f c x y; (a, b)
     | Horizontal(p1, p2, a, b) ->
-        let w1,_ = getSize p1
-        let I = Image<Rgba32>(a,b)
-        let left = sharpDraw p1
-        let right = sharpDraw p2
-        I.Mutate(fun x -> 
-          x.DrawImage(left, Point(0, 0), 1f);
-          x.DrawImage(right, Point(w1, 0), 1f) |> ignore)
-        I
+      let w1,_ = getSize p1
+      let I = new Image<Rgba32>(a,b)
+      let left = sharpDraw p1
+      let right = sharpDraw p2
+      I.Mutate(fun x -> 
+        x.DrawImage(left, Point(0, 0), 1f) |> ignore
+        x.DrawImage(right, Point(w1, 0), 1f) |> ignore)
+      I
     | Vertical(p1, p2, a, b) ->
-        let _,h1 = getSize p1
-        let I = Image<Rgba32>(a,b)
-        let top = sharpDraw p1
-        let bottom = sharpDraw p2
-        I.Mutate(fun x -> 
-          x.DrawImage(top, Point(0, 0), 1f);
-          x.DrawImage(bottom, Point(0, h1), 1f) |> ignore)
-        I
+      let _,h1 = getSize p1
+      let I = new Image<Rgba32>(a,b)
+      let top = sharpDraw p1
+      let bottom = sharpDraw p2
+      I.Mutate(fun x -> 
+        x.DrawImage(top, Point(0, 0), 1f) |> ignore
+        x.DrawImage(bottom, Point(0, h1), 1f) |> ignore)
+      I
     | OnTop(p1, p2, a, b) ->
-        let I = Image<Rgba32>(a,b)
-        let lower = sharpDraw p1
-        let upper = sharpDraw p2
-        I.Mutate(fun x -> 
-          x.DrawImage(lower, Point(0, 0), 1f);
-          x.DrawImage(upper, Point(0, 0), 1f) |> ignore)
-        I
+      let I = new Image<Rgba32>(a,b)
+      let lower = sharpDraw p1
+      let upper = sharpDraw p2
+      I.Mutate(fun x -> 
+        x.DrawImage(lower, Point(0, 0), 1f) |> ignore
+        x.DrawImage(upper, Point(0, 0), 1f) |> ignore)
+      I
+    | AffineTransform(p,M,c,w,h) ->
+      affinetransform p M c w h
+    | Scale(p,sx,sy,w,h) -> 
+      let M = Matrix3x2Extensions.CreateScale(SizeF(float32 sx, float32 sy))
+      affinetransform p M Color.Black w h
+    | Rotate(p,cx,cy,dgr,c,w,h) ->
+      let M = Matrix3x2Extensions.CreateRotation(float32 dgr, PointF(float32 cx, float32 cy))
+      affinetransform p M c w h
+    | Translate(p,dx,dy,c,w,h) ->
+      let M = Matrix3x2Extensions.CreateTranslation(PointF(float32 dx, float32 dy))
+      affinetransform p M c w h
+    | Crop(p,x,y,w,h) ->
+      let I = sharpDraw p
+      let rect = Rectangle(Point(x,y), Size(x,y))
+      I.Mutate(fun x -> x.Crop(rect)|>ignore)
+      I
+
 
 let p = Empty(30,50)
 printfn "\nAn empty box:\n %A" p
-//draw p "p"
 (sharpDraw p).Save("p.jpg")
 let q = Leaf((fun x y w h -> ()),50,30)
 printfn "\nA full box: %A" q
-//draw q "q"
 (sharpDraw q).Save("q.jpg")
 
 let r = horizontal p Top q
@@ -158,8 +179,25 @@ printfn "\nhorizontal p Top q: %A" r
 let s = vertical p VPosition.Center q
 printfn "\nvertical p VPosition.Center q: %A" q
 let t = horizontal r Bottom s;
-printfn "\nhorizontal r Bottom s: %A" q
+printfn "\nhorizontal r Bottom s: %A" t
 (sharpDraw t).Save("nonTrivial.jpg")
+let w,h = getSize t
+let u = Rotate(t, 0, 0, 10.0*System.Math.PI/180.0, Color.LightGray, w, h)
+printfn "\nRotate(t): %A" u
+(sharpDraw u).Save("rotate.jpg")
+
+let gif = sharpDraw t
+let frameDelay = 100
+let gifMetaData = gif.Metadata.GetGifMetadata()
+gifMetaData.RepeatCount <- 5us
+let metadata = gif.Frames.RootFrame.Metadata.GetGifMetadata()
+metadata.FrameDelay <- frameDelay
+for i in 1 .. 59 do
+  let frame = sharpDraw (Rotate(t, w/2, h/2, (float i)/60.0*2.0*System.Math.PI, Color.LightGray, w, h))
+  let md = frame.Frames.RootFrame.Metadata.GetGifMetadata();
+  md.FrameDelay <- frameDelay
+  gif.Frames.AddFrame(frame.Frames.RootFrame) |> ignore
+gif.SaveAsGif("animated.gif");
 
 (*
 let hPos = [Top; HPosition.Center; Bottom];
