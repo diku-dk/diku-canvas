@@ -78,22 +78,27 @@ let runAppWithTimer (t:string) (w:int) (h:int) (interval:int option)
 
     let rec drawLoop redraw =
         if redraw then
-            let canvas = draw w h (!state)
-            // FIXME: what if canvas does not have dimensions w*h? See issue #13
-
-            // Array.blit canvas.data 0 frameBuffer 0 canvas.data.Length
-
-            // SDL.SDL_UpdateTexture(texture, IntPtr.Zero, bufferPtr, viewWidth * 4) |> ignore
-            // SDL.SDL_RenderClear(renderer) |> ignore
-            // SDL.SDL_RenderCopy(renderer, texture, IntPtr.Zero, IntPtr.Zero) |> ignore
-            // SDL.SDL_RenderPresent(renderer) |> ignore
+            let img = draw w h (!state)  // FIXME: who own the image? can we mutate it?
+            use tmp_img =
+                img.Clone(fun ctx -> ctx.Crop(min w img.Width, min h img.Height)
+                                        .Resize(ResizeOptions(Position = AnchorPositionMode.TopLeft,
+                                                              Size = Size(w, h),
+                                                              Mode = ResizeMode.BoxPad))
+                                     |> ignore)
+            tmp_img.CopyPixelDataTo(frameBuffer)
+            SDL.SDL_UpdateTexture(texture, IntPtr.Zero, bufferPtr, viewWidth * 4) |> ignore
+            SDL.SDL_RenderClear(renderer) |> ignore
+            SDL.SDL_RenderCopy(renderer, texture, IntPtr.Zero, IntPtr.Zero) |> ignore
+            SDL.SDL_RenderPresent(renderer) |> ignore
             ()
 
         let ret = SDL.SDL_WaitEvent(&event)
         if ret = 0 then () // an error happened so we exit
         else
             match SDL.convertEvent event with
-                | SDL.Quit -> () // quit the game by exiting the loop
+                | SDL.Quit ->
+                    printfn "We quit"
+                    () // quit the game by exiting the loop
                 | SDL.KeyDown keyEvent when keyEvent.keysym.sym = SDL.SDLK_ESCAPE -> ()
 
                 | SDL.KeyDown keyEvent ->
@@ -130,7 +135,8 @@ let runAppWithTimer (t:string) (w:int) (h:int) (interval:int option)
                             | Some s -> (state := s; true)
                             | None -> false
                     drawLoop redraw
-                | _ ->
+                | ev ->
+                    printfn "We loop because of: %A" ev
                     drawLoop false
 
     drawLoop true
