@@ -97,7 +97,7 @@ let runAppWithTimer (t:string) (w:int) (h:int) (interval:int option)
         else
             match SDL.convertEvent event with
                 | SDL.Quit ->
-                    printfn "We quit"
+                    // printfn "We quit"
                     () // quit the game by exiting the loop
                 | SDL.KeyDown keyEvent when keyEvent.keysym.sym = SDL.SDLK_ESCAPE -> ()
 
@@ -136,7 +136,7 @@ let runAppWithTimer (t:string) (w:int) (h:int) (interval:int option)
                             | None -> false
                     drawLoop redraw
                 | ev ->
-                    printfn "We loop because of: %A" ev
+                    // printfn "We loop because of: %A" ev
                     drawLoop false
 
     drawLoop true
