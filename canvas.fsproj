@@ -21,6 +21,7 @@
 
   <ItemGroup>
     <Compile Include="SDL.fs" />
+    <Compile Include="lowlevel.fs" />
     <Compile Include="canvas.fsi" />
     <Compile Include="canvas.fs" />
   </ItemGroup>
@@ -54,6 +55,8 @@
   </ItemGroup>
 
   <ItemGroup>
+    <PackageReference Include="SixLabors.ImageSharp" Version="3.0.1" />
+    <PackageReference Include="SixLabors.ImageSharp.Drawing" Version="1.0.0-beta15" />
     <PackageReference Include="StbImageSharp" Version="2.27.11" />
     <PackageReference Include="StbImageWriteSharp" Version="1.16.7" />
   </ItemGroup>
