@@ -154,8 +154,11 @@ printfn "\nA full box: %A" q
 (sharpDraw q).Save("q.jpg")
 
 let r = horizontal p Top q
+printfn "\nhorizontal p Top q: %A" r
 let s = vertical p VPosition.Center q
+printfn "\nvertical p VPosition.Center q: %A" q
 let t = horizontal r Bottom s;
+printfn "\nhorizontal r Bottom s: %A" q
 (sharpDraw t).Save("nonTrivial.jpg")
 
 (*
