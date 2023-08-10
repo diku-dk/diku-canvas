@@ -27,30 +27,55 @@ type image = SixLabors.ImageSharp.Image<Rgba32>
 
 type drawing_context = SixLabors.ImageSharp.Processing.IImageProcessingContext
 
+type drawing_fun = drawing_context -> drawing_context
+
 type rect = {x : float32; y : float32; width : float32; height : float32}
 
 let toRectangleF r =
     RectangleF(r.x, r.y, r.width, r.height)
 
 let fillBox (color:color) (box:rect) (ctx:drawing_context) : drawing_context =
-    ctx.Fill(color, toRectangleF box) |> ignore
-    ctx
+    ctx.Fill(color, toRectangleF box)
 
 let drawBox (color:color) (lineWidth:int) (box:rect) (ctx:drawing_context) =
     ctx.Draw(color, float32 lineWidth, toRectangleF box) |> ignore
     ctx
 
 
-type event =
+let drawToFile width heigth (filePath:string) (draw:drawing_fun) =
+    let img = new Image<Rgba32>(width, heigth)
+    img.Mutate(draw >> ignore)
+    img.Save(filePath)
+
+type ControlKey =
+    | DownArrow
+    | UpArrow
+    | LeftArrow
+    | RightArrow
+    | Space
+
+type Event =
     | KeyDown of int
     | TimerTick
     | MouseButtonDown of int * int // x,y
     | MouseButtonUp of int * int // x,y
     | MouseMotion of int * int * int * int // x,y, relx, rely
 
+
+let getControl (k:int) : ControlKey option =
+    let kval = uint32 k
+    match kval with
+        | _ when kval = SDL.SDLK_SPACE -> Some Space
+        | _ when kval = SDL.SDLK_UP -> Some UpArrow
+        | _ when kval = SDL.SDLK_DOWN -> Some DownArrow
+        | _ when kval = SDL.SDLK_LEFT -> Some LeftArrow
+        | _ when kval = SDL.SDLK_RIGHT -> Some RightArrow
+        | _ -> None
+
+
 let runAppWithTimer (t:string) (w:int) (h:int) (interval:int option)
-           (draw: drawing_context -> 's -> drawing_context)
-           (react: 's -> event -> 's option) (s:'s) : unit =
+           (draw: 's -> drawing_fun)
+           (react: 's -> Event -> 's option) (s:'s) : unit =
 
     let state = ref s
 
@@ -93,7 +118,7 @@ let runAppWithTimer (t:string) (w:int) (h:int) (interval:int option)
     let rec drawLoop redraw =
         if redraw then
             img.Mutate(fun ctx ->
-                       (draw ctx (!state))
+                       (draw (!state) ctx)
                           .Crop(min w img.Width, min h img.Height)
                           .Resize(ResizeOptions(Position = AnchorPositionMode.TopLeft,
                                                 Size = Size(w, h),
