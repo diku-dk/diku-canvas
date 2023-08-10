@@ -1,5 +1,7 @@
-#r "nuget:SixLabors.ImageSharp"
+module CanvasNT
+#r "nuget: SixLabors.ImageSharp"
 #r "nuget: SixLabors.ImageSharp.Drawing, 1.0.0-beta15"
+
 open SixLabors.ImageSharp
 open SixLabors.ImageSharp.PixelFormats
 open SixLabors.ImageSharp.Processing
@@ -13,7 +15,11 @@ open SixLabors.Fonts
 
 /// Types
 type Draw = unit -> Image<Rgba32> // A function that draws a shape
-
+type Color = SixLabors.ImageSharp.Color
+type image = SixLabors.ImageSharp.Image<Rgba32>
+type movie = image list
+type Pen = SixLabors.ImageSharp.Drawing.Processing.Pen
+type Font = SixLabors.Fonts.Font
 type Picture = 
   Leaf of Draw*int*int
   | Horizontal of Picture*Picture*int*int
@@ -26,6 +32,26 @@ type Picture =
   | Crop of Picture*int*int
 
 /// Functions for combining images
+let save (I:image) (fname:string): unit =
+  I.Save(fname)
+
+let saveAnimatedGif (frameDelay:int) (repeatCount:int) (movie:image list) (fname: string): unit =
+  match movie with
+    gif::rst ->
+      let gifMetaData = gif.Metadata.GetGifMetadata()
+      gifMetaData.RepeatCount <- uint16 5
+      let metadata = gif.Frames.RootFrame.Metadata.GetGifMetadata()
+      metadata.FrameDelay <- frameDelay
+      List.iter (fun (frame:image) -> 
+          let metadata = frame.Frames.RootFrame.Metadata.GetGifMetadata()
+          metadata.FrameDelay <- frameDelay
+          gif.Frames.AddFrame(frame.Frames.RootFrame) |> ignore
+        ) rst
+      gif.SaveAsGif(fname);
+    | _ -> ()
+
+let systemFonts = SystemFonts.Families
+let createFont (fname: string) (sz: float): Font = SystemFonts.CreateFont(fname, float32 sz)
 let getSize (p:Picture): int*int =
   match p with
     Leaf(_,w,h)
@@ -82,10 +108,10 @@ and vertical (pic1:Picture) (pos:float) (pic2:Picture): Picture =
 let rec sharpDraw (pic:Picture) : Image<Rgba32> =
   let mutateCrop (c: Color) (I: Image<Rgba32>) (w:int) (h:int): Image<Rgba32> = 
     I.Mutate(fun x -> x.Crop(min I.Width w, min I.Height h)
-                       .Resize(ResizeOptions(Position = AnchorPositionMode.TopLeft,
-                                             Size = Size(w, h), 
-                                             Mode = ResizeMode.BoxPad))
-                       .BackgroundColor(c)|>ignore)
+                        .Resize(ResizeOptions(Position = AnchorPositionMode.TopLeft,
+                                              Size = Size(w, h), 
+                                              Mode = ResizeMode.BoxPad))
+                        .BackgroundColor(c)|>ignore)
     I
   let affinetransform (p:Picture) (M:System.Numerics.Matrix3x2) (c: Color) (w:int) (h:int): Image<Rgba32> =
     let I = sharpDraw p
@@ -180,135 +206,3 @@ let text (c: Color) (f: Font) (txt: string) : Picture =
     let I = new Image<Rgba32>(w,h,Color.Transparent)
     I.Mutate(fun x -> x.DrawText(txt, f, c, PointF(0f, 0f))|>ignore)
     I),w,h)
-
-/// Tests
-/// Testing creation of simple Picture
-let p = box Color.LightGray 30 50
-printfn "\nAn empty box:\n %A" p
-(sharpDraw p).Save("p.jpg")
-let q = box Color.Red 50 30
-printfn "\nA full box: %A" q
-(sharpDraw q).Save("q.jpg")
-
-/// Testing Crop
-let w,h = getSize p in
-  let u = Crop(p, w-10, h-5) in 
-    printfn "\nCrop p smaller: %A" u;
-    (sharpDraw u).Save("cropSmall.jpg")
-let w,h = getSize p in
-  let u = Crop(p, w+10, h+5) in 
-    printfn "\nCrop p larger: %A" u;
-    (sharpDraw u).Save("cropLarge.jpg")
-
-/// Testing Translate
-let w,h = getSize p in
-  let u = Translate(p, -10, -5, w,h) in 
-    printfn "\nTranslate left-up keep size: %A" u;
-    (sharpDraw u).Save("translatelus.jpg")
-let w,h = getSize p in
-  let u = Translate(p, 10, 5, w,h) in 
-    printfn "\nTranslate right-down keep size: %A" u;
-    (sharpDraw u).Save("translaterds.jpg")
-let w,h = getSize p in
-  let u = Translate(p, -10, -5, w+10,h+5) in 
-    printfn "\nTranslate left-up bigger size: %A" u;
-    (sharpDraw u).Save("translatelub.jpg")
-let w,h = getSize p in
-  let u = Translate(p, 10, 5, w+10,h+5) in 
-    printfn "\nTranslate right-down bigger size: %A" u;
-    (sharpDraw u).Save("translaterdb.jpg")
-
-/// Testing creation of Picture tree
-let r = horizontal p Top q
-printfn "\nhorizontal p Top q: %A" r
-(sharpDraw r).Save("r.jpg")
-let s = vertical p Center q
-printfn "\nvertical p Center q: %A" q
-(sharpDraw s).Save("s.jpg")
-let t = horizontal r Bottom s;
-printfn "\nhorizontal r Bottom s: %A" t
-(sharpDraw t).Save("nonTrivial.jpg")
-
-/// Testing horizontal concatenation
-let hPos = [Top; Center; Bottom];
-let lstHorisontal0 = List.map (fun pos -> horizontal p pos p) hPos
-printfn "\nHorizontally empty-empty: %A" (List.zip hPos lstHorisontal0)
-List.iter (fun (v,p) -> (sharpDraw p).Save(sprintf "horizontal%g.jpg" v)) (List.zip hPos lstHorisontal0)
-let lstHorisontal1 = List.map (fun pos -> horizontal p pos q) hPos
-printfn "\nHorizontally empty-full: %A" (List.zip hPos lstHorisontal1)
-List.iter (fun (v,p) -> (sharpDraw p).Save(sprintf "horizontal%g.jpg" v)) (List.zip hPos lstHorisontal1)
-let lstHorisontal2 = List.map (fun pos -> horizontal q pos p) hPos
-printfn "\nHorizontally full-empty: %A" (List.zip hPos lstHorisontal2)
-List.iter (fun (v,p) -> (sharpDraw p).Save(sprintf "horizontal%g.jpg" v)) (List.zip hPos lstHorisontal2)
-
-/// Testing vertical concatenation
-let vPos = [Left; Center; Right];
-let lstVertical0 = List.map (fun pos -> vertical p pos p) vPos
-printfn "\nVertically empty-empty: %A" (List.zip vPos lstVertical0)
-List.iter (fun (v,p) -> (sharpDraw p).Save(sprintf "vertical%g.jpg" v)) (List.zip hPos lstVertical0)
-let lstVertical1 = List.map (fun pos -> vertical p pos q) vPos
-printfn "\nVertically empty-full: %A" (List.zip vPos lstVertical1)
-List.iter (fun (v,p) -> (sharpDraw p).Save(sprintf "vertical%g.jpg" v)) (List.zip hPos lstVertical1)
-let lstVertical2 = List.map (fun pos -> vertical q pos p) vPos
-printfn "\nVertically full-empty: %A" (List.zip vPos lstVertical2)
-List.iter (fun (v,p) -> (sharpDraw p).Save(sprintf "vertical%g.jpg" v)) (List.zip hPos lstVertical2)
-
-/// Testing stacking
-let tPos = [0.0; 0.5; 1.0];
-let lstOnTop0 = List.map (fun a -> List.map (fun b -> ontop p a b p) tPos) tPos
-printfn "\nOnTop empty-empty: %A" (List.zip tPos (List.map (fun lst -> List.zip tPos lst) lstOnTop0))
-List.iter (fun lst -> List.iter (fun p -> sharpDraw p|>ignore) lst) lstOnTop0
-let lstOnTop1 = List.map (fun a -> List.map (fun b -> ontop p a b q) tPos) tPos
-printfn "\nOnTop empty-full: %A" (List.zip tPos (List.map (fun lst -> List.zip tPos lst) lstOnTop1))
-List.iter (fun lst -> List.iter (fun p -> sharpDraw p|>ignore) lst) lstOnTop1
-let lstOnTop2 = List.map (fun a -> List.map (fun b -> ontop q a b p) tPos) tPos
-printfn "\nOnTop full-empty: %A" (List.zip tPos (List.map (fun lst -> List.zip tPos lst) lstOnTop2))
-List.iter (fun lst -> List.iter (fun p -> sharpDraw p|>ignore) lst) lstOnTop2
-
-/// Testing rotation modification
-let w,h = getSize t
-let u = Rotate(t, 0, 0, 10.0*System.Math.PI/180.0, w, h)
-printfn "\nRotate(t): %A" u
-(sharpDraw u).Save("rotate.jpg")
-
-/// Testing rotation and animated gifs
-let gif = ontop (box Color.Black w h) 0.0 0.0 t |> sharpDraw
-let frameDelay = 100
-let gifMetaData = gif.Metadata.GetGifMetadata()
-gifMetaData.RepeatCount <- 5us
-let metadata = gif.Frames.RootFrame.Metadata.GetGifMetadata()
-metadata.FrameDelay <- frameDelay
-for i in 1 .. 59 do
-  let ti = Rotate(t, (float w)/2.0, (float h)/2.0, (float i)/60.0*2.0*System.Math.PI, w, h)
-  let frame = ontop (box Color.Black w h) 0.0 0.0 ti |> sharpDraw
-  let md = frame.Frames.RootFrame.Metadata.GetGifMetadata();
-  md.FrameDelay <- frameDelay
-  gif.Frames.AddFrame(frame.Frames.RootFrame) |> ignore
-gif.SaveAsGif("animated.gif");
-
-/// Testing content creations
-let pen = new Pen(Color.White, 1f) in
-  let p = curve 50 30 pen [(10.0,10.0); (20.0, 25.0); (10.0, 25.0); (10.0, 10.0)] in 
-    (sharpDraw p).Save("curve.jpg")
-
-let p = rectangle 50 30 pen (10.0,10.0) (30.0, 10.0) in 
-  (sharpDraw p).Save("rectangle.jpg")
-
-let p = rectangle 50 30 pen (10.0,10.0) (30.0, 10.0) in 
-  (sharpDraw p).Save("rectangle.jpg")
-
-let p = filledRectangle 50 30 Color.Red (10.0,10.0) (30.0, 10.0) in 
-  (sharpDraw p).Save("filledRectangle.jpg")
-
-let p = filledPolygon 50 30 Color.White [(10.0,10.0); (20.0, 25.0); (10.0, 25.0); (10.0, 10.0)] in 
-  (sharpDraw p).Save("filledPolygon.jpg")
-
-let p = ellipse 512 256 pen (256.0,128.0) (128.0,64.0) in 
-  (sharpDraw p).Save("circle.jpg")
-
-let p = filledEllipse 512 256 Color.White (256.0,128.0) (128.0,64.0) in 
-  (sharpDraw p).Save("filledCircle.jpg")
-
-let font = SystemFonts.CreateFont("Microsoft Sans Serif", 36f) in
-  let p = text Color.White font "Hello World" in 
-    (sharpDraw p).Save("text.jpg")
