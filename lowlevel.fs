@@ -40,6 +40,9 @@ let fillBox (color:color) (box:rect) (ctx:drawing_context) : drawing_context =
 let drawBox (color:color) (lineWidth:int) (box:rect) (ctx:drawing_context) =
     ctx.Draw(color, float32 lineWidth, toRectangleF box)
 
+let rotate (degrees:float32) (ctx:drawing_context) =
+    ctx.Rotate(degrees)
+
 let drawToFile width heigth (filePath:string) (draw:drawing_fun) =
     let img = new Image<Rgba32>(width, heigth)
     img.Mutate(draw >> ignore)
