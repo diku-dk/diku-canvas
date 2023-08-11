@@ -208,3 +208,8 @@ let runAppWithTimer (t:string) (w:int) (h:int) (interval:int option)
     SDL.SDL_DestroyWindow window
     SDL.SDL_Quit()
     ()
+
+let runApp (t:string) (w:int) (h:int) (draw: unit -> drawing_fun) : unit =
+    let drawWState s = draw ()
+    let react s e = None
+    runAppWithTimer t w h None drawWState react 0

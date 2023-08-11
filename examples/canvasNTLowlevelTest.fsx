@@ -8,41 +8,32 @@ module CNT = CanvasNT
 
 type state = int // a counter
 
-let next x =
-    x+1
-
-
 let pen = makePen green 5.0
-
 let drawCurve _ dc =
-    printfn "Curve";
-    drawLines pen [(10.0,10.0); (60.0, 80.0); (10.0, 80.0); (10.0, 10.0)] dc
-
+    dc |>
+    CNT.curveDC pen [(10.0,10.0); (60.0, 80.0); (10.0, 80.0); (10.0, 10.0)]
+    |> CNT.scaleDC 2.0 0.5
+    |> CNT.translateDC 10.0 3.0
+let txt = "999"
+let font = CNT.createFont "Microsoft Sans Serif" 36.0
+let w,h = CNT.measureText font txt
+let drawTxT i dc = 
+    CNT.textDC white font (string i) (0.0,0.0) dc
 
 let mkDraw n = 
     match n with
         | "text" ->
-            let txt = "Hello World"
-            let font = CNT.createFont "Microsoft Sans Serif" 36.0
-            let w,h = CNT.measureText font txt
-            let draw _ dc = CNT.textDC white font "Hello World"
-            w,h,(draw 0)
+            w, h, drawTxT
         | "curve" ->
             100, 100, drawCurve
         | "combine" ->
-            let txt = "Hello World"
-            let font = CNT.createFont "Microsoft Sans Serif" 36.0
-            let w,h = CNT.measureText font txt
-            let drawTxt _ = printfn "Txt"; drawText "Hello World" font white 0f 0f
-            (max 100 w),(max 100 h), fun state dc ->
-                                         dc |> drawCurve state |> drawTxt state
-
+            (max 100 w), (max 100 h), fun state dc ->
+                                         dc |> drawCurve state |> drawTxT state
         | _ -> failwith "Unkown test"
 
 let react (s:state) (ev:Lowlevel.Event) : state option =
     match ev with
-        | Event.TimerTick ->
-            s |> next |> Some
+        | Event.TimerTick -> Some (s+1)
         | _ -> None
 
 let main args =
@@ -50,7 +41,7 @@ let main args =
         1
     else
         let w, h, draw = mkDraw args[1]
-        runAppWithTimer "Text Test" (int w) (int h) None draw react 0
+        runAppWithTimer "Text Test" (int w) (int h) (Some 1000) draw react 0
         0
 
 [<EntryPoint>]
