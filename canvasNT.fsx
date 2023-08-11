@@ -30,7 +30,6 @@ type Picture =
   | Rotate of Picture*float*float*float*int*int
   | Translate of Picture*float*float*int*int
   | Crop of Picture*int*int
-type drawing_context = SixLabors.ImageSharp.Processing.IImageProcessingContext
 type Size = float*float
 
 /// Functions for combining images
@@ -243,3 +242,10 @@ let ellipseDC (p: Pen) (c: (float*float)) (r: (float*float)) (ctx:drawing_contex
 let filledEllipseDC (w: int) (h:int) (col: Color) (c: float*float) (r: float*float) (ctx:drawing_context): drawing_context = 
   let lst = ellipsePoints c r
   filledPolygonDC col lst ctx
+let cropDC (c: Color) (w:int) (h:int) (ctx:drawing_context): drawing_context = 
+  let sz = ctx.GetCurrentSize()
+  ctx.Crop(min sz.Width w, min sz.Height h)
+     .Resize(ResizeOptions(Position = AnchorPositionMode.TopLeft,
+                           Size = Size(w, h), 
+                           Mode = ResizeMode.BoxPad))
+     .BackgroundColor(c)
