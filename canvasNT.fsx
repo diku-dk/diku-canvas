@@ -30,6 +30,8 @@ type Picture =
   | Rotate of Picture*float*float*float*int*int
   | Translate of Picture*float*float*int*int
   | Crop of Picture*int*int
+type drawing_context = SixLabors.ImageSharp.Processing.IImageProcessingContext
+type Size = float*float
 
 /// Functions for combining images
 let save (I:image) (fname:string): unit =
@@ -174,6 +176,9 @@ let curve (w: int) (h:int) (p: Pen) (lst: (float*float) list) : Picture =
     let points = lst |> Array.ofList |> Array.map (fun (a,b) -> PointF(float32 a, float32 b)) 
     I.Mutate(fun x -> x.DrawLines(p, points)|>ignore)
     I),w,h)
+let curveDC (p: Pen) (lst: (float*float) list)  (ctx:drawing_context): drawing_context = 
+    let points = lst |> Array.ofList |> Array.map (fun (a,b) -> PointF(float32 a, float32 b)) 
+    ctx.DrawLines(p, points)
 let filledPolygon (w: int) (h:int) (c: Color) (lst: (float*float) list) : Picture = 
   Leaf((fun () -> 
     let I = new Image<Rgba32>(w,h,Color.Transparent)
@@ -199,6 +204,7 @@ let ellipse (w: int) (h:int) (p: Pen) (c: (float*float)) (r: (float*float)) : Pi
 let filledEllipse (w: int) (h:int) (col: Color) (c: float*float) (r: float*float) : Picture = 
   let lst = ellipsePoints c r
   filledPolygon w h col lst
+
 let text (c: Color) (f: Font) (txt: string) : Picture = 
   let size = TextMeasurer.Measure(txt, TextOptions(f))
   let w,h = int size.Width, int size.Height
@@ -206,3 +212,8 @@ let text (c: Color) (f: Font) (txt: string) : Picture =
     let I = new Image<Rgba32>(w,h,Color.Transparent)
     I.Mutate(fun x -> x.DrawText(txt, f, c, PointF(0f, 0f))|>ignore)
     I),w,h)
+let measureText (f: Font) (txt: string): Size = 
+  let size = TextMeasurer.Measure(txt, TextOptions(f))
+  (float size.Width, float size.Height)
+let textDC (c: Color) (f: Font) (txt: string) (ctx:drawing_context): drawing_context = 
+    ctx.DrawText(txt, f, c, PointF(0f, 0f))
