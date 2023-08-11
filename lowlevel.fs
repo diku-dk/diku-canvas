@@ -40,8 +40,19 @@ let fillBox (color:color) (box:rect) (ctx:drawing_context) : drawing_context =
 let drawBox (color:color) (lineWidth:int) (box:rect) (ctx:drawing_context) =
     ctx.Draw(color, float32 lineWidth, toRectangleF box)
 
-let rotate (degrees:float32) (ctx:drawing_context) =
+let rotate (degrees:float32) (ctx:drawing_context) =  // FIXME: find more useful Rotate method
     ctx.Rotate(degrees)
+
+type Font = SixLabors.Fonts.Font
+type FontFamily = SixLabors.Fonts.FontFamily
+
+let getFamily name = SixLabors.Fonts.SystemFonts.Get(name)
+
+let makeFont (fam:FontFamily) (size:float32) = new SixLabors.Fonts.Font(fam, size)
+
+let drawText (msg:string) (font:Font) (color:color) (x:float32) (y:float32) (ctx:drawing_context) =
+    ctx.DrawText(msg, font, color, PointF(x, y))
+
 
 let drawToFile width heigth (filePath:string) (draw:drawing_fun) =
     let img = new Image<Rgba32>(width, heigth)
