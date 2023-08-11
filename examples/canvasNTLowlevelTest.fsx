@@ -16,12 +16,20 @@ let mkDraw n =
             let txt = "Hello World"
             let font = createFont "Microsoft Sans Serif" 36.0
             let w,h = measureText font txt
-            let draw _ = textDC Color.White font "Hello World"
-            w,h,fun dc -> draw 0
+            let draw _ dc = textDC Color.White font "Hello World"
+            w,h,(draw 0)
         | "curve" ->
             let pen = new Pen(Color.White, 1f)
-            let draw _ = curveDC pen [(10.0,10.0); (20.0, 25.0); (10.0, 25.0); (10.0, 10.0)]
-            50,30,fun dc -> draw 0
+            let draw _ dc = curveDC pen [(10.0,10.0); (20.0, 25.0); (10.0, 25.0); (10.0, 10.0)]
+            50,30,(draw 0)
+        | "combine" ->
+            let txt = "Hello World"
+            let font = createFont "Microsoft Sans Serif" 36.0
+            let w,h = measureText font txt
+            let drawTxt _ dc = printfn "Txt"; textDC Color.White font "Hello World"
+            let pen = new Pen(Color.White, 1f)
+            let drawCurve _ dc = printfn "Curve"; curveDC pen [(10.0,10.0); (20.0, 25.0); (10.0, 25.0); (10.0, 10.0)]
+            (max 50 w),(max 30 h), drawCurve 0 >> drawTxt 0 
         | _ -> failwith "Unkown test"
 
 let react (s:state) (ev:Lowlevel.Event) : state option =
@@ -31,7 +39,6 @@ let react (s:state) (ev:Lowlevel.Event) : state option =
         | _ -> None
 
 let main args =
-    printfn "%A" args
     if Array.length args < 2 then
         1
     else
