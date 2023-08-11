@@ -53,6 +53,16 @@ let makeFont (fam:FontFamily) (size:float32) = new SixLabors.Fonts.Font(fam, siz
 let drawText (msg:string) (font:Font) (color:color) (x:float32) (y:float32) (ctx:drawing_context) =
     ctx.DrawText(msg, font, color, PointF(x, y))
 
+type Pen = SixLabors.ImageSharp.Drawing.Processing.Pen
+
+let makePen (color:color) (width:float) : Pen =
+    new Pen(color, float32 width)
+
+let drawLines (p: Pen) (points: (float*float) list) (ctx:drawing_context) : drawing_context =
+    let points_arr = points |> Array.ofList |> Array.map (fun (a,b) -> PointF(float32 a, float32 b))
+    ctx.DrawLines(p, points_arr)
+
+
 
 let drawToFile width heigth (filePath:string) (draw:drawing_fun) =
     let img = new Image<Rgba32>(width, heigth)
