@@ -21,8 +21,8 @@ type Pen = SixLabors.ImageSharp.Drawing.Processing.Pen
 type Font = SixLabors.Fonts.Font
 type Picture = 
   Leaf of drawing_fun*int*int
-  | Horizontal of Picture*Picture*int*int
-  | Vertical of Picture*Picture*int*int
+  | AlignH of Picture*Picture*int*int
+  | AlignV of Picture*Picture*int*int
   | OnTop of Picture*Picture*int*int
   | AffineTransform of Picture*System.Numerics.Matrix3x2*Color*int*int
   | Scale of Picture*float*float*int*int
@@ -30,6 +30,19 @@ type Picture =
   | Translate of Picture*float*float*int*int
 //  | Crop of drawing_fun*int*int
 type Size = float*float
+let getSize (p:Picture): int*int =
+  match p with
+    Leaf(_,w,h)
+    | AlignH(_,_,w,h) -> w,h
+    | AlignV(_,_,w,h)
+    | OnTop(_,_,w,h)
+    | AffineTransform(_,_,_,w,h)
+    | Scale(_,_,_,w,h)
+    | Rotate(_,_,_,_,w,h)
+    | Translate(_,_,_,w,h) -> w,h
+//    | Crop(_,w,h)
+
+
 
 // Working with files
 let save (I:image) (fname:string): unit =
@@ -62,9 +75,13 @@ let ellipsePoints ((cx,cy): (float*float)) ((rx,ry): (float*float)): (float*floa
 let affinetransform (M:System.Numerics.Matrix3x2) (c: Color) (ctx:drawing_context): drawing_context = 
   let transformation = AffineTransformBuilder().AppendMatrix(M)
   ctx.Transform(transformation)
-let translate (dx:float) (dy:float) (ctx:drawing_context): drawing_context =
+let _translate (dx:float) (dy:float) (ctx:drawing_context): drawing_context =
   let M = Matrix3x2Extensions.CreateTranslation(PointF(float32 dx, float32 dy))
   affinetransform M Color.Transparent ctx
+let translate (dx:float) (dy:float) (p: Picture): Picture =
+  let w, h = getSize p
+  Translate(p,dx,dy,w+round dx,h+round dy)
+
 let scale (sx:float) (sy:float) (ctx:drawing_context): drawing_context =
   let M = Matrix3x2Extensions.CreateScale(SizeF(float32 sx, float32 sy))
   affinetransform M Color.Transparent ctx
@@ -114,11 +131,12 @@ let filledPolygon (c: Color) (lst: (float*float) list): Picture =
   let w, h = 1.0+wMin+wMax, 1.0+hMin+hMax
   Leaf((_filledPolygon c lst), int w, int h) 
 
-let _rectangle (p: Pen) ((x1,y1): (float*float)) ((x2,y2): (float*float)) (ctx:drawing_context): drawing_context = 
-  ctx.Draw(DrawingOptions(), p, RectangleF(float32 x1, float32 y1, float32 x2, float32 y2))
-let rectangle (pen: Pen) ((x1,y1): (float*float)) ((x2,y2): (float*float)): Picture = 
-  let w, h = max x1 x2, max y1 y2
-  Leaf((_rectangle pen (x1,y1) (x2,y2)), int w, int h) 
+let _rectangle (p: Pen) ((x,y): (float*float)) ((w,h): (float*float)) (ctx:drawing_context): drawing_context = 
+  let rect = RectangleF(PointF(float32 x, float32 y), SizeF(float32 w, float32 h))
+  printfn "%A %A %A %A" rect.X rect.Y rect.Width rect.Height
+  ctx.Draw(DrawingOptions(), p, RectangleF(PointF(float32 x, float32 y), SizeF(float32 w, float32 h)))
+let rectangle (pen: Pen) ((x,y): (float*float)) ((w,h): (float*float)): Picture = 
+  Leaf((_rectangle pen (x,y) (w,h)), int w, int h) 
 
 let _filledRectangle (c: Color) ((x1,y1): (float*float)) ((x2,y2): (float*float)) (ctx:drawing_context): drawing_context = 
   ctx.Fill(c, RectangleF(float32 x1, float32 y1, float32 x2, float32 y2))
@@ -147,18 +165,6 @@ let crop (c: Color) (w:int) (h:int): Picture =
   Crop((_crop c w h), int w, int h) *)
 
 /// Functions for combining images
-let getSize (p:Picture): int*int =
-  match p with
-    Leaf(_,w,h)
-    | Horizontal(_,_,w,h) -> w,h
-    | Vertical(_,_,w,h)
-    | OnTop(_,_,w,h)
-    | AffineTransform(_,_,_,w,h)
-    | Scale(_,_,_,w,h)
-    | Rotate(_,_,_,_,w,h)
-    | Translate(_,_,_,w,h) -> w,h
-//    | Crop(_,w,h)
-
 let Top = 0.0
 let Left = 0.0
 let Center = 0.5
@@ -168,9 +174,10 @@ let Right = 1.0
 let rec ontop (pic1:Picture) (pic2:Picture): Picture =
   let w1,h1 = getSize pic1
   let w2,h2 = getSize pic2
+  printfn "%A %A %A %A" w1 h1 w2 h2
   let w, h = (max w1 w2), (max h1 h2)
   OnTop(pic1, pic2, w, h)
-and horizontal (pic1:Picture) (pos:float) (pic2:Picture): Picture =
+and alignh (pic1:Picture) (pos:float) (pic2:Picture): Picture =
   if pos < 0 || pos > 1 then 
     raise (System.ArgumentOutOfRangeException ("ppos must be in [0,1]"))
   let w1,h1 = getSize pic1
@@ -178,65 +185,79 @@ and horizontal (pic1:Picture) (pos:float) (pic2:Picture): Picture =
   let w, h = w1+w2, (max h1 h2)
   let s = abs (pos*float (h1-h2))
   if h1 > h2 then
-    Horizontal(pic1, Translate(pic2, 0.0, s, w2, h2+round s), w, h)
+    AlignH(pic1, Translate(pic2, 0.0, s, w2, h2+round s), w, h)
   else // something weird happens here, seems that clip removes the top of pic 2
-    Horizontal(Translate(pic1, 0.0, s, w1, h1+round s), Translate(pic2, 0.0, -s, w1, h1), w, h)
-and vertical (pic1:Picture) (pos:float) (pic2:Picture): Picture =
+    AlignH(Translate(pic1, 0.0, s, w1, h1+round s), pic2, w, h)
+and alignv (pic1:Picture) (pos:float) (pic2:Picture): Picture =
   if pos < 0 || pos > 1 then 
     raise (System.ArgumentOutOfRangeException ("pos must be in [0,1]"))
   let w1,h1 = getSize pic1
   let w2,h2 = getSize pic2
   let w, h = max w1 w2, h1 + h2
+  printfn "%A %A %A %A %A %A" w1 h1 w2 h2 w h
   let s = abs (pos*float (w1-w2))
   if w1 > w2 then
-    Vertical(pic1, Translate(pic2, s, 0.0, w2+round s, h2), w, h)
+    printfn "gren 1"
+    OnTop(pic1, Translate(pic2, s, h1, w2+round s, h1+h2), w, h)
   else
-    Vertical(Translate(pic1, s, 0.0, w1+round s, h1), Translate(pic2, -s, 0.0, w2, h2), h, w)
+    printfn "gren 2"
+    OnTop(Translate(pic1, -s, h2, w1+round s, h1+h2), pic2, w, h)
 
 /// Drawing content
-let rec compile (pic:Picture) (explain: bool): drawing_fun =
-  let wrap dc w h explain =
-    if explain then
-      let p = makePen blue 2.0
+let mutable i = 0
+let colorLst = [Color.Blue; Color.Cyan; Color.Green; Color.Magenta; Color.Orange; Color.Purple; Color.Yellow; Color.Red]
+let rec compile (pic:Picture) (expFlag: bool): drawing_fun =
+  let wrap dc w h expFlag =
+    if expFlag then
+      let p = makePen colorLst[i] 2.0
+      printfn "%d" i
+      i <- (i+1) % colorLst.Length
       let box = _rectangle p (0.0,0.0) (float (w-1), float (h-1)) 
-      box >> dc
+      dc >> box
     else
       dc
   match pic with
     | Leaf(dc, w, h) ->
-      wrap dc w h explain
-    | Horizontal(p1, p2, w, h) ->
-      let w1, _ = getSize p1
-      let left = compile p1 explain
-      let right = compile p2 explain
-      let dc = right >> translate w1 0.0 >> left
-      wrap dc w h explain
-    | Vertical(p1, p2, w, h) ->
-      let _,h1 = getSize p1
-      let top = compile p1 explain
-      let bottom = compile p2 explain
-      let dc = bottom >> translate 0.0 h1 >> top
-      wrap dc w h explain
+      printfn "Leaf: %A %A %A" dc w h
+      dc//wrap dc w h expFlag
     | OnTop(p1, p2, w, h) ->
-      let lower = compile p1 explain
-      let upper = compile p2 explain
-      let dc = upper >> lower
-      wrap dc w h explain
+      printfn "OnTop: %A %A %A %A" p1 p2 w h
+      let lower = compile p1 expFlag
+      let upper = compile p2 expFlag
+      let dc = lower >> upper
+      dc
+      //wrap dc w h expFlag
+    | AlignH(p1, p2, w, h) ->
+      printfn "AlignH: %A %A %A %A" p1 p2 w h
+      let w1, _ = getSize p1
+      let left = compile p1 expFlag
+      let right = compile p2 expFlag
+      let dc = right >> _translate w1 0.0 >> left
+      wrap dc w h expFlag
+    | AlignV(p1, p2, w, h) ->
+      printfn "AlignV: %A %A %A %A" p1 p2 w h
+      let _,h1 = getSize p1
+      let top = compile p1 expFlag
+      let bottom = compile p2 expFlag
+      let dc = bottom >> _translate 0.0 h1 >> top
+      wrap dc w h expFlag
     | Translate(p, dx, dy, w, h) ->
-      let dc = compile p explain >> translate dx dy
-      wrap dc w h explain
+      printfn "Translate: %A %A %A %A %A" p dx dy w h
+      let dc = compile p expFlag >> _translate dx dy
+      //dc 
+      wrap dc w h expFlag
     | AffineTransform(p, M, c, w, h) ->
-      let dc = compile p explain >> affinetransform M c
-      wrap dc w h explain
+      let dc = compile p expFlag >> affinetransform M c
+      wrap dc w h expFlag
     | Scale(p, sx, sy, w, h) -> 
-      let dc = compile p explain >> scale sx sy
-      wrap dc w h explain
+      let dc = compile p expFlag >> scale sx sy
+      wrap dc w h expFlag
     | Rotate(p, cx, cy, rad, w, h) ->
-      let dc = compile p explain >> rotate cx cy rad
-      wrap dc w h explain
+      let dc = compile p expFlag >> rotate cx cy rad
+      wrap dc w h expFlag
 //    | Crop(p, w, h) ->
 //      let dc = _crop Color.Transparent w h
-//      wrap dc w h explain
+//      wrap dc w h expFlag
 
-let make (pic:Picture): drawing_fun = compile pic false
-let explain (pic:Picture): drawing_fun = compile pic true
+let make (pic:Picture): drawing_fun = i<-0; compile pic false
+let explain (pic:Picture): drawing_fun = i<-0; compile pic true
