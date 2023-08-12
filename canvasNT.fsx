@@ -31,10 +31,9 @@ type Picture =
   | Crop of Picture*int*int
 type Size = float*float
 
-/// Functions for combining images
+// Working with files
 let save (I:image) (fname:string): unit =
   I.Save(fname)
-
 let saveAnimatedGif (frameDelay:int) (repeatCount:int) (movie:image list) (fname: string): unit =
   match movie with
     gif::rst ->
@@ -50,8 +49,63 @@ let saveAnimatedGif (frameDelay:int) (repeatCount:int) (movie:image list) (fname
       gif.SaveAsGif(fname);
     | _ -> ()
 
+/// Graphics primitives
+let pointsOfList (lst: (float*float) list) = 
+  lst |> Array.ofList |> Array.map (fun (a,b) -> PointF(float32 a, float32 b)) 
+let ellipsePoints ((cx,cy): (float*float)) ((rx,ry): (float*float)): (float*float) list =
+  let n = int <| max 10.0 ((max rx ry)*10.0)
+  List.map (fun i -> (cx+rx*cos i, cy+ry*sin i)) [for i in 0..(n-1) do yield 2.0*System.Math.PI*(float i)/(float (n-1))]
+
+let affinetransformDC (M:System.Numerics.Matrix3x2) (c: Color) (ctx:drawing_context): drawing_context = 
+  let transformation = AffineTransformBuilder().AppendMatrix(M)
+  ctx.Transform(transformation)
+let translateDC (dx:float) (dy:float) (ctx:drawing_context): drawing_context =
+  let M = Matrix3x2Extensions.CreateTranslation(PointF(float32 dx, float32 dy))
+  affinetransformDC M Color.Transparent ctx
+let scaleDC (sx:float) (sy:float) (ctx:drawing_context): drawing_context =
+  let M = Matrix3x2Extensions.CreateScale(SizeF(float32 sx, float32 sy))
+  affinetransformDC M Color.Transparent ctx
+let rotateDC (cx:float) (cy:float) (rad: float) (ctx:drawing_context): drawing_context =
+  let M = Matrix3x2Extensions.CreateRotation(float32 rad, PointF(float32 cx, float32 cy))
+  affinetransformDC M Color.Transparent ctx
+
+let measureDC (ctx:drawing_context): int*int =
+  let sz = ctx.GetCurrentSize()
+  (sz.Width,sz.Height)
+
 let systemFonts = SystemFonts.Families
 let createFont (fname: string) (sz: float): Font = SystemFonts.CreateFont(fname, float32 sz)
+let measureText (f: Font) (txt: string): Size = 
+  let size = TextMeasurer.Measure(txt, TextOptions(f))
+  (float size.Width, float size.Height)
+let textDC (c: Color) (f: Font) (txt: string) (x:float, y:float) (ctx:drawing_context): drawing_context = 
+  ctx.DrawText(txt, f, c, PointF(float32 x, float32 y))
+
+let curveDC (p: Pen) (lst: (float*float) list) (ctx:drawing_context): drawing_context = 
+  let points = lst |> Array.ofList |> Array.map (fun (a,b) -> PointF(float32 a, float32 b)) 
+  ctx.DrawLines(p, points)
+let filledPolygonDC (c: Color) (lst: (float*float) list) (ctx:drawing_context): drawing_context = 
+  let points = lst |> Array.ofList |> Array.map (fun (a,b) -> PointF(float32 a, float32 b)) 
+  ctx.FillPolygon(DrawingOptions(), c, points)
+let rectangleDC (p: Pen) ((x1,y1): (float*float)) ((x2,y2): (float*float)) (ctx:drawing_context): drawing_context = 
+  ctx.Draw(DrawingOptions(), p, RectangleF(float32 x1, float32 y1, float32 x2, float32 y2))
+let filledRectangleDC (c: Color) ((x1,y1): (float*float)) ((x2,y2): (float*float)) (ctx:drawing_context): drawing_context = 
+  ctx.Fill(c, RectangleF(float32 x1, float32 y1, float32 x2, float32 y2))
+let ellipseDC (p: Pen) (c: (float*float)) (r: (float*float)) (ctx:drawing_context): drawing_context = 
+  let lst = ellipsePoints c r
+  curveDC p lst ctx
+let filledEllipseDC (w: int) (h:int) (col: Color) (c: float*float) (r: float*float) (ctx:drawing_context): drawing_context = 
+  let lst = ellipsePoints c r
+  filledPolygonDC col lst ctx
+let cropDC (c: Color) (w:int) (h:int) (ctx:drawing_context): drawing_context = 
+  let sz = ctx.GetCurrentSize()
+  ctx.Crop(min sz.Width w, min sz.Height h)
+     .Resize(ResizeOptions(Position = AnchorPositionMode.TopLeft,
+                           Size = Size(w, h), 
+                           Mode = ResizeMode.BoxPad))
+     .BackgroundColor(c)
+
+/// Functions for combining images
 let getSize (p:Picture): int*int =
   match p with
     Leaf(_,w,h)
@@ -99,59 +153,7 @@ and vertical (pic1:Picture) (pos:float) (pic2:Picture): Picture =
   else
     Vertical(Translate(pic1, s, 0.0, w1+round s, h1), Translate(pic2, -s, 0.0, w2, h2), h, w)
 
-/// Graphics primitives
-let pointsOfList (lst: (float*float) list) = 
-  lst |> Array.ofList |> Array.map (fun (a,b) -> PointF(float32 a, float32 b)) 
-let ellipsePoints ((cx,cy): (float*float)) ((rx,ry): (float*float)): (float*float) list =
-  let n = int <| max 10.0 ((max rx ry)*10.0)
-  List.map (fun i -> (cx+rx*cos i, cy+ry*sin i)) [for i in 0..(n-1) do yield 2.0*System.Math.PI*(float i)/(float (n-1))]
-
-let affinetransformDC (M:System.Numerics.Matrix3x2) (c: Color) (ctx:drawing_context): drawing_context = 
-  let transformation = AffineTransformBuilder().AppendMatrix(M)
-  ctx.Transform(transformation)
-let translateDC (dx:float) (dy:float) (ctx:drawing_context): drawing_context =
-  let M = Matrix3x2Extensions.CreateTranslation(PointF(float32 dx, float32 dy))
-  affinetransformDC M Color.Transparent ctx
-let scaleDC (sx:float) (sy:float) (ctx:drawing_context): drawing_context =
-  let M = Matrix3x2Extensions.CreateScale(SizeF(float32 sx, float32 sy))
-  affinetransformDC M Color.Transparent ctx
-let rotateDC (cx:float) (cy:float) (rad: float) (ctx:drawing_context): drawing_context =
-  let M = Matrix3x2Extensions.CreateRotation(float32 rad, PointF(float32 cx, float32 cy))
-  affinetransformDC M Color.Transparent ctx
-
-let measureDC (ctx:drawing_context): int*int =
-  let sz = ctx.GetCurrentSize()
-  (sz.Width,sz.Height)
-let measureText (f: Font) (txt: string): Size = 
-  let size = TextMeasurer.Measure(txt, TextOptions(f))
-  (float size.Width, float size.Height)
-let textDC (c: Color) (f: Font) (txt: string) (x:float, y:float) (ctx:drawing_context): drawing_context = 
-  ctx.DrawText(txt, f, c, PointF(float32 x, float32 y))
-let curveDC (p: Pen) (lst: (float*float) list) (ctx:drawing_context): drawing_context = 
-  let points = lst |> Array.ofList |> Array.map (fun (a,b) -> PointF(float32 a, float32 b)) 
-  ctx.DrawLines(p, points)
-let filledPolygonDC (c: Color) (lst: (float*float) list) (ctx:drawing_context): drawing_context = 
-  let points = lst |> Array.ofList |> Array.map (fun (a,b) -> PointF(float32 a, float32 b)) 
-  ctx.FillPolygon(DrawingOptions(), c, points)
-let rectangleDC (p: Pen) ((x1,y1): (float*float)) ((x2,y2): (float*float)) (ctx:drawing_context): drawing_context = 
-  ctx.Draw(DrawingOptions(), p, RectangleF(float32 x1, float32 y1, float32 x2, float32 y2))
-let filledRectangleDC (c: Color) ((x1,y1): (float*float)) ((x2,y2): (float*float)) (ctx:drawing_context): drawing_context = 
-  ctx.Fill(c, RectangleF(float32 x1, float32 y1, float32 x2, float32 y2))
-let ellipseDC (p: Pen) (c: (float*float)) (r: (float*float)) (ctx:drawing_context): drawing_context = 
-  let lst = ellipsePoints c r
-  curveDC p lst ctx
-let filledEllipseDC (w: int) (h:int) (col: Color) (c: float*float) (r: float*float) (ctx:drawing_context): drawing_context = 
-  let lst = ellipsePoints c r
-  filledPolygonDC col lst ctx
-let cropDC (c: Color) (w:int) (h:int) (ctx:drawing_context): drawing_context = 
-  let sz = ctx.GetCurrentSize()
-  ctx.Crop(min sz.Width w, min sz.Height h)
-     .Resize(ResizeOptions(Position = AnchorPositionMode.TopLeft,
-                           Size = Size(w, h), 
-                           Mode = ResizeMode.BoxPad))
-     .BackgroundColor(c)
-
-/// Drawing pictures
+/// Drawing content
 let rec drawDC (pic:Picture) : drawing_fun =
   match pic with
     | Leaf(f, _, _) ->
