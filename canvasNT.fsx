@@ -28,7 +28,7 @@ type Picture =
   | Scale of Picture*float*float*int*int
   | Rotate of Picture*float*float*float*int*int
   | Translate of Picture*float*float*int*int
-  | Crop of Picture*int*int
+//  | Crop of drawing_fun*int*int
 type Size = float*float
 
 // Working with files
@@ -50,8 +50,11 @@ let saveAnimatedGif (frameDelay:int) (repeatCount:int) (movie:image list) (fname
     | _ -> ()
 
 /// Graphics primitives
+let round (x: float): int = int (x+0.5)
 let pointsOfList (lst: (float*float) list) = 
   lst |> Array.ofList |> Array.map (fun (a,b) -> PointF(float32 a, float32 b)) 
+let mapPairLst (f: 'a list -> 'b) (lst: ('a*'a) list): 'b*'b =
+  List.unzip lst |> fun (a,b) -> f a, f b
 let ellipsePoints ((cx,cy): (float*float)) ((rx,ry): (float*float)): (float*float) list =
   let n = int <| max 10.0 ((max rx ry)*10.0)
   List.map (fun i -> (cx+rx*cos i, cy+ry*sin i)) [for i in 0..(n-1) do yield 2.0*System.Math.PI*(float i)/(float (n-1))]
@@ -78,32 +81,70 @@ let createFont (fname: string) (sz: float): Font = SystemFonts.CreateFont(fname,
 let measureText (f: Font) (txt: string): Size = 
   let size = TextMeasurer.Measure(txt, TextOptions(f))
   (float size.Width, float size.Height)
-let text (c: Color) (f: Font) (txt: string) (x:float, y:float) (ctx:drawing_context): drawing_context = 
+let _text (c: Color) (f: Font) (txt: string) (x:float, y:float) (ctx:drawing_context): drawing_context = 
   ctx.DrawText(txt, f, c, PointF(float32 x, float32 y))
+let text (c: Color) (f: Font) (txt: string) (x:float, y:float): Picture =
+  let w,h = measureText f txt
+  Leaf((_text c f txt (x,y)),int w,int h)
 
-let curve (p: Pen) (lst: (float*float) list) (ctx:drawing_context): drawing_context = 
+let _curve (p: Pen) (lst: (float*float) list) (ctx:drawing_context): drawing_context = 
   let points = lst |> Array.ofList |> Array.map (fun (a,b) -> PointF(float32 a, float32 b)) 
   ctx.DrawLines(p, points)
-let filledPolygon (c: Color) (lst: (float*float) list) (ctx:drawing_context): drawing_context = 
+let curve (p: Pen) (lst: (float*float) list): Picture = 
+  let wMin, hMin = mapPairLst List.min lst 
+  let wMax, hMax = mapPairLst List.max lst
+  let w, h = 1.0+wMin+wMax, 1.0+hMin+hMax
+  Leaf((_curve p lst), int w, int h) 
+
+let _polygon (p: Pen) (lst: (float*float) list) (ctx:drawing_context): drawing_context = 
+  let points = lst |> Array.ofList |> Array.map (fun (a,b) -> PointF(float32 a, float32 b)) 
+  ctx.DrawPolygon(DrawingOptions(), p, points)
+let polygon (p: Pen) (lst: (float*float) list): Picture = 
+  let wMin, hMin = mapPairLst List.min lst 
+  let wMax, hMax = mapPairLst List.max lst
+  let w, h = 1.0+wMin+wMax, 1.0+hMin+hMax
+  Leaf((_polygon p lst), int w, int h) 
+
+let _filledPolygon (c: Color) (lst: (float*float) list) (ctx:drawing_context): drawing_context = 
   let points = lst |> Array.ofList |> Array.map (fun (a,b) -> PointF(float32 a, float32 b)) 
   ctx.FillPolygon(DrawingOptions(), c, points)
-let rectangle (p: Pen) ((x1,y1): (float*float)) ((x2,y2): (float*float)) (ctx:drawing_context): drawing_context = 
+let filledPolygon (c: Color) (lst: (float*float) list): Picture = 
+  let wMin, hMin = mapPairLst List.min lst 
+  let wMax, hMax = mapPairLst List.max lst
+  let w, h = 1.0+wMin+wMax, 1.0+hMin+hMax
+  Leaf((_filledPolygon c lst), int w, int h) 
+
+let _rectangle (p: Pen) ((x1,y1): (float*float)) ((x2,y2): (float*float)) (ctx:drawing_context): drawing_context = 
   ctx.Draw(DrawingOptions(), p, RectangleF(float32 x1, float32 y1, float32 x2, float32 y2))
-let filledRectangle (c: Color) ((x1,y1): (float*float)) ((x2,y2): (float*float)) (ctx:drawing_context): drawing_context = 
+let rectangle (pen: Pen) ((x1,y1): (float*float)) ((x2,y2): (float*float)): Picture = 
+  let w, h = max x1 x2, max y1 y2
+  Leaf((_rectangle pen (x1,y1) (x2,y2)), int w, int h) 
+
+let _filledRectangle (c: Color) ((x1,y1): (float*float)) ((x2,y2): (float*float)) (ctx:drawing_context): drawing_context = 
   ctx.Fill(c, RectangleF(float32 x1, float32 y1, float32 x2, float32 y2))
-let ellipse (p: Pen) (c: (float*float)) (r: (float*float)) (ctx:drawing_context): drawing_context = 
+let filledRectangle (c: Color) ((x1,y1): (float*float)) ((x2,y2): (float*float)): Picture = 
+  let w, h = max x1 x2, max y1 y2
+  Leaf((_filledRectangle c (x1,y1) (x2,y2)), int w, int h) 
+
+let _ellipse (p: Pen) (c: (float*float)) (r: (float*float)) (ctx:drawing_context): drawing_context = 
   let lst = ellipsePoints c r
-  curve p lst ctx
-let filledEllipse (w: int) (h:int) (col: Color) (c: float*float) (r: float*float) (ctx:drawing_context): drawing_context = 
+  _curve p lst ctx
+let ellipse (p: Pen) (c: (float*float)) (r: (float*float)): Picture = 
   let lst = ellipsePoints c r
-  filledPolygon col lst ctx
-let crop (c: Color) (w:int) (h:int) (ctx:drawing_context): drawing_context = 
+  curve p lst
+let filledEllipse (w: int) (h:int) (col: Color) (c: float*float) (r: float*float): Picture = 
+  let lst = ellipsePoints c r
+  filledPolygon col lst
+
+(*let _crop (c: Color) (w:int) (h:int) (ctx:drawing_context): drawing_context = 
   let sz = ctx.GetCurrentSize()
   ctx.Crop(min sz.Width w, min sz.Height h)
      .Resize(ResizeOptions(Position = AnchorPositionMode.TopLeft,
                            Size = Size(w, h), 
                            Mode = ResizeMode.BoxPad))
      .BackgroundColor(c)
+let crop (c: Color) (w:int) (h:int): Picture = 
+  Crop((_crop c w h), int w, int h) *)
 
 /// Functions for combining images
 let getSize (p:Picture): int*int =
@@ -115,8 +156,8 @@ let getSize (p:Picture): int*int =
     | AffineTransform(_,_,_,w,h)
     | Scale(_,_,_,w,h)
     | Rotate(_,_,_,_,w,h)
-    | Translate(_,_,_,w,h)
-    | Crop(_,w,h) -> w,h
+    | Translate(_,_,_,w,h) -> w,h
+//    | Crop(_,w,h)
 
 let Top = 0.0
 let Left = 0.0
@@ -124,7 +165,6 @@ let Center = 0.5
 let Bottom = 1.0
 let Right = 1.0
 
-let round (x: float): int = int (x+0.5)
 let rec ontop (pic1:Picture) (pic2:Picture): Picture =
   let w1,h1 = getSize pic1
   let w2,h2 = getSize pic2
@@ -157,8 +197,8 @@ and vertical (pic1:Picture) (pos:float) (pic2:Picture): Picture =
 let rec compile (pic:Picture) (explain: bool): drawing_fun =
   let wrap dc w h explain =
     if explain then
-      let p = makePen blue 1.0
-      let box = rectangle p (0.0,0.0) (float (w-1), float (h-1)) 
+      let p = makePen blue 2.0
+      let box = _rectangle p (0.0,0.0) (float (w-1), float (h-1)) 
       box >> dc
     else
       dc
@@ -194,9 +234,9 @@ let rec compile (pic:Picture) (explain: bool): drawing_fun =
     | Rotate(p, cx, cy, rad, w, h) ->
       let dc = compile p explain >> rotate cx cy rad
       wrap dc w h explain
-    | Crop(p, w, h) ->
-      let dc = compile p explain>> crop Color.Transparent w h
-      wrap dc w h explain
+//    | Crop(p, w, h) ->
+//      let dc = _crop Color.Transparent w h
+//      wrap dc w h explain
 
-let combine (pic:Picture): drawing_fun = compile pic false
+let make (pic:Picture): drawing_fun = compile pic false
 let explain (pic:Picture): drawing_fun = compile pic true

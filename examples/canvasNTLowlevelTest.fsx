@@ -14,25 +14,24 @@ let wMin, hMin = List.unzip lst |> fun (a,b) -> List.min a, List.min b
 let wc, hc = List.unzip lst |> fun (a,b) -> 1.0+wMin+List.max a, 1.0+hMin+List.max b
 let makeCurveDC =
     wc, hc, (fun (s:state) (dc:drawing_context) -> 
-        dc |> curve pen lst)
-//        dc |> curve pen lst
+        dc |> _curve pen lst)
+//        dc |> _curve pen lst
 //           |> scale 0.9 0.5
 //           |> translate 1.0 2.0)
 let makeCurve = 
     let w,h,ctx = makeCurveDC
-    w,h,(fun (i:state) (dc:drawing_context) -> 
-        explain (Leaf(ctx i,int w,int h)) dc)
+    //w,h,(fun (i:state) (dc:drawing_context) -> 
+    //    explain (curve pen lst) dc)
+    w,h,fun (i:state) -> explain (curve pen lst)
 
 let txt = "99"
 let font = createFont "Microsoft Sans Serif" 36.0
 let w,h = measureText font txt
 let makeTxtDC =
     w,h,(fun (i:state) (dc:drawing_context) -> 
-        dc|>text white font (string i) (0.0,0.0))
+        dc |>_text white font (string i) (0.0,0.0))
 let makeTxt = 
-    let w,h,ctx = makeTxtDC
-    w,h,(fun (i:state) (dc:drawing_context) -> 
-        explain (Leaf(ctx i,int w,int h)) dc)
+    w,h,fun (i:state) -> explain (text white font (string i) (0.0,0.0))
 
 let makeOntopDC =
     let w1,h1,ctx1 = makeCurveDC
