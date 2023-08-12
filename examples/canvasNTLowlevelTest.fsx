@@ -8,17 +8,31 @@ module CNT = CanvasNT
 
 type state = int // a counter
 
-let pen = makePen green 5.0
+let pen = makePen green 1.0
+let lst = [(10.0,10.0); (60.0, 80.0); (10.0, 80.0); (10.0, 10.0)]
+let wMin, hMin = List.unzip lst |> fun (a,b) -> List.min a, List.min b
+let wc, hc = List.unzip lst |> fun (a,b) -> 1.0+wMin+List.max a, 1.0+hMin+List.max b
 let drawCurve _ dc =
     dc |>
-    CNT.curveDC pen [(10.0,10.0); (60.0, 80.0); (10.0, 80.0); (10.0, 10.0)]
+    CNT.curveDC pen lst
     |> CNT.scaleDC 2.0 0.5
     |> CNT.translateDC 10.0 3.0
-let txt = "999"
+
+let txt = "99"
 let font = CNT.createFont "Microsoft Sans Serif" 36.0
 let w,h = CNT.measureText font txt
 let drawTxT i dc = 
-    CNT.textDC white font (string i) (0.0,0.0) dc
+    let str = sprintf "%2d" i // Seems to remove initial spaces
+    CNT.textDC white font str (0.0,0.0) dc
+
+let outlinePen = makePen blue 1.0
+let drawCurvePicture i dc =
+    let cBox = CNT.Leaf(CNT.rectangleDC outlinePen (0.0, 0.0) (wc,hc), int wc, int hc)
+    let c = CNT.Leaf(CNT.curveDC pen lst,int wc,int hc)
+    let tBox = CNT.Leaf(CNT.rectangleDC outlinePen (0.0, 0.0) (w,h), int w, int h)
+    let t = CNT.Leaf(CNT.textDC white font (string i) (0.0,0.0),int w,int h)
+    let h = CNT.horizontal (CNT.ontop tBox t) CNT.Bottom (CNT.ontop cBox c)
+    dc |> CNT.drawDC h
 
 let mkDraw n = 
     match n with
@@ -26,6 +40,8 @@ let mkDraw n =
             w, h, drawTxT
         | "curve" ->
             100, 100, drawCurve
+        | "picture" ->
+            256, 256, drawCurvePicture
         | "combine" ->
             (max 100 w), (max 100 h), fun state dc ->
                                          dc |> drawCurve state |> drawTxT state
