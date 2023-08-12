@@ -4,7 +4,7 @@
 open Lowlevel
 
 #load "../canvasNT.fsx"
-module CNT = CanvasNT
+open CanvasNT // overwriting Kens Canvas functions!
 
 type state = int // a counter
 
@@ -12,39 +12,63 @@ let pen = makePen green 1.0
 let lst = [(10.0,10.0); (60.0, 80.0); (10.0, 80.0); (10.0, 10.0)]
 let wMin, hMin = List.unzip lst |> fun (a,b) -> List.min a, List.min b
 let wc, hc = List.unzip lst |> fun (a,b) -> 1.0+wMin+List.max a, 1.0+hMin+List.max b
-let drawCurve _ dc =
-    dc |>
-    CNT.curveDC pen lst
-    |> CNT.scaleDC 2.0 0.5
-    |> CNT.translateDC 10.0 3.0
+let makeCurveDC =
+    wc, hc, (fun (s:state) (dc:drawing_context) -> 
+        dc |> curve pen lst)
+//        dc |> curve pen lst
+//           |> scale 0.9 0.5
+//           |> translate 1.0 2.0)
+let makeCurve = 
+    let w,h,ctx = makeCurveDC
+    w,h,(fun (i:state) (dc:drawing_context) -> 
+        explain (Leaf(ctx i,int w,int h)) dc)
 
 let txt = "99"
-let font = CNT.createFont "Microsoft Sans Serif" 36.0
-let w,h = CNT.measureText font txt
-let drawTxT i dc = 
-    let str = sprintf "%2d" i // Seems to remove initial spaces
-    CNT.textDC white font str (0.0,0.0) dc
+let font = createFont "Microsoft Sans Serif" 36.0
+let w,h = measureText font txt
+let makeTxtDC =
+    w,h,(fun (i:state) (dc:drawing_context) -> 
+        dc|>text white font (string i) (0.0,0.0))
+let makeTxt = 
+    let w,h,ctx = makeTxtDC
+    w,h,(fun (i:state) (dc:drawing_context) -> 
+        explain (Leaf(ctx i,int w,int h)) dc)
 
-let outlinePen = makePen blue 1.0
-let drawCurvePicture i dc =
-    let cBox = CNT.Leaf(CNT.rectangleDC outlinePen (0.0, 0.0) (wc,hc), int wc, int hc)
-    let c = CNT.Leaf(CNT.curveDC pen lst,int wc,int hc)
-    let tBox = CNT.Leaf(CNT.rectangleDC outlinePen (0.0, 0.0) (w,h), int w, int h)
-    let t = CNT.Leaf(CNT.textDC white font (string i) (0.0,0.0),int w,int h)
-    let h = CNT.horizontal (CNT.ontop tBox t) CNT.Bottom (CNT.ontop cBox c)
-    dc |> CNT.drawDC h
+let makeOntopDC =
+    let w1,h1,ctx1 = makeCurveDC
+    let w2,h2,ctx2 = makeTxtDC
+    (max w1 w2), (max h1 h2), (fun (i:state) (dc:drawing_context) -> 
+        dc |> ctx1 i |> ctx2 i)
+let makeOntop = 
+    let w1,h1,ctx1 = makeCurveDC
+    let w2,h2,ctx2 = makeTxtDC
+    let w,h = (max w1 w2), (max h1 h2)
+    w, h, (fun (i:state) (dc:drawing_context) ->
+        explain (OnTop(Leaf(ctx1 i,int w1,int h1),Leaf(ctx2 i,int w2,int h2),int w,int h)) dc)
+
+let makeHorizontal =
+    let w1,h1,ctx1 = makeCurveDC
+    let w2,h2,ctx2 = makeTxtDC
+    let w,h = w1+w2, (max h1 h2)
+    w, h, (fun (i:state) (dc:drawing_context) ->
+        explain (Horizontal(Leaf(ctx1 i,int w1,int h1),Leaf(ctx2 i,int w2,int h2),int w,int h)) dc)
+let makeVertical =
+    let w1,h1,ctx1 = makeCurveDC
+    let w2,h2,ctx2 = makeTxtDC
+    let w,h = (max w1 w2), h1+h2
+    w, h, (fun (i:state) (dc:drawing_context) ->
+        explain (Vertical(Leaf(ctx1 i,int w1,int h1),Leaf(ctx2 i,int w2,int h2),int w,int h)) dc)
 
 let mkDraw n = 
     match n with
-        | "text" ->
-            w, h, drawTxT
-        | "curve" ->
-            100, 100, drawCurve
-        | "picture" ->
-            256, 256, drawCurvePicture
-        | "combine" ->
-            (max 100 w), (max 100 h), fun state dc ->
-                                         dc |> drawCurve state |> drawTxT state
+        | "textdc" ->     makeTxtDC
+        | "text" ->       makeTxt
+        | "curvedc" ->    makeCurveDC
+        | "curve" ->      makeCurve
+        | "ontopdc" ->    makeOntopDC
+        | "ontop" ->      makeOntop
+        | "horizontal" -> makeHorizontal
+        | "vertical" ->   makeVertical
         | _ -> failwith "Unkown test"
 
 let react (s:state) (ev:Lowlevel.Event) : state option =
