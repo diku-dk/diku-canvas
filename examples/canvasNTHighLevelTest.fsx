@@ -21,24 +21,23 @@ let makeTranslate i =
 
 let makeOntop i = ontop (makeCurve i) (makeTxt i)
 
-let swap f i j = f j i
-let makeTranslateOnTop i = 
-    let p = 
-        text white font (string i) (0.0,0.0) 
-        |> translate (float i) 0.0 
-    alignv p Top p
-
 let makeAlignH p i = alignh (makeTxt i) p (makeCurve i)
 
 let makeAlignV p i = alignv (makeCurve i) p (makeTxt i)
+
+let make4 i =
+    let p = 
+        text white font (string i) (0.0,0.0) 
+    let q = alignv p Top p
+    alignh q Top q
 
 let mkDraw n = 
     match n with
         | "text" -> makeTxt
         | "curve" -> makeCurve
         | "translate" -> makeTranslate
-        | "translateontop" -> makeTranslateOnTop
         | "ontop" -> makeOntop
+        | "4" -> make4
         | "alignht" -> makeAlignH 0.0
         | "alignhc" -> makeAlignH 0.5
         | "alignhb" -> makeAlignH 1.0
@@ -57,7 +56,7 @@ let main args =
         1
     else
         let pict = mkDraw args[1]
-        let draw = pict >> explain
+        let draw = fun i -> printfn "%s" (tostring (pict i)); explain (pict i)
         runAppWithTimer "Text Test" 256 256 (Some 1000) draw react 10
         0
 

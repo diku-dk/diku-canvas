@@ -13,6 +13,25 @@ open SixLabors.Fonts
 // Jon's work on the interface //
 /////////////////////////////////
 
+/// Wrapper
+/// Potential wrapper for prettyprinting functions with tostring
+//let f1 x = x * 2
+//let f2 ((x:string), y) = x + y // Works only with tuples
+//let wrappedF1 = wrap f1 "f1"
+//let wrappedF2 = wrap f2 "f2"
+//printfn "%s" (wrappedF1.ToString()) // Output: Custom string representation
+//printfn "%s" (wrappedF2.ToString()) // Output: Custom string representation
+//printfn "%O" (wrappedF1.Invoke(5))   // Output: 10
+//printfn "%O" (wrappedF2.Invoke("Hello"," World")) // Output: Hello world!
+type IFunctionWrapper =
+    abstract member Invoke: obj -> obj
+    abstract member ToString: unit -> string
+type FunctionWrapper<'a, 'b>(f: 'a -> 'b,str:string) =
+    interface IFunctionWrapper with
+        member this.Invoke(x: obj) = (f (x :?> 'a)) :> obj
+        member this.ToString() = str
+let wrap f str = FunctionWrapper(f, str) :> IFunctionWrapper
+
 /// Types
 type Color = SixLabors.ImageSharp.Color
 type image = SixLabors.ImageSharp.Image<Rgba32>
@@ -33,7 +52,7 @@ type Size = float*float
 let getSize (p:Picture): int*int =
   match p with
     Leaf(_,w,h)
-    | AlignH(_,_,w,h) -> w,h
+    | AlignH(_,_,w,h)
     | AlignV(_,_,w,h)
     | OnTop(_,_,w,h)
     | AffineTransform(_,_,_,w,h)
@@ -41,8 +60,20 @@ let getSize (p:Picture): int*int =
     | Rotate(_,_,_,_,w,h)
     | Translate(_,_,_,w,h) -> w,h
 //    | Crop(_,w,h)
-
-
+let tostring (p:Picture): string =
+  let rec loop (prefix:string) (p:Picture): string =
+    let descentPrefix = (String.replicate prefix.Length " ")+"\u221F>"
+    match p with
+      Leaf(p,w,h) -> prefix+"Leaf"
+      | AlignH(p1,p2,w,h) -> sprintf "%sAlignH\n%s\n%s" prefix (loop descentPrefix p1) (loop descentPrefix p2)
+      | AlignV(p1,p2,w,h) -> sprintf "%sAlignV\n%s\n%s" prefix (loop descentPrefix p1) (loop descentPrefix p2)
+      | OnTop(p1,p2,w,h) -> sprintf "%sOnTop\n%s\n%s" prefix (loop descentPrefix p1) (loop descentPrefix p2)
+      | AffineTransform(q,M,c,w,h) -> sprintf "%sAffineTransform %A %A\n%s" prefix M c (loop descentPrefix q)
+      | Scale(q,sx,sy,w,h) -> sprintf "%sAffineTransform %g %g\n%s" prefix sx sy (loop descentPrefix q)
+      | Rotate(q,x,y,rad,w,h) -> sprintf "%sRotate %g %g %g\n%s" prefix x y rad (loop descentPrefix q)
+      | Translate(q,dx,dy,w,h) -> sprintf "%sTranslate %g %g\n%s" prefix dx dy (loop descentPrefix q)
+      //| Crop(_,w,h)
+  loop "" p
 
 // Working with files
 let save (I:image) (fname:string): unit =
@@ -73,7 +104,7 @@ let ellipsePoints ((cx,cy): (float*float)) ((rx,ry): (float*float)): (float*floa
   List.map (fun i -> (cx+rx*cos i, cy+ry*sin i)) [for i in 0..(n-1) do yield 2.0*System.Math.PI*(float i)/(float (n-1))]
 
 let affinetransform (M:System.Numerics.Matrix3x2) (c: Color) (ctx:drawing_context): drawing_context = 
-  let transformation = AffineTransformBuilder().AppendMatrix(M)
+  let transformation = AffineTransformBuilder().AppendMatrix(M) // Is this the root of the translation problem?
   ctx.Transform(transformation)
 let _translate (dx:float) (dy:float) (ctx:drawing_context): drawing_context =
   let M = Matrix3x2Extensions.CreateTranslation(PointF(float32 dx, float32 dy))
@@ -133,7 +164,6 @@ let filledPolygon (c: Color) (lst: (float*float) list): Picture =
 
 let _rectangle (p: Pen) ((x,y): (float*float)) ((w,h): (float*float)) (ctx:drawing_context): drawing_context = 
   let rect = RectangleF(PointF(float32 x, float32 y), SizeF(float32 w, float32 h))
-  printfn "%A %A %A %A" rect.X rect.Y rect.Width rect.Height
   ctx.Draw(DrawingOptions(), p, RectangleF(PointF(float32 x, float32 y), SizeF(float32 w, float32 h)))
 let rectangle (pen: Pen) ((x,y): (float*float)) ((w,h): (float*float)): Picture = 
   Leaf((_rectangle pen (x,y) (w,h)), int w, int h) 
@@ -174,7 +204,6 @@ let Right = 1.0
 let rec ontop (pic1:Picture) (pic2:Picture): Picture =
   let w1,h1 = getSize pic1
   let w2,h2 = getSize pic2
-  printfn "%A %A %A %A" w1 h1 w2 h2
   let w, h = (max w1 w2), (max h1 h2)
   OnTop(pic1, pic2, w, h)
 and alignh (pic1:Picture) (pos:float) (pic2:Picture): Picture =
@@ -186,6 +215,8 @@ and alignh (pic1:Picture) (pos:float) (pic2:Picture): Picture =
   let s = abs (pos*float (h1-h2))
   if h1 > h2 then
     AlignH(pic1, Translate(pic2, 0.0, s, w2, h2+round s), w, h)
+  elif h1 = h2 then
+    AlignH(pic1, pic2, w, h)
   else // something weird happens here, seems that clip removes the top of pic 2
     AlignH(Translate(pic1, 0.0, s, w1, h1+round s), pic2, w, h)
 and alignv (pic1:Picture) (pos:float) (pic2:Picture): Picture =
@@ -194,14 +225,13 @@ and alignv (pic1:Picture) (pos:float) (pic2:Picture): Picture =
   let w1,h1 = getSize pic1
   let w2,h2 = getSize pic2
   let w, h = max w1 w2, h1 + h2
-  printfn "%A %A %A %A %A %A" w1 h1 w2 h2 w h
   let s = abs (pos*float (w1-w2))
-  if w1 > w2 then
-    printfn "gren 1"
-    OnTop(pic1, Translate(pic2, s, h1, w2+round s, h1+h2), w, h)
-  else
-    printfn "gren 2"
-    OnTop(Translate(pic1, -s, h2, w1+round s, h1+h2), pic2, w, h)
+  if h1 > h2 then
+    AlignV(pic1, Translate(pic2, s, 0.0, w2+round s, h2), w, h)
+  elif h1 = h2 then
+    AlignV(pic1, pic2, w, h)
+  else 
+    AlignV(Translate(pic1, s, 0.0, w1+round s,h1), pic2, w, h)
 
 /// Drawing content
 let mutable i = 0
@@ -210,7 +240,6 @@ let rec compile (pic:Picture) (expFlag: bool): drawing_fun =
   let wrap dc w h expFlag =
     if expFlag then
       let p = makePen colorLst[i] 2.0
-      printfn "%d" i
       i <- (i+1) % colorLst.Length
       let box = _rectangle p (0.0,0.0) (float (w-1), float (h-1)) 
       dc >> box
@@ -218,31 +247,25 @@ let rec compile (pic:Picture) (expFlag: bool): drawing_fun =
       dc
   match pic with
     | Leaf(dc, w, h) ->
-      printfn "Leaf: %A %A %A" dc w h
-      dc//wrap dc w h expFlag
+      wrap dc w h expFlag
     | OnTop(p1, p2, w, h) ->
-      printfn "OnTop: %A %A %A %A" p1 p2 w h
       let lower = compile p1 expFlag
       let upper = compile p2 expFlag
       let dc = lower >> upper
-      dc
-      //wrap dc w h expFlag
+      wrap dc w h expFlag
     | AlignH(p1, p2, w, h) ->
-      printfn "AlignH: %A %A %A %A" p1 p2 w h
-      let w1, _ = getSize p1
+      let w1, h1 = getSize p1
       let left = compile p1 expFlag
       let right = compile p2 expFlag
-      let dc = right >> _translate w1 0.0 >> left
+      let dc = fun dc -> dc |> right |> _translate w1 0.0 |> left
       wrap dc w h expFlag
     | AlignV(p1, p2, w, h) ->
-      printfn "AlignV: %A %A %A %A" p1 p2 w h
-      let _,h1 = getSize p1
+      let w1,h1 = getSize p1
       let top = compile p1 expFlag
       let bottom = compile p2 expFlag
-      let dc = bottom >> _translate 0.0 h1 >> top
+      let dc = fun dc -> dc |> bottom |> _translate 0.0 h1 |> top // The bottom is draw, translated down, and the top part is drawn on the empty space
       wrap dc w h expFlag
     | Translate(p, dx, dy, w, h) ->
-      printfn "Translate: %A %A %A %A %A" p dx dy w h
       let dc = compile p expFlag >> _translate dx dy
       //dc 
       wrap dc w h expFlag
