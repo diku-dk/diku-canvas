@@ -51,7 +51,7 @@ let ConvertToAvatar(context:IImageProcessingContext, size:Size, cornerRadius:flo
             Mode = ResizeMode.Crop
     )),cornerRadius)
 
-let img = Image.Load("foo.jpg")
+let img = Image.Load("fb.jpg")
 img.Clone(fun x -> ConvertToAvatar(x,new Size(200, 200), 20f) |> ignore).Save("fb.png")
 img.Clone(fun x -> ConvertToAvatar(x,new Size(200, 200), 100f) |> ignore).Save("fb-round.png")
 img.Clone(fun x -> ConvertToAvatar(x,new Size(200, 200), 150f) |> ignore).Save("fb-rounder.png")
