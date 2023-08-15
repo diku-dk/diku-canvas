@@ -75,24 +75,6 @@ let tostring (p:Picture): string =
       //| Crop(_,w,h)
   loop "" p
 
-// Working with files
-let save (I:image) (fname:string): unit =
-  I.Save(fname)
-let saveAnimatedGif (frameDelay:int) (repeatCount:int) (movie:image list) (fname: string): unit =
-  match movie with
-    gif::rst ->
-      let gifMetaData = gif.Metadata.GetGifMetadata()
-      gifMetaData.RepeatCount <- uint16 5
-      let metadata = gif.Frames.RootFrame.Metadata.GetGifMetadata()
-      metadata.FrameDelay <- frameDelay
-      List.iter (fun (frame:image) -> 
-          let metadata = frame.Frames.RootFrame.Metadata.GetGifMetadata()
-          metadata.FrameDelay <- frameDelay
-          gif.Frames.AddFrame(frame.Frames.RootFrame) |> ignore
-        ) rst
-      gif.SaveAsGif(fname);
-    | _ -> ()
-
 /// Graphics primitives
 let round (x: float): int = int (x+0.5)
 let pointsOfList (lst: (float*float) list) = 
