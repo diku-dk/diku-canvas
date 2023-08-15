@@ -53,15 +53,106 @@ let makeFont (fam:FontFamily) (size:float32) = new SixLabors.Fonts.Font(fam, siz
 let drawText (msg:string) (font:Font) (color:color) (x:float32) (y:float32) (ctx:drawing_context) =
     ctx.DrawText(msg, font, color, PointF(x, y))
 
+type Brush = SixLabors.ImageSharp.Drawing.Processing.Brush
 type Pen = SixLabors.ImageSharp.Drawing.Processing.Pen
 
-let makePen (color:color) (width:float) : Pen =
-    new Pen(color, float32 width)
+let solidBrush (color:color) : Brush =
+    Brushes.Solid(color)
 
-let drawLines (p: Pen) (points: (float*float) list) (ctx:drawing_context) : drawing_context =
-    let points_arr = points |> Array.ofList |> Array.map (fun (a,b) -> PointF(float32 a, float32 b))
-    ctx.DrawLines(p, points_arr)
+let solidPen (color:color) (width:float) : Pen =
+    Pens.Solid(color, float32 width)
 
+// let drawLines (p: Pen) (points: (float*float) list) (ctx:drawing_context) : drawing_context =
+//     let points_arr = points |> Array.ofList |> Array.map (fun (a,b) -> PointF(float32 a, float32 b))
+//     ctx.DrawLines(p, points_arr)
+
+type point = int * int
+type pointF = float * float
+type Matrix3x2 = System.Numerics.Matrix3x2
+type TextOptions = SixLabors.Fonts.TextOptions
+
+let toPointF (x:float, y:float) = PointF(x = float32 x, y = float32 y)
+
+type PrimPath =
+    | Arc of pointF * float * float * float * float * float
+    | CubicBezier of pointF * pointF * pointF * pointF
+    | Line of pointF * pointF
+    | Lines of pointF list
+
+and PathTree =
+    | Empty
+    | Prim of PrimPath
+    | PathAdd of PathTree * PathTree
+    | Transform of Matrix3x2 * PathTree
+    | Text of string * TextOptions
+    | TextAlong of string * TextOptions * PrimPath
+
+let (<+>) p1 p2 =
+    match p1, p2 with
+        | Empty, _ -> p2
+        | _, Empty -> p1
+        | _ -> PathAdd (p1, p2)
+
+let emptyPath = Empty
+
+let pathFromList ps = List.fold (<+>) emptyPath ps
+
+let toILineSegment : PrimPath -> ILineSegment = function
+    | Arc(center, rX, rY, rotation, start, sweep) ->
+        ArcLineSegment(toPointF center, SizeF(float32 rX, float32 rY), float32 rotation, float32 start, float32 sweep)
+    | CubicBezier(start, c1, c2, endPoint) ->
+        CubicBezierLineSegment(toPointF start, toPointF c1, toPointF c2, toPointF endPoint, [||])
+    | Line(start, endP) ->
+        LinearLineSegment(toPointF start, toPointF endP)
+    | Lines points ->
+        LinearLineSegment(points |> Seq.map toPointF |> Seq.toArray)
+
+let toPath (ilineseg:ILineSegment) : IPath =
+    Path [| ilineseg |]
+
+
+type IPathCollectionArray = IPathCollection array
+
+let flatten (p : PathTree) : IPathCollection list =  //FIXME: should maybe be IPathCollection
+    let rec traverse (acc : IPathCollection list) = function // tail-recursive traversal
+        | [] -> acc
+        | cur :: worklist ->
+            match cur with
+                | Empty ->
+                    traverse acc worklist
+                | Prim p ->
+                    let path = PathCollection [| p |> toILineSegment |> toPath |] : IPathCollection
+                    let acc =  path :: acc
+                    traverse acc worklist
+                | PathAdd (p1, p2) ->
+                    traverse acc (p1 :: p2 :: worklist)
+                | Transform (mat, p) ->
+                    let transformed = traverse [] [p] |> List.map (fun p -> p.Transform(mat))
+                    let acc = transformed @ acc
+                    traverse acc worklist
+                | Text (text, options) ->
+                    let glyphs = TextBuilder.GenerateGlyphs(text, options)
+                    let acc =  glyphs :: acc
+                    traverse acc worklist
+                | TextAlong(text, options, p) ->
+                    let path = p |> toILineSegment |> toPath
+                    let glyphs = TextBuilder.GenerateGlyphs(text, path, options)
+                    let acc =  glyphs :: acc
+                    traverse acc worklist
+    traverse [] [p]
+
+
+let drawCollection (pen: Pen) (col:IPathCollection) (ctx:drawing_context) : drawing_context =
+    ctx.Draw(pen, col)
+
+let fillCollection (brush:Brush) (options:DrawingOptions) (paths:IPathCollection) (ctx:drawing_context) : drawing_context =
+    ctx.Fill(options, brush, paths)
+
+let drawPathTree (pen: Pen) (paths:PathTree) (ctx:drawing_context) : drawing_context =
+    flatten paths |> List.fold (fun ctx col -> drawCollection pen col ctx) ctx
+
+let fillPathTree (brush:Brush) (options:DrawingOptions) (paths:PathTree) (ctx:drawing_context) : drawing_context =
+    flatten paths |> List.fold (fun ctx col -> fillCollection brush options col ctx) ctx
 
 
 let drawToFile width heigth (filePath:string) (draw:drawing_fun) =
