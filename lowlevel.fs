@@ -97,9 +97,10 @@ let emptyPath = Empty
 
 let pathFromList ps = List.fold (<+>) emptyPath ps
 
-let transform mat = function
+let transform (mat:Matrix3x2) = function
     | Transform (cur, p) ->
-        Transform(mat * cur, p) // FIXME: maybe test for identify transformation?
+        if mat.IsIdentity then Transform(cur, p)
+        else Transform(mat * cur, p)
     | p ->
         Transform(mat, p)
 
@@ -107,7 +108,6 @@ let rotateDegreeAround (degree:float) point p =
     let rad = GeometryUtilities.DegreeToRadian (float32 degree)
     let mat = Matrix3x2Extensions.CreateRotation(rad, toPointF point)
     transform mat p
-
 
 let toILineSegment : PrimPath -> ILineSegment = function
     | Arc(center, rX, rY, rotation, start, sweep) ->
@@ -121,7 +121,6 @@ let toILineSegment : PrimPath -> ILineSegment = function
 
 let toPath (ilineseg:ILineSegment) : IPath =
     Path [| ilineseg |]
-
 
 type IPathCollectionArray = IPathCollection array
 
@@ -166,7 +165,6 @@ let drawPathTree (pen: Pen) (paths:PathTree) (ctx:drawing_context) : drawing_con
 let fillPathTree (brush:Brush) (options:DrawingOptions) (paths:PathTree) (ctx:drawing_context) : drawing_context =
     flatten paths |> List.fold (fun ctx col -> fillCollection brush options col ctx) ctx
 
-
 let drawToFile width heigth (filePath:string) (draw:drawing_fun) =
     let img = new Image<Rgba32>(width, heigth)
     img.Mutate(draw >> ignore)
@@ -205,7 +203,6 @@ type Event =
     | MouseButtonUp of int * int // x,y
     | MouseMotion of int * int * int * int // x,y, relx, rely
 
-
 let getControl (k:int) : ControlKey option =
     let kval = uint32 k
     match kval with
@@ -215,7 +212,6 @@ let getControl (k:int) : ControlKey option =
         | _ when kval = SDL.SDLK_LEFT -> Some LeftArrow
         | _ when kval = SDL.SDLK_RIGHT -> Some RightArrow
         | _ -> None
-
 
 let runAppWithTimer (t:string) (w:int) (h:int) (interval:int option)
            (draw: 's -> drawing_fun)

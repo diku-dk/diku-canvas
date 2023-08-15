@@ -1,4 +1,5 @@
-#i "nuget:/Users/kfl/projects/fsharp-experiments/diku-canvas/bin/Release"
+//#i "nuget:/Users/kfl/projects/fsharp-experiments/diku-canvas/bin/Release"
+#i "nuget:/Users/jrh630/repositories/diku-canvas/bin/Release/"
 #r "nuget:DIKU.Canvas, 2.0.0-alpha4"
 
 module Lowlevel_path =
@@ -8,7 +9,7 @@ module Lowlevel_path =
 
     let defaultFont : Font =
         let fam = getFamily "Arial"
-        let font = makeFont fam 20.0f
+        let font = makeFont fam 36.0f
         font
 
 
@@ -17,7 +18,7 @@ module Lowlevel_path =
     let draw d dc =
         let color = white
         let tri = Lines [(0.0, 0.0); (100.0, 100.0); 0.0, 100.0; 0.0, 0.0] |> Prim
-        let text = Text ("Hello", TextOptions(defaultFont,
+        let text = Text ("Hello"+(string d), TextOptions(defaultFont,
                                               Origin = System.Numerics.Vector2(0.0f, 0.0f) ))
 
         dc
@@ -31,4 +32,4 @@ module Lowlevel_path =
             | _ -> None
 
     let main =
-        runAppWithTimer "Timer Test" 200 200 None draw react 0
+        runAppWithTimer "Timer Test" 200 200 (Some 1000) draw react 0
