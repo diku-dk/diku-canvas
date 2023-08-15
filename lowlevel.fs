@@ -81,11 +81,11 @@ type PrimPath =
 
 and PathTree =
     | Empty
-    | Prim of PrimPath
+    | Prim of Pen * PrimPath
     | PathAdd of PathTree * PathTree
     | Transform of Matrix3x2 * PathTree
-    | Text of string * TextOptions  // FIXME: Maybe we want a `Raw of IPathCollection` constructor instead of the Text constructors
-    | TextAlong of string * TextOptions * PrimPath
+    | Text of Pen * string * TextOptions  // FIXME: Maybe we want a `Raw of IPathCollection` constructor instead of the Text constructors
+    | TextAlong of Pen * string * TextOptions * PrimPath
 
 let (<+>) p1 p2 =
     match p1, p2 with
@@ -122,48 +122,47 @@ let toILineSegment : PrimPath -> ILineSegment = function
 let toPath (ilineseg:ILineSegment) : IPath =
     Path [| ilineseg |]
 
-type IPathCollectionArray = IPathCollection array
+//type IPathCollectionArray = IPathCollection array
 
-let flatten (p : PathTree) : IPathCollection list =  //FIXME: should maybe return a seq<IPathCollection>
-    let rec traverse (acc : IPathCollection list) = function // tail-recursive traversal
+let flatten (p : PathTree) : (Pen*IPathCollection) list =  //FIXME: should maybe return a seq<IPathCollection>
+    let rec traverse (acc : (Pen*IPathCollection) list) = function // tail-recursive traversal
         | [] -> acc
         | cur :: worklist ->
             match cur with
                 | Empty ->
                     traverse acc worklist
-                | Prim p ->
+                | Prim (pen, p) ->
                     let path = PathCollection [| p |> toILineSegment |> toPath |] : IPathCollection
-                    let acc =  path :: acc
+                    let acc =  (pen,path) :: acc
                     traverse acc worklist
                 | PathAdd (p1, p2) ->
                     traverse acc (p1 :: p2 :: worklist)
                 | Transform (mat, p) ->
-                    let transformed = traverse [] [p] |> List.map (fun p -> p.Transform(mat))
+                    let transformed = traverse [] [p] |> List.map (fun (pen,p) -> (pen,p.Transform(mat)))
                     let acc = transformed @ acc
                     traverse acc worklist
-                | Text (text, options) ->
+                | Text (pen, text, options) ->
                     let glyphs = TextBuilder.GenerateGlyphs(text, options)
-                    let acc =  glyphs :: acc
+                    let acc =  (pen,glyphs) :: acc
                     traverse acc worklist
-                | TextAlong(text, options, p) ->
+                | TextAlong(pen, text, options, p) ->
                     let path = p |> toILineSegment |> toPath
                     let glyphs = TextBuilder.GenerateGlyphs(text, path, options)
-                    let acc =  glyphs :: acc
+                    let acc =  (pen, glyphs) :: acc
                     traverse acc worklist
     traverse [] [p]
 
-
-let drawCollection (pen: Pen) (col:IPathCollection) (ctx:drawing_context) : drawing_context =
+let drawCollection ((pen,col):Pen * IPathCollection) (ctx:drawing_context) : drawing_context =
     ctx.Draw(pen, col)
 
-let fillCollection (brush:Brush) (options:DrawingOptions) (paths:IPathCollection) (ctx:drawing_context) : drawing_context =
-    ctx.Fill(options, brush, paths)
+//let fillCollection (brush:Brush) (options:DrawingOptions) (paths:IPathCollection) (ctx:drawing_context) : drawing_context =
+//    ctx.Fill(options, brush, paths)
 
-let drawPathTree (pen: Pen) (paths:PathTree) (ctx:drawing_context) : drawing_context =
-    flatten paths |> List.fold (fun ctx col -> drawCollection pen col ctx) ctx
+let drawPathTree (paths:PathTree) (ctx:drawing_context) : drawing_context =
+    flatten paths |> List.fold (fun ctx penNCol -> drawCollection penNCol ctx) ctx
 
-let fillPathTree (brush:Brush) (options:DrawingOptions) (paths:PathTree) (ctx:drawing_context) : drawing_context =
-    flatten paths |> List.fold (fun ctx col -> fillCollection brush options col ctx) ctx
+//let fillPathTree (brush:Brush) (options:DrawingOptions) (paths:PathTree) (ctx:drawing_context) : drawing_context =
+//    flatten paths |> List.fold (fun ctx col -> fillCollection brush options col ctx) ctx
 
 let drawToFile width heigth (filePath:string) (draw:drawing_fun) =
     let img = new Image<Rgba32>(width, heigth)
