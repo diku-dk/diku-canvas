@@ -18,13 +18,15 @@ module Lowlevel_path =
     let draw d dc =
         let whitePen = solidPen green 2.0
         let bluePen = solidPen blue 2.0
+        let redPen = solidBrush red
         let tri = Prim (whitePen, Lines [(0.0, 0.0); (100.0, 100.0); 0.0, 100.0; 0.0, 0.0])
         let text = Text (bluePen, "Hello"+(string d), TextOptions(defaultFont,
                                               Origin = System.Numerics.Vector2(0.0f, 0.0f) ))
+        let box = Prim (redPen,Rectangle(60.0,60.0))
 
         dc
-        |> fillBox red {x = 0.0f ; y = 0.0f; width = 60.0f; height = 60.0f}
-        |> drawPathTree (tri <+> text <+> rotateDegreeAround 90.0 (0.0, 30.0) text)
+//        |> fillBox red {x = 0.0f ; y = 0.0f; width = 60.0f; height = 60.0f}
+        |> drawPathTree (tri <+> text <+> rotateDegreeAround 90.0 (0.0, 30.0) text <+> box)
 
     let react (s:state) (ev:Lowlevel.Event) : state option =
         match ev with

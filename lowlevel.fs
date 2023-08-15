@@ -26,45 +26,20 @@ let black : color = fromRgb (0, 0, 0)
 type image = SixLabors.ImageSharp.Image<Rgba32>
 
 type drawing_context = SixLabors.ImageSharp.Processing.IImageProcessingContext
-
 type drawing_fun = drawing_context -> drawing_context
-
-type rect = {x : float32; y : float32; width : float32; height : float32}
-
-let toRectangleF r =
-    RectangleF(r.x, r.y, r.width, r.height)
-
-let fillBox (color:color) (box:rect) (ctx:drawing_context) : drawing_context =
-    ctx.Fill(color, toRectangleF box)
-
-let drawBox (color:color) (lineWidth:int) (box:rect) (ctx:drawing_context) =
-    ctx.Draw(color, float32 lineWidth, toRectangleF box)
-
-// let rotate (degrees:float32) (ctx:drawing_context) =  // FIXME: find more useful Rotate method
-//     ctx.Rotate(degrees)
 
 type Font = SixLabors.Fonts.Font
 type FontFamily = SixLabors.Fonts.FontFamily
-
 let getFamily name = SixLabors.Fonts.SystemFonts.Get(name)
-
 let makeFont (fam:FontFamily) (size:float32) = new SixLabors.Fonts.Font(fam, size)
 
-let drawText (msg:string) (font:Font) (color:color) (x:float32) (y:float32) (ctx:drawing_context) =
-    ctx.DrawText(msg, font, color, PointF(x, y))
-
-type Brush = SixLabors.ImageSharp.Drawing.Processing.Brush
-type Pen = SixLabors.ImageSharp.Drawing.Processing.Pen
-
-let solidBrush (color:color) : Brush =
-    Brushes.Solid(color)
-
-let solidPen (color:color) (width:float) : Pen =
-    Pens.Solid(color, float32 width)
-
-// let drawLines (p: Pen) (points: (float*float) list) (ctx:drawing_context) : drawing_context =
-//     let points_arr = points |> Array.ofList |> Array.map (fun (a,b) -> PointF(float32 a, float32 b))
-//     ctx.DrawLines(p, points_arr)
+type Tool = 
+    | Pen of SixLabors.ImageSharp.Drawing.Processing.Pen
+    | Brush of SixLabors.ImageSharp.Drawing.Processing.Brush
+let solidBrush (color:color) : Tool =
+    Brush (Brushes.Solid(color))
+let solidPen (color:color) (width:float) : Tool =
+    Pen (Pens.Solid(color, float32 width))
 
 type point = int * int
 type pointF = float * float
@@ -78,14 +53,16 @@ type PrimPath =
     | CubicBezier of pointF * pointF * pointF * pointF
     | Line of pointF * pointF
     | Lines of pointF list
+    | Rectangle of float * float
+    | Ellipse of float * float
 
 and PathTree =
     | Empty
-    | Prim of Pen * PrimPath
+    | Prim of Tool * PrimPath
     | PathAdd of PathTree * PathTree
     | Transform of Matrix3x2 * PathTree
-    | Text of Pen * string * TextOptions  // FIXME: Maybe we want a `Raw of IPathCollection` constructor instead of the Text constructors
-    | TextAlong of Pen * string * TextOptions * PrimPath
+    | Text of Tool * string * TextOptions  // FIXME: Maybe we want a `Raw of IPathCollection` constructor instead of the Text constructors
+    | TextAlong of Tool * string * TextOptions * PrimPath
 
 let (<+>) p1 p2 =
     match p1, p2 with
@@ -118,14 +95,24 @@ let toILineSegment : PrimPath -> ILineSegment = function
         LinearLineSegment(toPointF start, toPointF endP)
     | Lines points ->
         LinearLineSegment(points |> Seq.map toPointF |> Seq.toArray)
+    | Rectangle (w,h) ->
+        let points = [(0.0,0.0);(w,0.0);(w,h);(0.0,h);(0.0,0.0)]
+        LinearLineSegment(points |> Seq.map toPointF |> Seq.toArray)
+    | Ellipse (w,h) ->
+        let cx, cy = (w/2.0), (h/2.0)
+        let rx, ry = cx, cy
+        let n = int <| max 10.0 ((max rx ry)*10.0)
+        let points = 
+            [0..(n-1)]
+            |> List.map (fun i -> 2.0*System.Math.PI*(float i)/(float (n-1)))
+            |> List.map (fun i -> (cx+rx*cos i, cy+ry*sin i))
+        LinearLineSegment(points |> Seq.map toPointF |> Seq.toArray)
 
 let toPath (ilineseg:ILineSegment) : IPath =
     Path [| ilineseg |]
 
-//type IPathCollectionArray = IPathCollection array
-
-let flatten (p : PathTree) : (Pen*IPathCollection) list =  //FIXME: should maybe return a seq<IPathCollection>
-    let rec traverse (acc : (Pen*IPathCollection) list) = function // tail-recursive traversal
+let flatten (p : PathTree) : (Tool*IPathCollection) list =  //FIXME: should maybe return a seq<IPathCollection>
+    let rec traverse (acc : (Tool*IPathCollection) list) = function // tail-recursive traversal
         | [] -> acc
         | cur :: worklist ->
             match cur with
@@ -152,17 +139,15 @@ let flatten (p : PathTree) : (Pen*IPathCollection) list =  //FIXME: should maybe
                     traverse acc worklist
     traverse [] [p]
 
-let drawCollection ((pen,col):Pen * IPathCollection) (ctx:drawing_context) : drawing_context =
-    ctx.Draw(pen, col)
-
-//let fillCollection (brush:Brush) (options:DrawingOptions) (paths:IPathCollection) (ctx:drawing_context) : drawing_context =
-//    ctx.Fill(options, brush, paths)
+let drawCollection ((tool,col):Tool * IPathCollection) (ctx:drawing_context) : drawing_context =
+    match tool with
+        | Pen pen ->
+            ctx.Draw(pen, col)
+        | Brush brush ->
+            ctx.Fill(DrawingOptions(), brush, col)
 
 let drawPathTree (paths:PathTree) (ctx:drawing_context) : drawing_context =
     flatten paths |> List.fold (fun ctx penNCol -> drawCollection penNCol ctx) ctx
-
-//let fillPathTree (brush:Brush) (options:DrawingOptions) (paths:PathTree) (ctx:drawing_context) : drawing_context =
-//    flatten paths |> List.fold (fun ctx col -> fillCollection brush options col ctx) ctx
 
 let drawToFile width heigth (filePath:string) (draw:drawing_fun) =
     let img = new Image<Rgba32>(width, heigth)
