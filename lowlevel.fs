@@ -40,8 +40,8 @@ let fillBox (color:color) (box:rect) (ctx:drawing_context) : drawing_context =
 let drawBox (color:color) (lineWidth:int) (box:rect) (ctx:drawing_context) =
     ctx.Draw(color, float32 lineWidth, toRectangleF box)
 
-let rotate (degrees:float32) (ctx:drawing_context) =  // FIXME: find more useful Rotate method
-    ctx.Rotate(degrees)
+// let rotate (degrees:float32) (ctx:drawing_context) =  // FIXME: find more useful Rotate method
+//     ctx.Rotate(degrees)
 
 type Font = SixLabors.Fonts.Font
 type FontFamily = SixLabors.Fonts.FontFamily
@@ -84,7 +84,7 @@ and PathTree =
     | Prim of PrimPath
     | PathAdd of PathTree * PathTree
     | Transform of Matrix3x2 * PathTree
-    | Text of string * TextOptions
+    | Text of string * TextOptions  // FIXME: Maybe we want a `Raw of IPathCollection` constructor instead of the Text constructors
     | TextAlong of string * TextOptions * PrimPath
 
 let (<+>) p1 p2 =
@@ -96,6 +96,18 @@ let (<+>) p1 p2 =
 let emptyPath = Empty
 
 let pathFromList ps = List.fold (<+>) emptyPath ps
+
+let transform mat = function
+    | Transform (cur, p) ->
+        Transform(mat * cur, p) // FIXME: maybe test for identify transformation?
+    | p ->
+        Transform(mat, p)
+
+let rotateDegreeAround (degree:float) point p =
+    let rad = GeometryUtilities.DegreeToRadian (float32 degree)
+    let mat = Matrix3x2Extensions.CreateRotation(rad, toPointF point)
+    transform mat p
+
 
 let toILineSegment : PrimPath -> ILineSegment = function
     | Arc(center, rX, rY, rotation, start, sweep) ->
@@ -113,7 +125,7 @@ let toPath (ilineseg:ILineSegment) : IPath =
 
 type IPathCollectionArray = IPathCollection array
 
-let flatten (p : PathTree) : IPathCollection list =  //FIXME: should maybe be IPathCollection
+let flatten (p : PathTree) : IPathCollection list =  //FIXME: should maybe return a seq<IPathCollection>
     let rec traverse (acc : IPathCollection list) = function // tail-recursive traversal
         | [] -> acc
         | cur :: worklist ->
