@@ -34,8 +34,6 @@ let wrap f str = FunctionWrapper(f, str) :> IFunctionWrapper
 
 /// Types
 type Color = SixLabors.ImageSharp.Color
-type image = SixLabors.ImageSharp.Image<Rgba32>
-type movie = image list
 type Pen = SixLabors.ImageSharp.Drawing.Processing.Pen
 type Font = SixLabors.Fonts.Font
 type Picture = 

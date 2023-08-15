@@ -14,6 +14,7 @@ let pathBuilder = new PathBuilder()
 
 for i in 0..35 do
     pathBuilder.StartFigure() |> ignore
+
     let M = Matrix3x2Extensions.CreateRotation((float32 i)*10f*3.1415f/180f,PointF(256f,256f))
     pathBuilder.SetTransform(M) |> ignore// Transform everything after
     pathBuilder.SetOrigin(PointF(256f, 256f)) |> ignore
