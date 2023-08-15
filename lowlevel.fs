@@ -70,25 +70,23 @@ let drawToFile width heigth (filePath:string) (draw:drawing_fun) =
     img.Save(filePath)
 
 let drawToAnimatedGif width heigth (frameDelay:int) (repeatCount:int) (filePath:string) (drawLst:drawing_fun list) =
-    let movie = List.map (fun (draw:drawing_fun)->
-        let img = new Image<Rgba32>(width, heigth)
-        img.Mutate(draw >> ignore)) drawLst
-    movie
-// I don't understand why the following does not work. Should take a list of images and save as frames in an animaged gif, but it does not compile.
-//
-//    match movie with
-//        gif::rst ->
-//            let gifMetaData = gif.Metadata.GetGifMetadata()
-//            gifMetaData.RepeatCount <- uint16 repeatCount
-//            let metadata = gif.Frames.RootFrame.Metadata.GetGifMetadata()
-//            metadata.FrameDelay <- frameDelay
-//            List.iter (fun (frame:image) -> 
-//                let metadata = frame.Frames.RootFrame.Metadata.GetGifMetadata()
-//                metadata.FrameDelay <- frameDelay
-//                gif.Frames.AddFrame(frame.Frames.RootFrame) |> ignore
-//            ) rst
-//            gif.SaveAsGif(filePath);
-//        | _ -> ()
+    match drawLst with
+        draw::rst ->
+            let gif = new Image<Rgba32>(width, heigth)
+            gif.Mutate(draw >> ignore)
+            let gifMetaData = gif.Metadata.GetGifMetadata()
+            gifMetaData.RepeatCount <- uint16 repeatCount
+            let metadata = gif.Frames.RootFrame.Metadata.GetGifMetadata()
+            metadata.FrameDelay <- frameDelay
+            List.iter (fun (draw:drawing_fun) -> 
+                let frame = new Image<Rgba32>(width, heigth)
+                frame.Mutate(draw >> ignore)
+                let metadata = frame.Frames.RootFrame.Metadata.GetGifMetadata()
+                metadata.FrameDelay <- frameDelay
+                gif.Frames.AddFrame(frame.Frames.RootFrame) |> ignore
+            ) rst
+            gif.SaveAsGif(filePath);
+        | _ -> ()
 
 type ControlKey =
     | DownArrow
