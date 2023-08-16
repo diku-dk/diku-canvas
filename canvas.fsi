@@ -35,6 +35,9 @@ val Bottom: float
 ///<summary>An alignv position-value for aligning boxes along their right edge.</summary>
 val Right: float
 
+///<summary>An empty graphics primitive tree.</summary>
+val emptyTree: PrimitiveTree
+
 ///<summary>Retrieves the size of a given graphic primitive tree.</summary>
 ///<param name="p">The graphic primitive tree for which to get the size.</param>
 ///<returns>The bounding box of the tree as x1,y1,x2,y2 where x2>x1 and y2>y1.</returns>
@@ -181,3 +184,18 @@ val runAppWithTimer : t:string -> w:int -> h:int -> interval:int option -> draw:
 ///<param name="draw">A function that returns a Picture object representing the current visual state of the application.</param>
 ///<returns>A unit value indicating the completion of the operation.</returns>
 val runApp : t:string -> w:int -> h:int -> draw: (unit -> Picture) ->  unit
+
+///<summary>Generate a color.</summary>
+///<param name="r">The amount of red.</param>
+///<param name="g">The amount of green.</param>
+///<param name="b">The amount of blue.</param>
+///<param name="a">The degree to which the color is transparent.</param>
+///<returns>A color.</returns>
+val fromRgba : r:int -> g:int -> b:int -> a:int -> color
+
+///<summary>Generate a non-transparent color.</summary>
+///<param name="r">The amount of red.</param>
+///<param name="g">The amount of green.</param>
+///<param name="b">The amount of blue.</param>
+///<returns>A color.</returns>
+val fromRgb : r:int -> g:int -> b:int -> color

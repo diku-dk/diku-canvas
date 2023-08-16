@@ -15,6 +15,8 @@ let drawToFile width height filePath draw = Lowlevel.drawToFile width height fil
 let drawToAnimatedGif width height frameDelay repeatCount filePath drawLst = Lowlevel.drawToAnimatedGif width height frameDelay repeatCount filePath drawLst
 let runAppWithTimer t w h interval draw react s = Lowlevel.runAppWithTimer t w h interval draw react s
 let runApp t w h draw = Lowlevel.runApp t w h draw
+let fromRgba r g b a = Lowlevel.fromRgba r g b a
+let fromRgb r g b = Lowlevel.fromRgb r g b
 
 type ControlKey = Lowlevel.ControlKey
 type Event = Lowlevel.Event
@@ -22,6 +24,7 @@ type Event = Lowlevel.Event
 type Rectangle = float*float*float*float // x1,y1,x2,y2: x2>x1 && y2>y1
 type Size = float*float // w,h
 type PrimitiveTree = 
+    | Empty of Rectangle
     | PiecewiseAffine of (pointF list)*color*float*Rectangle
     | FilledPolygon of (pointF list)*color*Rectangle
     | Rectangle of color*float*Rectangle
@@ -39,6 +42,7 @@ let getSize ((x1,y1,x2,y2):Rectangle) : Size =
         (x2-x1,y2-y1) // always positive!
 let getRectangle (p:PrimitiveTree): Rectangle =
     match p with
+        | Empty(rect)
         | PiecewiseAffine(_,_,_,rect)
         | FilledPolygon(_,_,rect)
         | Rectangle(_,_,rect)
@@ -56,6 +60,8 @@ let tostring (p:PrimitiveTree): string =
     let rec loop (prefix:string) (p:PrimitiveTree): string =
         let descentPrefix = (String.replicate prefix.Length " ")+"\u221F>"
         match p with
+            | Empty(rect) -> 
+                sprintf "%sEmpty" prefix
             | PiecewiseAffine(points,c,sw,rect) -> 
                 sprintf "%sPiecewiseAffine (color,stroke)=%A coordinates=%O" prefix (c,sw) points
             | FilledPolygon(points,c,rect) -> 
@@ -118,6 +124,7 @@ let ellipse (c: color) (sw: float) (rx: float) (ry:float): PrimitiveTree =
     Ellipse(c,sw,(-rx,-ry,rx,ry)) 
 let filledellipse (c: color) (rx: float) (ry:float): PrimitiveTree = 
     FilledEllipse(c, (-rx,-ry,rx,ry)) 
+let emptyTree = Empty((0.0,0.0,0.0,0.0))
 
 /// Functions for combining images
 let Top = 0.0
@@ -184,6 +191,8 @@ let rec compile (idx:int) (expFlag: bool) (pic:PrimitiveTree): Lowlevel.PathTree
         else
             dc
     match pic with
+    | Empty(rect) -> 
+        Lowlevel.Empty
     | PiecewiseAffine(lst, c, sw, rect) ->
         let pen = Lowlevel.solidPen c sw
         let dc = Lowlevel.Prim (pen, Lowlevel.Lines lst)

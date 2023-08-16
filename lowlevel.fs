@@ -12,16 +12,18 @@ open SixLabors.ImageSharp.Drawing
 // colors
 type color = SixLabors.ImageSharp.Color
 
-let fromRgb (red:int,green:int,blue:int) : color =
-    Color(Rgba32(r=byte(red), g=byte(green), b=byte(blue)))
+let fromRgba (red:int) (green:int) (blue:int) (a:int) : color =
+    color.FromRgba(byte red, byte green, byte blue, byte a)
+let fromRgb (red:int) (green:int) (blue:int) : color =
+    color.FromRgb(byte red, byte green, byte blue)
 
-let red : color = fromRgb(255, 0, 0)
-let green : color = fromRgb(0, 255, 0)
-let blue : color = fromRgb(0, 0, 255)
-let yellow : color = fromRgb(255, 255, 0)
-let lightgrey : color = fromRgb (220, 220, 220)
-let white : color = fromRgb (255, 255, 255)
-let black : color = fromRgb (0, 0, 0)
+let red : color = fromRgb 255 0 0
+let green : color = fromRgb 0 255 0
+let blue : color = fromRgb 0 0 255
+let yellow : color = fromRgb 255 255 0
+let lightgrey : color = fromRgb 220 220 220
+let white : color = fromRgb 255 255 255
+let black : color = fromRgb 0 0 0
 
 type image = SixLabors.ImageSharp.Image<Rgba32>
 
