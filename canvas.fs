@@ -115,7 +115,7 @@ let rectangle (c: color) (sw: float) (w: float) (h: float): PrimitiveTree =
 let filledrectangle (c: color) (w: float) (h: float): PrimitiveTree = 
     FilledRectangle(c,(0.0,0.0,w,h)) 
 let ellipse (c: color) (sw: float) (rx: float) (ry:float): PrimitiveTree = 
-    Ellipse(c,sw, (-rx,-ry,rx,ry)) 
+    Ellipse(c,sw,(-rx,-ry,rx,ry)) 
 let filledellipse (c: color) (rx: float) (ry:float): PrimitiveTree = 
     FilledEllipse(c, (-rx,-ry,rx,ry)) 
 
@@ -138,8 +138,12 @@ and alignh (pic1:PrimitiveTree) (pos:float) (pic2:PrimitiveTree): PrimitiveTree 
     let x12,y12,x22,y22 = getRectangle pic2
     let w1,h1 = getSize <| getRectangle pic1
     let w2,h2 = getSize <| getRectangle pic2
-    let y1,y2 = if h1 > h2 then y11,y21 else y12,y22
-    let rect = (x11, y1, x21+x22-x12, y2)
+    let s = pos*(h1-h2)
+    let x12a = x12+x21-x12
+    let x22a = x22+x21-x12
+    let y12a = y12+y11-y12+s
+    let y22a = y22+y11-y12+s
+    let rect = (x11, min y11 y12a, x22a, max y21 y22a)
     AlignH(pic1,pic2,pos,rect)
 and alignv (pic1:PrimitiveTree) (pos:float) (pic2:PrimitiveTree): PrimitiveTree =
     if pos < 0 || pos > 1 then 
@@ -148,11 +152,16 @@ and alignv (pic1:PrimitiveTree) (pos:float) (pic2:PrimitiveTree): PrimitiveTree 
     let x12,y12,x22,y22 = getRectangle pic2
     let w1,h1 = getSize <| getRectangle pic1
     let w2,h2 = getSize <| getRectangle pic2
-    let x1,x2 = if w1 > w2 then x11,x21 else x12,x22
-    let rect = (x1, y11, x2, y21+y22-y12)
+    let s = pos*(w1-w2)
+    let x12a = x12+x11-x12+s
+    let x22a = x22+x11-x12+s
+    let y12a = y12+y21-y12
+    let y22a = y22+y21-y12
+    let rect = (min x11 x12a, y11, max x21 x22a, y22a)
     AlignV(pic1, pic2, pos, rect)
 
 /// Drawing content
+let colorLst = [color.Blue; color.Cyan; color.Green; color.Magenta; color.Orange; color.Purple; color.Yellow; color.Red]
 let _ellipse (t:Lowlevel.Tool) ((x1,y1,x2,y2):Rectangle): Lowlevel.PathTree =
     let cx, cy = ((x1+x2)/2.0), ((y1+y2)/2.0)
     let rx, ry = ((x2-x1)/2.0), ((y2-y1)/2.0)
@@ -165,7 +174,6 @@ let _ellipse (t:Lowlevel.Tool) ((x1,y1,x2,y2):Rectangle): Lowlevel.PathTree =
 let _rectangle (t:Lowlevel.Tool) ((x1,y1,x2,y2):Rectangle): Lowlevel.PathTree =
         let lst = [(x1,y1);(x1,y2);(x2,y2);(x2,y1);(x1,y1)]
         Lowlevel.Prim (t, Lowlevel.Lines lst)
-let colorLst = [color.Blue; color.Cyan; color.Green; color.Magenta; color.Orange; color.Purple; color.Yellow; color.Red]
 let rec compile (idx:int) (expFlag: bool) (pic:PrimitiveTree): Lowlevel.PathTree =
     let next = (idx+1) % colorLst.Length
     let wrap M rect expFlag dc =
@@ -206,56 +214,44 @@ let rec compile (idx:int) (expFlag: bool) (pic:PrimitiveTree): Lowlevel.PathTree
         let dc = dc1 <+> dc2
         wrap Matrix3x2.Identity rect expFlag dc
     | AlignH(p1, p2, pos, rect) ->
-        let w1,h1 = getSize <| getRectangle p1
-        let w2,h2 = getSize <| getRectangle p2
-        let sz = w1+w2, (max h1 h2)
-        let s = float32 (abs (pos*float (h1-h2)))
+        let x11,y11,x21,y21 = getRectangle p1
+        let x12,y12,x22,y22 = getRectangle p2
+        let w1,h1 = getSize (x11,y11,x21,y21)
+        let w2,h2 = getSize (x12,y12,x22,y22)
+        let s = pos*(h1-h2)
         let dc1 = compile next expFlag p1
         let dc2 = compile next expFlag p2
         let dc =
-            if h1 > h2 then
-                let M = Matrix3x2.CreateTranslation(float32 w1,s)
-                dc1 <+> (Lowlevel.transform M <| dc2)
-            elif h1 = h2 then
-                dc1 <+> dc2
-            else
-                let M1 = Matrix3x2.CreateTranslation(0f,s)
-                let M2 = Matrix3x2.CreateTranslation(float32 w1,0f)
-                (Lowlevel.transform M1 <| dc1) <+> (Lowlevel.transform M2 <| dc2)
+            let M = Matrix3x2.CreateTranslation(float32 (x21-x12),float32 (y11-y12+s))
+            dc1 <+> (Lowlevel.transform M <| dc2)
         wrap Matrix3x2.Identity rect expFlag dc
     | AlignV(p1, p2, pos, rect) ->
-        let w1,h1 = getSize <| getRectangle p1
-        let w2,h2 = getSize <| getRectangle p2
-        let sz = max w1 w2, h1 + h2
-        let s = float32 (abs (pos*float (h1-h2)))
+        let x11,y11,x21,y21 = getRectangle p1
+        let x12,y12,x22,y22 = getRectangle p2
+        let w1,h1 = getSize (x11,y11,x21,y21)
+        let w2,h2 = getSize (x12,y12,x22,y22)
+        let s = pos*(w1-w2)
         let dc1 = compile next expFlag p1 
         let dc2 = compile next expFlag p2
         let dc =
-            if w1 > w2 then
-                let M = Matrix3x2.CreateTranslation(s,float32 h1)
-                dc1 <+> (Lowlevel.transform M <| dc2)
-            elif h1 = h2 then
-                dc1 <+> dc2
-            else 
-                let M1 = Matrix3x2.CreateTranslation(s,0f)
-                let M2 = Matrix3x2.CreateTranslation(0f,float32 h1)
-                (Lowlevel.transform M1 <| dc1) <+> (Lowlevel.transform M2 <| dc2)
+            let M = Matrix3x2.CreateTranslation(float32 (x11-x12+s),float32 (y21-y12))
+            dc1 <+> (Lowlevel.transform M <| dc2)
         wrap Matrix3x2.Identity rect expFlag dc
     | Translate(p, dx, dy, rect) ->
         let M = Matrix3x2.CreateTranslation(float32 dx,float32 dy)
-        let dc = Lowlevel.transform M <| compile next expFlag p
-        wrap M rect expFlag dc
+        Lowlevel.transform M <| compile next expFlag p
+        //wrap M rect false dc
     | Scale(p, sx, sy, rect) -> 
         let M = Matrix3x2.CreateScale(float32 sx, float32 sy)
-        let dc = Lowlevel.transform M <| compile next expFlag p
-        wrap M rect expFlag dc
+        Lowlevel.transform M <| compile next expFlag p
+        //wrap M rect false dc
     | Rotate(p, cx, cy, rad, rect) ->
         let R = Matrix3x2.CreateRotation(float32 rad)
         let T1 = Matrix3x2.CreateTranslation(float32 cx,float32 cy)
         let T2 = Matrix3x2.CreateTranslation(float32 -cx,float32 -cy)
         let M = T2*R*T1
-        let dc = Lowlevel.transform M <| compile next expFlag p
-        wrap M rect expFlag dc
+        Lowlevel.transform M <| compile next expFlag p
+        //wrap M rect false dc
 
 let make (p:PrimitiveTree): Picture = 
     compile 0 false p |> Lowlevel.drawPathTree
