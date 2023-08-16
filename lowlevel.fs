@@ -113,7 +113,7 @@ let toPath (ilineseg:ILineSegment) : IPath =
 
 let flatten (p : PathTree) : (Tool*IPathCollection) list =  //FIXME: should maybe return a seq<IPathCollection>
     let rec traverse (acc : (Tool*IPathCollection) list) = function // tail-recursive traversal
-        | [] -> acc
+        | [] -> List.rev acc
         | cur :: worklist ->
             match cur with
                 | Empty ->
