@@ -101,3 +101,6 @@ examples/combine.png
 examples/ils.png
 examples/canvasNT3Test.gif
 examples/canvasNT3Test.png
+*.gif
+canvasNT3Test.gif
+canvasNT3Test.png
