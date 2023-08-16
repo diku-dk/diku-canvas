@@ -8,7 +8,7 @@ type Font = Lowlevel.Font
 type FontFamily = Lowlevel.FontFamily
 
 ///<summary>Represents the size of a picture, defined by its width and height as a tuple of two floats.</summary>
-type Size = float*float
+type Rectangle = float*float*float*float
 
 ///<summary>Represents one of the 5 control keys: DownArrow, UpArrow, LeftArrow, RightArrow, and Space.</summary>
 type ControlKey = Lowlevel.ControlKey
@@ -34,8 +34,8 @@ val Right: float
 
 ///<summary>Retrieves the size of a given graphic primitive tree.</summary>
 ///<param name="p">The graphic primitive tree for which to get the size.</param>
-///<returns>A Size object representing the width and height of the given graphic primitive tree.</returns>
-val getSize : p: PrimitiveTree -> Size
+///<returns>The bounding box of the tree as x1,y1,x2,y2 where x2>x1 and y2>y1.</returns>
+val getRectangle : p: PrimitiveTree -> Rectangle
 
 ///<summary>Translates a given graphic primitive tree by the specified distances along the x and y axes.</summary>
 ///<param name="dx">The distance to translate the graphic primitive tree along the x-axis.</param>

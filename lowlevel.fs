@@ -53,8 +53,6 @@ type PrimPath =
     | CubicBezier of pointF * pointF * pointF * pointF
     | Line of pointF * pointF
     | Lines of pointF list
-    | Rectangle of float * float
-    | Ellipse of float * float
 
 and PathTree =
     | Empty
@@ -94,18 +92,6 @@ let toILineSegment : PrimPath -> ILineSegment = function
     | Line(start, endP) ->
         LinearLineSegment(toPointF start, toPointF endP)
     | Lines points ->
-        LinearLineSegment(points |> Seq.map toPointF |> Seq.toArray)
-    | Rectangle (w,h) ->
-        let points = [(0.0,0.0);(w,0.0);(w,h);(0.0,h);(0.0,0.0)]
-        LinearLineSegment(points |> Seq.map toPointF |> Seq.toArray)
-    | Ellipse (w,h) ->
-        let cx, cy = (w/2.0), (h/2.0)
-        let rx, ry = cx, cy
-        let n = int <| max 10.0 ((max rx ry)*10.0)
-        let points = 
-            [0..(n-1)]
-            |> List.map (fun i -> 2.0*System.Math.PI*(float i)/(float (n-1)))
-            |> List.map (fun i -> (cx+rx*cos i, cy+ry*sin i))
         LinearLineSegment(points |> Seq.map toPointF |> Seq.toArray)
 
 let toPath (ilineseg:ILineSegment) : IPath =

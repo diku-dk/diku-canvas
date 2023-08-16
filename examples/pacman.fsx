@@ -21,7 +21,8 @@ let draw (i:state): Picture =
     let lst = (0.0,0.0)::(List.map (fun j -> (R*cos(j),R*sin(j))) (theta i))@[(0.0, 0.0)]
     let cake = filledpolygon color.Yellow lst |> translate (float w/2.0) (float h/2.0)
     let d = ontop bck cake 
-    make d
+    printfn "%s" (tostring d)
+    explain d
 
 let react (s:state) (ev:Lowlevel.Event) : state option =
     match ev with
