@@ -149,8 +149,8 @@ let drawCollection ((tool,col):Tool * IPathCollection) (ctx:drawing_context) : d
 let drawPathTree (paths:PathTree) (ctx:drawing_context) : drawing_context =
     flatten paths |> List.fold (fun ctx penNCol -> drawCollection penNCol ctx) ctx
 
-let drawToFile width heigth (filePath:string) (draw:drawing_fun) =
-    let img = new Image<Rgba32>(width, heigth)
+let drawToFile width height (filePath:string) (draw:drawing_fun) =
+    let img = new Image<Rgba32>(width, height)
     img.Mutate(draw >> ignore)
     img.Save(filePath)
 

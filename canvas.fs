@@ -1,309 +1,228 @@
 module Canvas
-open System.Runtime.InteropServices
-open System
+open System.Numerics
 
-// colors
-type color = {r:byte;g:byte;b:byte;a:byte}
+/// Types
+type Tool = 
+    | Pen of SixLabors.ImageSharp.Drawing.Processing.Pen
+    | Brush of SixLabors.ImageSharp.Drawing.Processing.Brush
+type color = Lowlevel.color
+type Font = Lowlevel.Font
+type FontFamily = Lowlevel.FontFamily
+type pointF = Lowlevel.pointF
+type Picture = Lowlevel.drawing_fun
+let (<+>) = Lowlevel.(<+>)
+let drawToFile width height filePath draw = Lowlevel.drawToFile width height filePath draw 
+let drawToAnimatedGif width height frameDelay repeatCount filePath drawLst = Lowlevel.drawToAnimatedGif width height frameDelay repeatCount filePath drawLst
+let runAppWithTimer t w h interval draw react s = Lowlevel.runAppWithTimer t w h interval draw react s
+let runApp t w h draw = Lowlevel.runApp t w h draw
 
-let fromArgb (red:int,green:int,blue:int,alpha:int) : color =
-  {r=byte(red); g=byte(green); b=byte(blue); a=byte(alpha)}
+type ControlKey = Lowlevel.ControlKey
+type Event = Lowlevel.Event
 
-let fromRgb (red:int,green:int,blue:int) : color = fromArgb (red,green,blue,255)
+type Size = float*float
+type PrimitiveTree = 
+    | PiecewiseAffine of (pointF list)*color*float*Size
+    | FilledPolygon of (pointF list)*color*Size
+    | Rectangle of color*float*Size
+    | FilledRectangle of color*Size
+    | Ellipse of color*float*Size
+    | FilledEllipse of color*Size
+    | AlignH of PrimitiveTree*PrimitiveTree*float*Size
+    | AlignV of PrimitiveTree*PrimitiveTree*float*Size
+    | OnTop of PrimitiveTree*PrimitiveTree*Size
+    | Scale of PrimitiveTree*float*float*Size
+    | Rotate of PrimitiveTree*float*float*float*Size
+    | Translate of PrimitiveTree*float*float*Size
 
-let red : color = fromRgb(255, 0, 0)
-let green : color = fromRgb(0, 255, 0)
-let blue : color = fromRgb(0, 0, 255)
-let yellow : color = fromRgb(255, 255, 0)
-let lightgrey : color = fromRgb (220, 220, 220)
-let white : color = fromRgb (255, 255, 255)
-let black : color = fromRgb (0, 0, 0)
+let getSize (p:PrimitiveTree): Size =
+  match p with
+    | PiecewiseAffine(_,_,_,sz)
+    | FilledPolygon(_,_,sz)
+    | Rectangle(_,_,sz)
+    | FilledRectangle(_,sz)
+    | Ellipse(_,_,sz)
+    | FilledEllipse(_,sz)
+    | AlignH(_,_,_,sz)
+    | AlignV(_,_,_,sz)
+    | OnTop(_,_,sz)
+    | Scale(_,_,_,sz)
+    | Rotate(_,_,_,_,sz)
+    | Translate(_,_,_,sz) -> sz
 
-let fromColor (color: color) : int * int * int * int =
-  (int(color.r),int(color.g),int(color.b),int(color.a))
+let tostring (p:PrimitiveTree): string =
+    let rec loop (prefix:string) (p:PrimitiveTree): string =
+        let descentPrefix = (String.replicate prefix.Length " ")+"\u221F>"
+        match p with
+            | PiecewiseAffine(points,c,sw,sz) -> sprintf "%sPiecewiseAffine (color,stroke)=%A coordinates=%A" prefix (c,sw) points
+            | FilledPolygon(points,c,sz) -> sprintf "%sFilledPolygon color=%A coordinates=%A" prefix c points
+            | Rectangle(c,sw,sz) -> sprintf "%sRectangle (color,stroke)=%A (width,height)=%A" prefix (c,sw) sz
+            | FilledRectangle(c,sz) -> sprintf "%sFilledRectangle color%A (width,height)=%A" prefix c sz
+            | Ellipse(c,sw,sz) -> sprintf "%sEllipse (color,stroke)=%A (radiusX,radiusY)=%A" prefix (c,sw) ((fst sz)/2.0,(snd sz)/2.0)
+            | FilledEllipse(c,sz) -> sprintf "%sFilledEllipse color=%A (radiusX,radiusY)=%A" prefix c ((fst sz)/2.0,(snd sz)/2.0)
+            | AlignH(p1,p2,pos,sz) -> sprintf "%sAlignH position=%g\n%s\n%s" prefix pos (loop descentPrefix p1) (loop descentPrefix p2)
+            | AlignV(p1,p2,pos,sz) -> sprintf "%sAlignV position=%g\n%s\n%s" prefix pos (loop descentPrefix p1) (loop descentPrefix p2)
+            | OnTop(p1,p2,sz) -> sprintf "%sOnTop\n%s\n%s" prefix (loop descentPrefix p1) (loop descentPrefix p2)
+            | Scale(q,sx,sy,sz) -> sprintf "%sScale (scaleX,scaleY)=%A\n%s" prefix (sx, sy) (loop descentPrefix q)
+            | Rotate(q,x,y,rad,sz) -> sprintf "%sRotate (centerX,centerY)=%A radius=%g\n%s" prefix (x, y) rad (loop descentPrefix q)
+            | Translate(q,dx,dy,sz) -> sprintf "%sTranslate (dx,dy)=%A\n%s" prefix (dx, dy) (loop descentPrefix q)
+    loop "" p
 
-// canvas - 4 bytes for each pixel (r,g,b,a)
-type canvas = {w    : int;
-               h    : int;
-               data : byte[]}
+/// Graphics primitives
+//let affineLowlevel.transform (M:System.Numerics.Matrix3x2) (p: PrimitiveTree): PrimitiveTree = 
+//  let sz = getSize p
+//  AffineTransform(p,M,w,h)
+let translate (dx:float) (dy:float) (p: PrimitiveTree): PrimitiveTree =
+    let sz = getSize p
+    Translate(p,dx,dy,(dx+fst sz,dy+snd sz))
+let scale (sx:float) (sy:float) (p: PrimitiveTree): PrimitiveTree =
+    let sz = getSize p
+    Scale(p,sx,sy,(sx*fst sz,sy*snd sz))
+let rotate (x:float) (y:float) (rad:float) (p: PrimitiveTree): PrimitiveTree =
+    let sz = getSize p
+    Rotate(p,x,y,rad,sz)
 
-// create white opaque canvas
-let create (width:int) (height:int) : canvas =
-  {w = width;
-   h = height;
-   data = Array.create (height*width*4) 0xffuy}
+let mapPairLst (f: 'a list -> 'b) (lst: ('a*'a) list): 'b*'b =
+    List.unzip lst |> fun (a,b) -> f a, f b
+let piecewiseaffine (c:color) (sw: float) (lst: (float*float) list): PrimitiveTree = 
+    let wMin, hMin = mapPairLst List.min lst 
+    let wMax, hMax = mapPairLst List.max lst
+    let sz = 1.0+wMin+wMax, 1.0+hMin+hMax
+    PiecewiseAffine(lst, c, sw, sz) 
+let filledpolygon (c:color) (lst: (float*float) list): PrimitiveTree = 
+    let wMin, hMin = mapPairLst List.min lst 
+    let wMax, hMax = mapPairLst List.max lst
+    let sz = 1.0+wMin+wMax, 1.0+hMin+hMax
+    FilledPolygon(lst, c, sz) 
+let rectangle (c: color) (sw: float) (w: float) (h: float): PrimitiveTree = 
+    Rectangle(c,sw,(w,h)) 
+let filledrectangle (c: color) (w: float) (h: float): PrimitiveTree = 
+    FilledRectangle(c,(w,h)) 
+let ellipse (c: color) (sw: float) (rx: float) (ry:float): PrimitiveTree = 
+    Ellipse(c,sw, (2.0*rx, 2.0*ry)) 
+let filledellipse (c: color) (rx: float) (ry:float): PrimitiveTree = 
+    FilledEllipse(c, (2.0*rx, 2.0*ry)) 
 
-let height (C:canvas) = C.h
-let width (C:canvas) = C.w
+/// Functions for combining images
+let Top = 0.0
+let Left = 0.0
+let Center = 0.5
+let Bottom = 1.0
+let Right = 1.0
 
-// draw a single pixel if it is inside the bitmap
-let setPixel (C:canvas) (color: color) ((x:int,y:int) as point) : unit =
-  if x < 0 || y < 0 || x >= C.w || y >= C.h then ()
-  else 
-    let i = 4*(y*C.w+x)
-    C.data.[i]   <- color.r;
-    C.data.[i+1] <- color.g;
-    C.data.[i+2] <- color.b;
-    C.data.[i+3] <- color.a;
+let rec ontop (pic1:PrimitiveTree) (pic2:PrimitiveTree): PrimitiveTree =
+    let w1,h1 = getSize pic1
+    let w2,h2 = getSize pic2
+    let sz = (max w1 w2), (max h1 h2)
+    OnTop(pic1, pic2, sz)
+and alignh (pic1:PrimitiveTree) (pos:float) (pic2:PrimitiveTree): PrimitiveTree =
+    if pos < 0 || pos > 1 then 
+        raise (System.ArgumentOutOfRangeException ("ppos must be in [0,1]"))
+    let w1,h1 = getSize pic1
+    let w2,h2 = getSize pic2
+    let sz = w1+w2, (max h1 h2)
+    AlignH(pic1,pic2,pos,sz)
+and alignv (pic1:PrimitiveTree) (pos:float) (pic2:PrimitiveTree): PrimitiveTree =
+    if pos < 0 || pos > 1 then 
+        raise (System.ArgumentOutOfRangeException ("pos must be in [0,1]"))
+    let w1,h1 = getSize pic1
+    let w2,h2 = getSize pic2
+    let sz = max w1 w2, h1 + h2
+    AlignV(pic1, pic2, pos, sz)
 
-// draw a line by linear interpolation
-let setLine (C:canvas) (color: color) ((x1:int,y1:int) as pointA) ((x2:int,y2:int) as pointB) : unit =
-  let m = max (abs(y2-y1)) (abs(x2-x1))
-  if m = 0 then ()
-  else 
-    for i in 0..m do
-        let x = ((m-i)*x1 + i*x2) / m
-        let y = ((m-i)*y1 + i*y2) / m
-        setPixel C color (x,y)
-
-// draw a box
-let setBox (C:canvas) (c:color) ((x1:int,y1:int) as pointA) ((x2:int,y2:int) as pointB) : unit =
-  do setLine C c (x1,y1) (x2,y1)
-  do setLine C c (x2,y1) (x2,y2)
-  do setLine C c (x2,y2) (x1,y2)
-  do setLine C c (x1,y2) (x1,y1)
-
-let setFillBox (C:canvas) (c:color) ((x1:int,y1:int) as pointA) ((x2:int,y2:int) as pointB): unit =
-  for x in x1..x2 do
-    for y in y1..y2 do
-      setPixel C c (x,y)
-
-// get a pixel color from a bitmap
-let getPixel (C:canvas) ((x:int,y:int) as point) : color =   // rgba
-  let i = 4*(y*C.w+x)
-  {r = C.data.[i];
-   g = C.data.[i+1];
-   b = C.data.[i+2];
-   a = C.data.[i+3]}
-
-// initialize a new bitmap
-let init (width:int) (height:int) (colorMapping:int*int->color) : canvas =    // rgba
-  let data = Array.create (height*width*4) 0xffuy
-  for y in 0..height-1 do
-    for x in 0..width-1 do
-      let c = colorMapping (x,y)
-      let i = 4*(y*width+x)
-      data[i] <- c.r
-      data[i+1] <- c.g
-      data[i+2] <- c.b
-      data[i+3] <- c.a
-  {h = height; w = width; data = data}
-
-// scale a bitmap
-let scale (C:canvas) (width:int) (height:int) : canvas =
-  let scale_x x = (x * C.w) / width
-  let scale_y y = (y * C.h) / height
-  init width height (fun (x,y) -> getPixel C (scale_x x, scale_y y))
-
-
-
-// Files
-// read an image file
-let fromFile (filePath : string) : canvas =
-    use stream = System.IO.File.OpenRead filePath
-    let image = StbImageSharp.ImageResult.FromStream(stream, StbImageSharp.ColorComponents.RedGreenBlueAlpha)
-    {h = image.Height; w = image.Width; data = image.Data }
-
-// save a bitmap as a png file
-let toPngFile (canvas : canvas) (filePath : string) : unit =
-    use stream = System.IO.File.OpenWrite filePath
-    let imageWriter = new StbImageWriteSharp.ImageWriter()
-    imageWriter.WritePng(canvas.data, canvas.w, canvas.h,
-                         StbImageWriteSharp.ColorComponents.RedGreenBlueAlpha, stream)
-
-type key = Keysym of int
-
-type ImgUtilKey =
-    | Unknown
-    | DownArrow
-    | UpArrow
-    | LeftArrow
-    | RightArrow
-    | Space
-
-let getKey (k:key) : ImgUtilKey =
-    let kval = match k with | Keysym k -> uint32 k
-    match kval with
-        | _ when kval = SDL.SDLK_SPACE -> Space
-        | _ when kval = SDL.SDLK_UP -> UpArrow
-        | _ when kval = SDL.SDLK_DOWN -> DownArrow
-        | _ when kval = SDL.SDLK_LEFT -> LeftArrow
-        | _ when kval = SDL.SDLK_RIGHT -> RightArrow
-        | _ -> Unknown
-
-
-
-type event =
-    | KeyDown of key
-    | TimerTick
-    | MouseButtonDown of int * int // x,y
-    | MouseButtonUp of int * int // x,y
-    | MouseMotion of int * int * int * int // x,y, relx, rely
-
-
-let runAppWithTimer (t:string) (w:int) (h:int) (interval:int option)
-           (draw: int -> int -> 's -> canvas)
-           (react: 's -> event -> 's option) (s:'s) : unit =
-
-    let state = ref s
-
-    SDL.SDL_Init(SDL.SDL_INIT_VIDEO) |> ignore
-
-    let viewWidth, viewHeight = w, h
-    let mutable window, renderer = IntPtr.Zero, IntPtr.Zero
-    let windowFlags = SDL.SDL_WindowFlags.SDL_WINDOW_SHOWN |||
-                      SDL.SDL_WindowFlags.SDL_WINDOW_INPUT_FOCUS
-
-    window <- SDL.SDL_CreateWindow(t, SDL.SDL_WINDOWPOS_CENTERED, SDL.SDL_WINDOWPOS_CENTERED,
-                                   viewWidth, viewHeight, windowFlags)
-    renderer <- SDL.SDL_CreateRenderer(window, -1, SDL.SDL_RendererFlags.SDL_RENDERER_ACCELERATED |||
-                                                   SDL.SDL_RendererFlags.SDL_RENDERER_PRESENTVSYNC)
-
-    let texture = SDL.SDL_CreateTexture(renderer, SDL.SDL_PIXELFORMAT_RGBA32, SDL.SDL_TEXTUREACCESS_STREAMING, viewWidth, viewHeight)
-
-    let frameBuffer = Array.create (viewWidth * viewHeight *4 ) (byte(0))
-    let bufferPtr = IntPtr ((Marshal.UnsafeAddrOfPinnedArrayElement (frameBuffer, 0)).ToPointer ())
-
-    // Set up a timer
-    let TIMER_EVENT = SDL.SDL_RegisterEvents 1 // TODO: check that we succeed
-    match interval with
-        Some interv when interv > 0 ->
-            let ticker _ =
-                let mutable ev = SDL.SDL_Event()
-                ev.``type`` <- TIMER_EVENT
-                SDL.SDL_PushEvent(&ev) |> ignore
-
-            let timer = new System.Timers.Timer(float interv)
-            timer.AutoReset <- true
-            timer.Elapsed.Add ticker
-            timer.Start()
-        | _ -> // No timer
-            ()
-
-    let mutable event = SDL.SDL_Event()
-
-    let rec drawLoop redraw =
-        if redraw then
-            let canvas = draw w h (!state)
-            // FIXME: what if canvas does not have dimensions w*h? See issue #13
-
-            Array.blit canvas.data 0 frameBuffer 0 canvas.data.Length
-
-            SDL.SDL_UpdateTexture(texture, IntPtr.Zero, bufferPtr, viewWidth * 4) |> ignore
-            SDL.SDL_RenderClear(renderer) |> ignore
-            SDL.SDL_RenderCopy(renderer, texture, IntPtr.Zero, IntPtr.Zero) |> ignore
-            SDL.SDL_RenderPresent(renderer) |> ignore
-
-        let ret = SDL.SDL_WaitEvent(&event)
-        if ret = 0 then () // an error happened so we exit
+/// Drawing content
+let colorLst = [color.Blue; color.Cyan; color.Green; color.Magenta; color.Orange; color.Purple; color.Yellow; color.Red]
+let rec compile (idx:int) (expFlag: bool) (pic:PrimitiveTree): Lowlevel.PathTree =
+    let next = (idx+1) % colorLst.Length
+    let wrap sz expFlag dc =
+        if expFlag then
+            let pen = Lowlevel.solidPen colorLst[idx] 1.0
+            let b = Lowlevel.Prim (pen, Lowlevel.Rectangle(fst sz, snd sz))
+            dc <+> b
         else
-            match SDL.convertEvent event with
-                | SDL.Quit -> () // quit the game by exiting the loop
-                | SDL.KeyDown keyEvent when keyEvent.keysym.sym = SDL.SDLK_ESCAPE -> ()
+            dc
+    match pic with
+    | PiecewiseAffine(lst, c, sw, sz) ->
+        let pen = Lowlevel.solidPen c sw
+        let dc = Lowlevel.Prim (pen, Lowlevel.Lines lst)
+        wrap sz expFlag dc
+    | FilledPolygon(lst, c, sz) ->
+        let brush = Lowlevel.solidBrush c 
+        let dc = Lowlevel.Prim (brush, Lowlevel.Lines lst)
+        wrap sz expFlag dc
+    | Rectangle(c, sw, sz) ->
+        let pen = Lowlevel.solidPen c sw
+        let dc = Lowlevel.Prim (pen, Lowlevel.Rectangle(fst sz, snd sz))
+        wrap sz expFlag dc
+    | FilledRectangle(c, sz) ->
+        let brush = Lowlevel.solidBrush c 
+        let dc = Lowlevel.Prim (brush, Lowlevel.Rectangle(fst sz, snd sz))
+        wrap sz expFlag dc
+    | Ellipse(c, sw, sz) ->
+        let pen = Lowlevel.solidPen c sw
+        let dc = Lowlevel.Prim (pen, Lowlevel.Ellipse(fst sz, snd sz))
+        wrap sz expFlag dc
+    | FilledEllipse(c, sz) ->
+        let brush = Lowlevel.solidBrush c 
+        let dc = Lowlevel.Prim (brush, Lowlevel.Ellipse(fst sz, snd sz))
+        wrap sz expFlag dc
+    | OnTop(p1, p2, sz) ->
+        let dc1 = compile next expFlag p1
+        let dc2 = compile next expFlag p2
+        let dc = dc1 <+> dc2
+        wrap sz expFlag dc
+    | AlignH(p1, p2, pos, sz) ->
+        let w1,h1 = getSize p1
+        let w2,h2 = getSize p2
+        let sz = w1+w2, (max h1 h2)
+        let s = float32 (abs (pos*float (h1-h2)))
+        let dc1 = compile next expFlag p1
+        let dc2 = compile next expFlag p2
+        let dc =
+            if h1 > h2 then
+                let M = Matrix3x2.CreateTranslation(float32 w1,s)
+                dc1 <+> (Lowlevel.transform M <| dc2)
+            elif h1 = h2 then
+                dc1 <+> dc2
+            else
+                let M1 = Matrix3x2.CreateTranslation(0f,s)
+                let M2 = Matrix3x2.CreateTranslation(float32 w1,0f)
+                (Lowlevel.transform M1 <| dc1) <+> (Lowlevel.transform M2 <| dc2)
+        wrap sz expFlag dc
+    | AlignV(p1, p2, pos, sz) ->
+        let w1,h1 = getSize p1
+        let w2,h2 = getSize p2
+        let sz = max w1 w2, h1 + h2
+        let s = float32 (abs (pos*float (h1-h2)))
+        let dc1 = compile next expFlag p1 
+        let dc2 = compile next expFlag p2
+        let dc =
+            if w1 > w2 then
+                let M = Matrix3x2.CreateTranslation(s,float32 h1)
+                dc1 <+> (Lowlevel.transform M <| dc2)
+            elif h1 = h2 then
+                dc1 <+> dc2
+            else 
+                let M1 = Matrix3x2.CreateTranslation(s,0f)
+                let M2 = Matrix3x2.CreateTranslation(0f,float32 h1)
+                (Lowlevel.transform M1 <| dc1) <+> (Lowlevel.transform M2 <| dc2)
+        wrap sz expFlag dc
+    | Translate(p, dx, dy, sz) ->
+        let M = Matrix3x2.CreateTranslation(float32 dx,float32 dy)
+        let dc = Lowlevel.transform M <| compile next expFlag p
+        wrap sz expFlag dc
+    | Scale(p, sx, sy, sz) -> 
+        let S = Matrix3x2.CreateScale(float32 sx, float32 sy)
+        let dc = Lowlevel.transform S <| compile next expFlag p
+        wrap sz expFlag dc
+    | Rotate(p, cx, cy, rad, sz) ->
+        let R = Matrix3x2.CreateRotation(float32 rad)
+        let T1 = Matrix3x2.CreateTranslation(float32 cx,float32 cy)
+        let T2 = Matrix3x2.CreateTranslation(float32 -cx,float32 -cy)
+        let M = T2*R*T1
+        let dc = Lowlevel.transform M <| compile next expFlag p
+        wrap sz expFlag dc
 
-                | SDL.KeyDown keyEvent ->
-                    let k = keyEvent.keysym.sym |> int |> Keysym |> KeyDown
-                    let redraw =
-                        match react (!state) k with
-                            | Some s -> (state := s; true)
-                            | None   -> false
-                    drawLoop redraw
-                | SDL.User uev when uev.``type`` = TIMER_EVENT ->
-                    let redraw =
-                        match react (!state) TimerTick with
-                            | Some s -> (state := s; true)
-                            | None   -> false
-                    drawLoop redraw
-                | SDL.MouseButtonDown mouseButtonEvent ->
-                    let mouseEvent = (mouseButtonEvent.x,mouseButtonEvent.y) |> MouseButtonDown
-                    let redraw =
-                        match react (!state) mouseEvent with
-                            | Some s -> (state := s; true)
-                            | None -> false
-                    drawLoop redraw
-                | SDL.MouseButtonUp mouseButtonEvent ->
-                    let mouseEvent = (mouseButtonEvent.x,mouseButtonEvent.y) |> MouseButtonUp
-                    let redraw =
-                        match react (!state) mouseEvent with
-                            | Some s -> (state := s; true)
-                            | None -> false
-                    drawLoop redraw
-                | SDL.MouseMotion mouseMotion ->
-                    let mouseEvent = (mouseMotion.x,mouseMotion.y,mouseMotion.xrel, mouseMotion.yrel) |> MouseMotion
-                    let redraw =
-                        match react (!state) mouseEvent with
-                            | Some s -> (state := s; true)
-                            | None -> false
-                    drawLoop redraw
-                | _ ->
-                    drawLoop false
-
-    drawLoop true
-
-    SDL.SDL_DestroyTexture texture
-    SDL.SDL_DestroyRenderer renderer
-    SDL.SDL_DestroyWindow window
-    SDL.SDL_Quit()
-    ()
-
-
-
-// start an app that can listen to key-events
-let runApp (title:string) (width:int) (height:int)
-           (draw: int -> int -> 's -> canvas)
-           (react: 's -> key -> 's option) (state:'s) : unit =
-    runAppWithTimer title width height None draw
-       (fun s -> function (KeyDown k) -> react s k
-                        | _ -> None)
-       state
-
-let runSimpleApp title width height (draw: int->int->canvas) : unit =
-  runApp title width height (fun w h () -> draw w h)
-               (fun _ _ -> None) ()
-
-let show (canvas : canvas) (title : string) : unit =
-  runApp title (width canvas) (height canvas) (fun _ _ () -> canvas) (fun _ _ -> None) ()
-
-
-
-//////////
-// Turtle commands
-
-type turtleCmd =
-  | SetColor of color
-  | Turn of int       // degrees right (0-360)
-  | Move of int       // 1 unit = 1 pixel
-  | PenUp
-  | PenDown
-
-// Interpreter turning commands into lines
-
-type point = int * int
-type line = point * point * color
-
-let pi = System.Math.PI
-
-let rec interp (p:point,d:int,c:color,up:bool) (cmds : turtleCmd list) (acc:line list) : line list =
-  match cmds with
-    | [] -> acc
-    | SetColor c :: cmds -> interp (p,d,c,up) cmds acc
-    | Turn i :: cmds -> interp (p,d-i,c,up) cmds acc
-    | PenUp :: cmds -> interp (p,d,c,true) cmds acc
-    | PenDown :: cmds -> interp (p,d,c,false) cmds acc
-    | Move i :: cmds ->
-      let r = 2.0 * pi * float d / 360.0
-      let dx = int(float i * cos r)
-      let dy = -int(float i * sin r)
-      let (x,y) = p
-      let p2 = (x+dx,y+dy)
-      let acc2 = if up then acc else (p,p2,c)::acc
-      interp (p2,d,c,up) cmds acc2
-
-let turtleDraw ((w:int,h:int) as dimentions) (title:string) (turtleCommands:turtleCmd list) : unit =
-  let C = create w h
-  let center = (w/2,h/2)
-  let dir_up = 90
-  let initState = (center,dir_up,black,false)
-  let lines = interp initState turtleCommands []
-  for (p1,p2,c) in lines do
-    do setLine C c p1 p2
-  do show C title
+let make (p:PrimitiveTree): Picture = 
+    compile 0 false p |> Lowlevel.drawPathTree
+let explain (p:PrimitiveTree): Picture = 
+    compile 0 true p |> Lowlevel.drawPathTree
