@@ -26,8 +26,11 @@ type pointF = Lowlevel.pointF
 type Size = float*float
 type Picture = 
     | PiecewiseAffine of (pointF list)*Color*float*Size
+    | FilledPolygon of (pointF list)*Color*Size
     | Rectangle of Color*float*Size
+    | FilledRectangle of Color*Size
     | Ellipse of Color*float*Size
+    | FilledEllipse of Color*Size
     | AlignH of Picture*Picture*float*Size
     | AlignV of Picture*Picture*float*Size
     | OnTop of Picture*Picture*Size
@@ -38,8 +41,11 @@ type Picture =
 let getSize (p:Picture): Size =
   match p with
     | PiecewiseAffine(_,_,_,sz)
+    | FilledPolygon(_,_,sz)
     | Rectangle(_,_,sz)
+    | FilledRectangle(_,sz)
     | Ellipse(_,_,sz)
+    | FilledEllipse(_,sz)
     | AlignH(_,_,_,sz)
     | AlignV(_,_,_,sz)
     | OnTop(_,_,sz)
@@ -52,8 +58,11 @@ let tostring (p:Picture): string =
         let descentPrefix = (String.replicate prefix.Length " ")+"\u221F>"
         match p with
             | PiecewiseAffine(points,c,sw,sz) -> sprintf "%sPiecewiseAffine (color,stroke)=%A coordinates=%A" prefix (c,sw) points
+            | FilledPolygon(points,c,sz) -> sprintf "%sFilledPolygon color=%A coordinates=%A" prefix c points
             | Rectangle(c,sw,sz) -> sprintf "%sRectangle (color,stroke)=%A (width,height)=%A" prefix (c,sw) sz
+            | FilledRectangle(c,sz) -> sprintf "%sFilledRectangle color%A (width,height)=%A" prefix c sz
             | Ellipse(c,sw,sz) -> sprintf "%sEllipse (color,stroke)=%A (radiusX,radiusY)=%A" prefix (c,sw) ((fst sz)/2.0,(snd sz)/2.0)
+            | FilledEllipse(c,sz) -> sprintf "%sFilledEllipse color=%A (radiusX,radiusY)=%A" prefix c ((fst sz)/2.0,(snd sz)/2.0)
             | AlignH(p1,p2,pos,sz) -> sprintf "%sAlignH position=%g\n%s\n%s" prefix pos (loop descentPrefix p1) (loop descentPrefix p2)
             | AlignV(p1,p2,pos,sz) -> sprintf "%sAlignV position=%g\n%s\n%s" prefix pos (loop descentPrefix p1) (loop descentPrefix p2)
             | OnTop(p1,p2,sz) -> sprintf "%sOnTop\n%s\n%s" prefix (loop descentPrefix p1) (loop descentPrefix p2)
@@ -83,10 +92,19 @@ let piecewiseaffine (c:Color) (sw: float) (lst: (float*float) list): Picture =
     let wMax, hMax = mapPairLst List.max lst
     let sz = 1.0+wMin+wMax, 1.0+hMin+hMax
     PiecewiseAffine(lst, c, sw, sz) 
+let filledpolygon (c:Color) (lst: (float*float) list): Picture = 
+    let wMin, hMin = mapPairLst List.min lst 
+    let wMax, hMax = mapPairLst List.max lst
+    let sz = 1.0+wMin+wMax, 1.0+hMin+hMax
+    FilledPolygon(lst, c, sz) 
 let rectangle (c: Color) (sw: float) (w: float) (h: float): Picture = 
     Rectangle(c,sw,(w,h)) 
+let filledrectangle (c: Color) (w: float) (h: float): Picture = 
+    FilledRectangle(c,(w,h)) 
 let ellipse (c: Color) (sw: float) (rx: float) (ry:float): Picture = 
     Ellipse(c,sw, (2.0*rx, 2.0*ry)) 
+let filledellipse (c: Color) (rx: float) (ry:float): Picture = 
+    FilledEllipse(c, (2.0*rx, 2.0*ry)) 
 
 /// Functions for combining images
 let Top = 0.0
@@ -95,7 +113,7 @@ let Center = 0.5
 let Bottom = 1.0
 let Right = 1.0
 
-let rec ontop (pic1:Picture) ((posX,posY): float*float) (pic2:Picture): Picture =
+let rec ontop (pic1:Picture) (pic2:Picture): Picture =
     let w1,h1 = getSize pic1
     let w2,h2 = getSize pic2
     let sz = (max w1 w2), (max h1 h2)
@@ -128,15 +146,28 @@ let rec compile (idx:int) (expFlag: bool) (pic:Picture): PathTree =
             dc
     match pic with
     | PiecewiseAffine(lst, c, sw, sz) ->
-        let dc = Prim (solidPen c sw, Lowlevel.Lines lst)
+        let pen = solidPen c sw
+        let dc = Prim (pen, Lowlevel.Lines lst)
+        wrap sz expFlag dc
+    | FilledPolygon(lst, c, sz) ->
+        let brush = solidBrush c 
+        let dc = Prim (brush, Lowlevel.Lines lst)
         wrap sz expFlag dc
     | Rectangle(c, sw, sz) ->
         let pen = solidPen c sw
         let dc = Prim (pen, Lowlevel.Rectangle(fst sz, snd sz))
         wrap sz expFlag dc
+    | FilledRectangle(c, sz) ->
+        let brush = solidBrush c 
+        let dc = Prim (brush, Lowlevel.Rectangle(fst sz, snd sz))
+        wrap sz expFlag dc
     | Ellipse(c, sw, sz) ->
         let pen = solidPen c sw
         let dc = Prim (pen, Lowlevel.Ellipse(fst sz, snd sz))
+        wrap sz expFlag dc
+    | FilledEllipse(c, sz) ->
+        let brush = solidBrush c 
+        let dc = Prim (brush, Lowlevel.Ellipse(fst sz, snd sz))
         wrap sz expFlag dc
     | OnTop(p1, p2, sz) ->
         let dc1 = compile next expFlag p1

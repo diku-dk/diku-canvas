@@ -170,7 +170,7 @@ let drawToAnimatedGif width heigth (frameDelay:int) (repeatCount:int) (filePath:
                 metadata.FrameDelay <- frameDelay
                 gif.Frames.AddFrame(frame.Frames.RootFrame) |> ignore
             ) rst
-            gif.SaveAsGif(filePath);
+            gif.SaveAsGif(filePath)
         | _ -> ()
 
 type ControlKey =
