@@ -24,6 +24,7 @@ let fromRgb r g b = Lowlevel.fromRgb r g b
 
 type ControlKey = Lowlevel.ControlKey
 type Event = Lowlevel.Event
+let getControl (k:int) = Lowlevel.getControl k
 
 type Rectangle = float*float*float*float // x1,y1,x2,y2: x2>x1 && y2>y1
 type Size = float*float // w,h

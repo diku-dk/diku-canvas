@@ -1,21 +1,26 @@
-#r "nuget:DIKU.Canvas"
-
+//#i "nuget:/Users/kfl/projects/fsharp-experiments/diku-canvas/bin/Release"
+#i "nuget:/Users/jrh630/repositories/diku-canvas/bin/Release/"
+#r "nuget:DIKU.Canvas, 2.0.0-alpha4"
 open Canvas
 
-// This program draws a Sierpinski triangle. An interactive version
-// can be found in "keyboard_example.fsx".
-let rec triangle (canvas:canvas) length (x, y) =
-  if length < 12 then
-    setBox canvas blue (x,y) (x+length,y+length) 
-  else 
+let w,h,l = 600,600,512 // size of window and base length of triangle
+
+// This program draws a Sierpinski triangle with bounding box length,length.
+let rec triangle (length:int) (x:int, y:int): PrimitiveTree =
+  if length < 12 then // Smallest element to draw
+    filledrectangle color.Blue length length
+    |> translate x y
+  else // every triangle consists of 3 smaller trangles
     let halfLen = length / 2
-    triangle canvas halfLen (x+halfLen/2, y)
-    triangle canvas halfLen (x, y+halfLen)
-    triangle canvas halfLen (x+halfLen, y+halfLen)
+    onto (triangle halfLen (x+halfLen/2, y))
+      (onto (triangle halfLen (x, y+halfLen))
+        (triangle halfLen (x+halfLen, y+halfLen)))
 
-let draw w h = 
-  let canvas = Canvas.create w h
-  triangle canvas 512 (44, 44)
-  canvas
+/// Prepare a Picture by the present state whenever needed
+let draw (): Picture = 
+    let x,y = (w-l)/2, (h-l)/2
+    let tri = triangle l (x,y)
+    make tri
 
-runSimpleApp "Sierpinski" 600 600 draw
+// Render Sierpinski's triangle
+render "Sierpinski" w h draw

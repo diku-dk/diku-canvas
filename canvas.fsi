@@ -45,6 +45,7 @@ val getFamily: name: string -> FontFamily
 val makeFont: fam: string -> size: float -> Font
 val measureText: f: Font -> txt: string -> (float * float)
 val text: c: color -> sw:float -> f: Font -> txt:string -> PrimitiveTree
+val getControl: int -> ControlKey option
 
 ///<summary>Retrieves the size of a given graphic primitive tree.</summary>
 ///<param name="p">The graphic primitive tree for which to get the size.</param>

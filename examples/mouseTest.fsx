@@ -1,33 +1,34 @@
 //#i "nuget:/Users/kfl/projects/fsharp-experiments/diku-canvas/bin/Release"
-//#i "nuget:/home/mads/Documents/diku/instruktor/pop2022/imgUtilTesting/diku-canvas/bin/Debug"
-#r "nuget:DIKU.Canvas, 1.0.2"
-
+#i "nuget:/Users/jrh630/repositories/diku-canvas/bin/Release/"
+#r "nuget:DIKU.Canvas, 2.0.0-alpha4"
 open Canvas
 
-type state = Canvas.color
+type state = Canvas.color // Click with the mouse changes window color
 
-let getColClick = function
-    | (x,y) -> fromRgb (x , y, 0)
+let w,h = 600,600 // window width and height
 
-let getColRelease = function
-    | (x,y) -> fromRgb (0, x, y)
-    
-let draw w h (s:state) =
-  let bm = Canvas.create w h
-  setFillBox bm s (0,0) (w,h)
-  bm
+/// Prepare a Picture by the present state whenever needed
+let draw (s:state): Picture =
+    filledrectangle s w h
+    |> make
 
-let react (s:state) (ev:Canvas.event) : state option =
+/// React to whenever an event happens
+/// All clicking and moving the mouse prints information on the command line.
+/// Pressing the mouse down and holding it gives one color, releasing it another.
+let react (s:state) (ev:Event) : state option =
     match ev with
-        | MouseButtonDown (x,y) ->
+        | Event.MouseButtonDown (x,y) ->
             printfn "Clicked at x: %d, y: %d" x y
-            getColClick (x,y) |> Some
-        | MouseButtonUp (x,y) ->
+            fromRgb x y 0 |> Some
+        | Event.MouseButtonUp (x,y) ->
             printfn "Released at x: %d, y: %d" x y
-            getColRelease (x,y) |> Some
-        | MouseMotion (x,y,xrel,yrel) ->
+            fromRgb 0 x y |> Some
+        | Event.MouseMotion (x,y,xrel,yrel) ->
             printfn "moved! x: %d, y: %d, xrel: %d, yrel: %d" x y xrel yrel
-            None
-        // Ignore all non-mouse events
-        | _ -> None
-do runAppWithTimer "MouseEvent Test" 600 600 None draw react (black)
+            None // mouse motion does not change the color
+        | _ -> None // Ignore all non-mouse events
+
+// Start interaction session
+let initialState = color.Black // First state drawn by draw
+let delayTime = None // microseconds (as an option type)
+interact "MouseEvent Test" w h delayTime draw react initialState
