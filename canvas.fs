@@ -35,7 +35,7 @@ type PrimitiveTree =
     | FilledRectangle of color*Rectangle
     | Ellipse of color*float*Rectangle
     | FilledEllipse of color*Rectangle
-    | Text of string * color * float * Font * Rectangle
+    | Text of string * color * Font * Rectangle
     | AlignH of PrimitiveTree*PrimitiveTree*float*Rectangle
     | AlignV of PrimitiveTree*PrimitiveTree*float*Rectangle
     | Onto of PrimitiveTree*PrimitiveTree*Rectangle
@@ -54,7 +54,7 @@ let getRectangle (p:PrimitiveTree): Rectangle =
         | FilledRectangle(_,rect)
         | Ellipse(_,_,rect)
         | FilledEllipse(_,rect)
-        | Text(_,_,_,_,rect)
+        | Text(_,_,_,rect)
         | AlignH(_,_,_,rect)
         | AlignV(_,_,_,rect)
         | Onto(_,_,rect)
@@ -82,8 +82,8 @@ let tostring (p:PrimitiveTree): string =
             | FilledEllipse(c,rect) -> 
                 let w,h = getSize rect
                 sprintf "%sFilledEllipse color=%A (radiusX,radiusY)=%A" prefix c (w/2.0,h/2.0)
-            | Text(txt,c,sw,font,rect) ->
-                sprintf "%sText (color,stroke)=%A font=%A %A" prefix (c,sw) font txt
+            | Text(txt,c,font,rect) ->
+                sprintf "%sText color=%A font=%A %A" prefix c font txt
             | AlignH(p1,p2,pos,rect) -> 
                 sprintf "%sAlignH position=%g\n%s\n%s" prefix pos (loop descentPrefix p1) (loop descentPrefix p2)
             | AlignV(p1,p2,pos,rect) -> 
@@ -134,7 +134,7 @@ let filledellipse (c: color) (rx: float) (ry:float): PrimitiveTree =
     FilledEllipse(c, (-rx,-ry,rx,ry)) 
 let text (c: color) (sw:float) (f: Font) (txt:string): PrimitiveTree = 
     let w,h = measureText f txt
-    Text(txt, c, sw, f, (0.0,0.0,w,h)) 
+    Text(txt, c, f, (0.0,0.0,w,h)) 
 let emptyTree = Empty((0.0,0.0,0.0,0.0))
 
 /// Functions for combining images
@@ -228,10 +228,10 @@ let rec compile (idx:int) (expFlag: bool) (pic:PrimitiveTree): Lowlevel.PathTree
         let brush = Lowlevel.solidBrush c 
         let dc = _ellipse brush rect
         wrap Matrix3x2.Identity rect expFlag dc
-    | Text(txt, c, sw, font, rect) ->
-        let pen = Lowlevel.solidPen c sw
+    | Text(txt, c, font, rect) ->
+        let brush = Lowlevel.solidBrush c
         let opt = Lowlevel.TextOptions(font)
-        let dc = Lowlevel.Text (pen, txt, opt)
+        let dc = Lowlevel.Text (brush, txt, opt)
         wrap Matrix3x2.Identity rect expFlag dc
     | Onto(p1, p2, rect) ->
         let dc1 = compile next expFlag p1

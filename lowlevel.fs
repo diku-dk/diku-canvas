@@ -34,7 +34,7 @@ type Font = SixLabors.Fonts.Font
 type FontFamily = SixLabors.Fonts.FontFamily
 let systemFontNames: string list = [for i in  SixLabors.Fonts.SystemFonts.Families do yield i.Name]
 let getFamily name = SixLabors.Fonts.SystemFonts.Get(name)
-let makeFont (fam:FontFamily) (size:float) = new SixLabors.Fonts.Font(fam, float32 size)
+let makeFont (fam:FontFamily) (size:float) = fam.CreateFont(float32 size, SixLabors.Fonts.FontStyle.Regular)
 let measureText (f:Font) (txt:string) = 
     let rect = SixLabors.Fonts.TextMeasurer.MeasureSize(txt, SixLabors.Fonts.TextOptions(f))
     (float rect.Width,float rect.Height)
