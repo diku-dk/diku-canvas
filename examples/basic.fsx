@@ -61,7 +61,7 @@ let mkDraw (txt:string): (state -> PrimitiveTree) =
         | _ -> failwith "Unkown test"
 
 /// React to whenever an event happens
-let react (s:state) (ev:Lowlevel.Event): state option =
+let react (s:state) (ev:Event): state option =
     match ev with
         | Event.TimerTick -> Some (next s)
         | _ -> None

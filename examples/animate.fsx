@@ -29,7 +29,7 @@ let draw (i:state): Picture =
     make figi
 
 /// React to whenever an event happens
-let react (s:state) (ev:Lowlevel.Event) : state option =
+let react (s:state) (ev:Event) : state option =
     match ev with
         | Event.TimerTick -> Some (next s)
         | _ -> None // all other events are ignored

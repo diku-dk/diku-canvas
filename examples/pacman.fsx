@@ -34,7 +34,7 @@ let draw (i:state): Picture =
     make cake
 
 /// React to whenever an event happens
-let react (s:state) (ev:Lowlevel.Event) : state option =
+let react (s:state) (ev:Event) : state option =
     match ev with
         | Event.TimerTick ->
             s |> next |> Some
