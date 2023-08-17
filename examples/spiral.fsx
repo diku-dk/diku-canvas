@@ -1,19 +1,32 @@
-#r "nuget:DIKU.Canvas"
+//#i "nuget:/Users/kfl/projects/fsharp-experiments/diku-canvas/bin/Release"
+#i "nuget:/Users/jrh630/repositories/diku-canvas/bin/Release/"
+#r "nuget:DIKU.Canvas, 2.0.0-alpha4"
 open Canvas
 
-let rec spiral canvas s i x y =
-  if i >= 350 then ()
-  else let p1 = (x,y)
-       let p2 = (x+i,y)
-       let p3 = (x+i,y+i)
-       let p4 = (x-s,y+i)
-       let p5 = (x-s,y-s)
-       do setLine canvas red p1 p2
-       do setLine canvas red p2 p3
-       do setLine canvas red p3 p4
-       do setLine canvas red p4 p5
-       spiral canvas s (i+2*s) (x-s) (y-s)
+let w,h = 400,400 // The size of the canvas
 
-let canvas = create 400 400
-do spiral canvas 10 10 200 200
-do show canvas "Spiral"
+/// A recursive function for calculating a square, outwards going spiral
+/// starting in x,y and with a spacing of s.
+let spiral s x y =
+  let rec iterate s i x y =
+    if i >= 350.0 then 
+      emptyTree
+    else 
+      let p1 = (x,y)
+      let p2 = (x+i,y)
+      let p3 = (x+i,y+i)
+      let p4 = (x-s,y+i)
+      let p5 = (x-s,y-s)
+      onto (piecewiseaffine color.Red 1.0 [p1; p2])
+        (onto (piecewiseaffine color.Red 1.0 [p2; p3])
+          (onto (piecewiseaffine color.Red 1.0 [p3; p4])
+            (onto (piecewiseaffine color.Red 1.0 [p4; p5])
+              (iterate s (i+2.0*s) (x-s) (y-s)))))
+  iterate s s x y
+
+/// Prepare a Picture by the present state whenever needed
+let draw (): Picture = 
+    make (spiral 20.0 200.0 200.0)
+
+// Render the picture to the screen
+render "Spiral" w h draw
