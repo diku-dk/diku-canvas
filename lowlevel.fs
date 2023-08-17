@@ -81,7 +81,9 @@ let pathFromList ps = List.fold (<+>) emptyPath ps
 let transform (mat:Matrix3x2) = function
     | Transform (cur, p) ->
         if mat.IsIdentity then Transform(cur, p)
-        else Transform(mat * cur, p)
+        else let res = mat * cur
+             if res.IsIdentity then p
+             else Transform(res, p)
     | p ->
         Transform(mat, p)
 
