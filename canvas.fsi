@@ -41,10 +41,44 @@ val systemFontNames: string list
 ///<summary>An empty graphics primitive tree.</summary>
 val emptyTree: PrimitiveTree
 
+/// <summary>
+/// Retrieves a FontFamily of a given name.
+/// </summary>
+/// <param name="name">The name of the font family to retrieve.</param>
+/// <returns>The FontFamily corresponding to the specified name.</returns>
 val getFamily: name: string -> FontFamily
+
+/// <summary>
+/// Creates a Font object using the given family name and size.
+/// </summary>
+/// <param name="fam">The name of the font family to use.</param>
+/// <param name="size">The size of the font.</param>
+/// <returns>The newly created Font object.</returns>
 val makeFont: fam: string -> size: float -> Font
+
+/// <summary>
+/// Measures the size of the given text when rendered with the specified font.
+/// </summary>
+/// <param name="f">The font used to render the text.</param>
+/// <param name="txt">The text to measure.</param>
+/// <returns>A tuple representing the width and height of the measured text.</returns>
 val measureText: f: Font -> txt: string -> (float * float)
-val text: c: color -> sw:float -> f: Font -> txt:string -> PrimitiveTree
+
+/// <summary>
+/// Creates a PrimitiveTree representing the given text with specified properties.
+/// </summary>
+/// <param name="c">The color of the text.</param>
+/// <param name="sw">The stroke width of the text.</param>
+/// <param name="f">The font used to render the text.</param>
+/// <param name="txt">The text to render.</param>
+/// <returns>A PrimitiveTree object representing the rendered text.</returns>
+val text: c: color -> sw: float -> f: Font -> txt: string -> PrimitiveTree
+
+/// <summary>
+/// Retrieves the ControlKey corresponding to the given integer value, if it exists.
+/// </summary>
+/// <param name="int">The integer value representing a control key.</param>
+/// <returns>An option containing the ControlKey if found, otherwise None.</returns>
 val getControl: int -> ControlKey option
 
 ///<summary>Retrieves the size of a given graphic primitive tree.</summary>
