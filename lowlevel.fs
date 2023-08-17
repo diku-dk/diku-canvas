@@ -247,7 +247,7 @@ let runAppWithTimer (t:string) (w:int) (h:int) (interval:int option)
             SDL.SDL_RenderClear(renderer) |> ignore
             SDL.SDL_RenderCopy(renderer, texture, IntPtr.Zero, IntPtr.Zero) |> ignore
             SDL.SDL_RenderPresent(renderer) |> ignore
-            img.Mutate(fun ctx -> ctx.Clear(Color.Transparent) |> ignore)
+            img.Mutate(fun ctx -> ctx.Clear(Color.Black) |> ignore)
             ()
 
         let ret = SDL.SDL_WaitEvent(&event)
