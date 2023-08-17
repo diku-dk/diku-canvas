@@ -8,13 +8,17 @@ type Tool =
 type color = Lowlevel.color
 type Font = Lowlevel.Font
 type FontFamily = Lowlevel.FontFamily
+let systemFontNames = Lowlevel.systemFontNames
+let getFamily (name:string) = Lowlevel.getFamily name
+let makeFont (fam:string) (size:float) = Lowlevel.makeFont (getFamily fam) size
+let measureText (f:Font) (txt:string) = Lowlevel.measureText f txt
+
 type pointF = Lowlevel.pointF
 type Picture = Lowlevel.drawing_fun
-let (<+>) = Lowlevel.(<+>)
-let drawToFile width height filePath draw = Lowlevel.drawToFile width height filePath draw 
-let drawToAnimatedGif width height frameDelay repeatCount filePath drawLst = Lowlevel.drawToAnimatedGif width height frameDelay repeatCount filePath drawLst
-let runAppWithTimer t w h interval draw react s = Lowlevel.runAppWithTimer t w h interval draw react s
-let runApp t w h draw = Lowlevel.runApp t w h draw
+let renderToFile width height filePath draw = Lowlevel.drawToFile width height filePath draw 
+let animateToFile width height frameDelay repeatCount filePath drawLst = Lowlevel.drawToAnimatedGif width height frameDelay repeatCount filePath drawLst
+let interact t w h interval draw react s = Lowlevel.runAppWithTimer t w h interval draw react s
+let render t w h draw = Lowlevel.runApp t w h draw
 let fromRgba r g b a = Lowlevel.fromRgba r g b a
 let fromRgb r g b = Lowlevel.fromRgb r g b
 
@@ -31,9 +35,10 @@ type PrimitiveTree =
     | FilledRectangle of color*Rectangle
     | Ellipse of color*float*Rectangle
     | FilledEllipse of color*Rectangle
+    | Text of string * color * float * Font * Rectangle
     | AlignH of PrimitiveTree*PrimitiveTree*float*Rectangle
     | AlignV of PrimitiveTree*PrimitiveTree*float*Rectangle
-    | OnTop of PrimitiveTree*PrimitiveTree*Rectangle
+    | Onto of PrimitiveTree*PrimitiveTree*Rectangle
     | Scale of PrimitiveTree*float*float*Rectangle
     | Rotate of PrimitiveTree*float*float*float*Rectangle
     | Translate of PrimitiveTree*float*float*Rectangle
@@ -49,9 +54,10 @@ let getRectangle (p:PrimitiveTree): Rectangle =
         | FilledRectangle(_,rect)
         | Ellipse(_,_,rect)
         | FilledEllipse(_,rect)
+        | Text(_,_,_,_,rect)
         | AlignH(_,_,_,rect)
         | AlignV(_,_,_,rect)
-        | OnTop(_,_,rect)
+        | Onto(_,_,rect)
         | Scale(_,_,_,rect)
         | Rotate(_,_,_,_,rect)
         | Translate(_,_,_,rect) -> rect
@@ -76,12 +82,14 @@ let tostring (p:PrimitiveTree): string =
             | FilledEllipse(c,rect) -> 
                 let w,h = getSize rect
                 sprintf "%sFilledEllipse color=%A (radiusX,radiusY)=%A" prefix c (w/2.0,h/2.0)
+            | Text(txt,c,sw,font,rect) ->
+                sprintf "%sText (color,stroke)=%A font=%A %A" prefix (c,sw) font txt
             | AlignH(p1,p2,pos,rect) -> 
                 sprintf "%sAlignH position=%g\n%s\n%s" prefix pos (loop descentPrefix p1) (loop descentPrefix p2)
             | AlignV(p1,p2,pos,rect) -> 
                 sprintf "%sAlignV position=%g\n%s\n%s" prefix pos (loop descentPrefix p1) (loop descentPrefix p2)
-            | OnTop(p1,p2,rect) -> 
-                sprintf "%sOnTop\n%s\n%s" prefix (loop descentPrefix p1) (loop descentPrefix p2)
+            | Onto(p1,p2,rect) -> 
+                sprintf "%sOnto\n%s\n%s" prefix (loop descentPrefix p1) (loop descentPrefix p2)
             | Scale(q,sx,sy,rect) -> 
                 sprintf "%sScale (scaleX,scaleY)=%A\n%s" prefix (sx, sy) (loop descentPrefix q)
             | Rotate(q,x,y,rad,rect) -> 
@@ -124,6 +132,9 @@ let ellipse (c: color) (sw: float) (rx: float) (ry:float): PrimitiveTree =
     Ellipse(c,sw,(-rx,-ry,rx,ry)) 
 let filledellipse (c: color) (rx: float) (ry:float): PrimitiveTree = 
     FilledEllipse(c, (-rx,-ry,rx,ry)) 
+let text (c: color) (sw:float) (f: Font) (txt:string): PrimitiveTree = 
+    let w,h = measureText f txt
+    Text(txt, c, sw, f, (0.0,0.0,w,h)) 
 let emptyTree = Empty((0.0,0.0,0.0,0.0))
 
 /// Functions for combining images
@@ -133,11 +144,11 @@ let Center = 0.5
 let Bottom = 1.0
 let Right = 1.0
 
-let rec ontop (pic1:PrimitiveTree) (pic2:PrimitiveTree): PrimitiveTree =
+let rec onto (pic1:PrimitiveTree) (pic2:PrimitiveTree): PrimitiveTree =
     let x11,y11,x21,y21 = getRectangle pic1
     let x12,y12,x22,y22 = getRectangle pic2
     let rect = (min x11 x12, min y11 y12, max x21 x22, max y21 y22)
-    OnTop(pic1, pic2, rect)
+    Onto(pic1, pic2, rect)
 and alignh (pic1:PrimitiveTree) (pos:float) (pic2:PrimitiveTree): PrimitiveTree =
     if pos < 0 || pos > 1 then 
         raise (System.ArgumentOutOfRangeException ("ppos must be in [0,1]"))
@@ -187,7 +198,7 @@ let rec compile (idx:int) (expFlag: bool) (pic:PrimitiveTree): Lowlevel.PathTree
         if expFlag then
             let pen = Lowlevel.solidPen colorLst[idx] 1.0
             let b = _rectangle pen rect
-            dc <+> (Lowlevel.transform M <| b)
+            Lowlevel.(<+>) dc (Lowlevel.transform M <| b)
         else
             dc
     match pic with
@@ -217,10 +228,15 @@ let rec compile (idx:int) (expFlag: bool) (pic:PrimitiveTree): Lowlevel.PathTree
         let brush = Lowlevel.solidBrush c 
         let dc = _ellipse brush rect
         wrap Matrix3x2.Identity rect expFlag dc
-    | OnTop(p1, p2, rect) ->
+    | Text(txt, c, sw, font, rect) ->
+        let pen = Lowlevel.solidPen c sw
+        let opt = Lowlevel.TextOptions(font)
+        let dc = Lowlevel.Text (pen, txt, opt)
+        wrap Matrix3x2.Identity rect expFlag dc
+    | Onto(p1, p2, rect) ->
         let dc1 = compile next expFlag p1
         let dc2 = compile next expFlag p2
-        let dc = dc1 <+> dc2
+        let dc = Lowlevel.(<+>) dc2 dc1 // dc2 is drawn first
         wrap Matrix3x2.Identity rect expFlag dc
     | AlignH(p1, p2, pos, rect) ->
         let x11,y11,x21,y21 = getRectangle p1
@@ -232,7 +248,7 @@ let rec compile (idx:int) (expFlag: bool) (pic:PrimitiveTree): Lowlevel.PathTree
         let dc2 = compile next expFlag p2
         let dc =
             let M = Matrix3x2.CreateTranslation(float32 (x21-x12),float32 (y11-y12+s))
-            dc1 <+> (Lowlevel.transform M <| dc2)
+            Lowlevel.(<+>) dc1 (Lowlevel.transform M <| dc2)
         wrap Matrix3x2.Identity rect expFlag dc
     | AlignV(p1, p2, pos, rect) ->
         let x11,y11,x21,y21 = getRectangle p1
@@ -244,7 +260,7 @@ let rec compile (idx:int) (expFlag: bool) (pic:PrimitiveTree): Lowlevel.PathTree
         let dc2 = compile next expFlag p2
         let dc =
             let M = Matrix3x2.CreateTranslation(float32 (x11-x12+s),float32 (y21-y12))
-            dc1 <+> (Lowlevel.transform M <| dc2)
+            Lowlevel.(<+>) dc1 (Lowlevel.transform M <| dc2)
         wrap Matrix3x2.Identity rect expFlag dc
     | Translate(p, dx, dy, rect) ->
         let M = Matrix3x2.CreateTranslation(float32 dx,float32 dy)
