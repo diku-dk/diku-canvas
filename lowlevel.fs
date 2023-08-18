@@ -167,29 +167,41 @@ let drawToAnimatedGif width heigth (frameDelay:int) (repeatCount:int) (filePath:
             gif.SaveAsGif(filePath)
         | _ -> ()
 
-type ControlKey =
+type Event =
+    | Key of char
     | DownArrow
     | UpArrow
     | LeftArrow
     | RightArrow
-    | Space
-
-type Event =
-    | KeyDown of int
-    | TimerTick
+    | Return
     | MouseButtonDown of int * int // x,y
     | MouseButtonUp of int * int // x,y
     | MouseMotion of int * int * int * int // x,y, relx, rely
+    | TimerTick
 
-let getControl (k:int) : ControlKey option =
-    let kval = uint32 k
-    match kval with
-        | _ when kval = SDL.SDLK_SPACE -> Some Space
-        | _ when kval = SDL.SDLK_UP -> Some UpArrow
-        | _ when kval = SDL.SDLK_DOWN -> Some DownArrow
-        | _ when kval = SDL.SDLK_LEFT -> Some LeftArrow
-        | _ when kval = SDL.SDLK_RIGHT -> Some RightArrow
-        | _ -> None
+type ClassifiedEvent =
+    | React of Event
+    | Quit
+    | Ignore of SDL.Event
+
+let classifyEvent userClassify ev =
+    match SDL.convertEvent ev with
+        | SDL.Quit -> Quit
+        | SDL.KeyDown keyEvent when keyEvent.keysym.sym = SDL.SDLK_ESCAPE -> Quit
+        | SDL.KeyDown keyEvent when keyEvent.keysym.sym = SDL.SDLK_UP -> React UpArrow
+        | SDL.KeyDown keyEvent when keyEvent.keysym.sym = SDL.SDLK_DOWN -> React DownArrow
+        | SDL.KeyDown keyEvent when keyEvent.keysym.sym = SDL.SDLK_LEFT -> React LeftArrow
+        | SDL.KeyDown keyEvent when keyEvent.keysym.sym = SDL.SDLK_RIGHT -> React RightArrow
+        | SDL.KeyDown keyEvent when keyEvent.keysym.sym = SDL.SDLK_RETURN -> React Return
+        | SDL.MouseButtonDown mouseButtonEvent ->
+            (mouseButtonEvent.x,mouseButtonEvent.y) |> MouseButtonDown |> React
+        | SDL.MouseButtonUp mouseButtonEvent ->
+            (mouseButtonEvent.x,mouseButtonEvent.y) |> MouseButtonUp |> React
+        | SDL.MouseMotion mouseMotion ->
+            (mouseMotion.x,mouseMotion.y,mouseMotion.xrel, mouseMotion.yrel) |> MouseMotion |> React
+        | SDL.TextInput tinput -> tinput |> Key |> React
+        | SDL.User uev -> userClassify uev
+        | ev -> Ignore ev
 
 let runAppWithTimer (t:string) (w:int) (h:int) (interval:int option)
            (draw: 's -> drawing_fun)
@@ -230,6 +242,10 @@ let runAppWithTimer (t:string) (w:int) (h:int) (interval:int option)
         | _ -> // No timer
             ()
 
+    let userClassify : SDL.SDL_UserEvent -> ClassifiedEvent = function
+        | uev when uev.``type`` = TIMER_EVENT -> React TimerTick
+        | uev -> Ignore(SDL.User uev)
+
     let mutable event = SDL.SDL_Event()
     let img = new Image<Rgba32>(w, h, Color.Black) // FIXME: can we use framebuffer directly?
 
@@ -253,50 +269,21 @@ let runAppWithTimer (t:string) (w:int) (h:int) (interval:int option)
         let ret = SDL.SDL_WaitEvent(&event)
         if ret = 0 then () // an error happened so we exit
         else
-            match SDL.convertEvent event with
-                | SDL.Quit ->
+            match classifyEvent userClassify event with
+                | Quit ->
                     // printfn "We quit"
-                    () // quit the game by exiting the loop
-                | SDL.KeyDown keyEvent when keyEvent.keysym.sym = SDL.SDLK_ESCAPE -> ()
-
-                | SDL.KeyDown keyEvent ->
-                    let k = keyEvent.keysym.sym |> int |> KeyDown
+                    () // quit the interaction by exiting the loop
+                |  React ev ->
                     let redraw =
-                        match react (!state) k with
+                        match react (!state) ev with
                             | Some s -> (state := s; true)
                             | None   -> false
                     drawLoop redraw
-                | SDL.User uev when uev.``type`` = TIMER_EVENT ->
-                    let redraw =
-                        match react (!state) TimerTick with
-                            | Some s -> (state := s; true)
-                            | None   -> false
-                    drawLoop redraw
-                | SDL.MouseButtonDown mouseButtonEvent ->
-                    let mouseEvent = (mouseButtonEvent.x,mouseButtonEvent.y) |> MouseButtonDown
-                    let redraw =
-                        match react (!state) mouseEvent with
-                            | Some s -> (state := s; true)
-                            | None -> false
-                    drawLoop redraw
-                | SDL.MouseButtonUp mouseButtonEvent ->
-                    let mouseEvent = (mouseButtonEvent.x,mouseButtonEvent.y) |> MouseButtonUp
-                    let redraw =
-                        match react (!state) mouseEvent with
-                            | Some s -> (state := s; true)
-                            | None -> false
-                    drawLoop redraw
-                | SDL.MouseMotion mouseMotion ->
-                    let mouseEvent = (mouseMotion.x,mouseMotion.y,mouseMotion.xrel, mouseMotion.yrel) |> MouseMotion
-                    let redraw =
-                        match react (!state) mouseEvent with
-                            | Some s -> (state := s; true)
-                            | None -> false
-                    drawLoop redraw
-                | ev ->
-                    // printfn "We loop because of: %A" ev
+                | Ignore sdlEvent ->
+                    // printfn "We loop because of: %A" sdlEvent
                     drawLoop false
 
+    SDL.SDL_StartTextInput()
     drawLoop true
 
     SDL.SDL_DestroyTexture texture

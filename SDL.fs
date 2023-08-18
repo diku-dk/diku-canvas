@@ -6,6 +6,9 @@
 module internal SDL
 
 open System.Runtime.InteropServices
+open System.Runtime.CompilerServices
+open Microsoft.FSharp.NativeInterop
+
 open System
 
 [<Literal>]
@@ -28,11 +31,13 @@ let SDL_PIXELFORMAT_RGBA32 = if BitConverter.IsLittleEndian
                              else SDL_PIXELFORMAT_RGBA8888
 let SDL_KEYDOWN = 0x300u
 let SDL_KEYUP = 0x301u
+let SDL_TEXTINPUT = 0x303u
 let SDL_MOUSEMOTION = 0x400u
 let SDL_MOUSEBUTTONDOWN = 0x401u
 let SDL_MOUSEBUTTONUP = 0x402u
 // Define keycodes for SDL
 // https://wiki.libsdl.org/SDLKeycodeLookup
+let SDLK_RETURN = 13u
 let SDLK_ESCAPE = 27u
 let SDLK_SPACE = 32u
 let SDLK_RIGHT = 1073741903u
@@ -49,7 +54,7 @@ type SDL_Keysym =
         val scancode: int32
         val sym: uint32
         val ``mod``: uint16
-        val unicode: uint32
+        val unused: uint32
     end
 
 let SDL_SCANCODE_ESCAPE : int32 = 41
@@ -67,6 +72,32 @@ type SDL_KeyboardEvent =
         val private padding3: byte
         val keysym: SDL_Keysym
     end
+
+
+let SDL_TEXTINPUTEVENT_TEXT_SIZE = 32
+
+[<Struct; StructLayout(LayoutKind.Sequential, Size = 32)>]
+type Byte32 =
+    val mutable first: byte
+
+
+[<type:StructLayout(LayoutKind.Sequential)>]
+type SDL_TextInputEvent =
+    struct
+        val ``type``: uint32
+        val timestamp: uint32
+        val windowID: uint32
+        [<FixedBuffer(typeof<byte>, 32)>]
+        val text: Byte32 //char[SDL_TEXTINPUTEVENT_TEXT_SIZE]
+    end
+
+#nowarn "9"
+#nowarn "51"
+let stringFromTextInput (tinput:SDL_TextInputEvent) : string =
+    let addr = &&tinput.text.first
+    Marshal.PtrToStringUTF8(NativePtr.toNativeInt addr)
+
+
 
 [<StructLayout(LayoutKind.Sequential)>]
 type SDL_UserEvent=
@@ -118,6 +149,8 @@ type SDL_Event =
         [<FieldOffset(0)>]
         val key: SDL_KeyboardEvent
         [<FieldOffset(0)>]
+        val text_input: SDL_TextInputEvent
+        [<FieldOffset(0)>]
         val user: SDL_UserEvent
         [<FieldOffset(0)>]
         val button: SDL_MouseButtonEvent
@@ -129,22 +162,24 @@ type Event =
     | Quit
     | KeyDown of SDL_KeyboardEvent
     | KeyUp of SDL_KeyboardEvent
+    | TextInput of char
     | MouseMotion of SDL_MouseMotionEvent
     | MouseButtonDown of SDL_MouseButtonEvent
     | MouseButtonUp of SDL_MouseButtonEvent
     | User of SDL_UserEvent
     | Raw of SDL_Event
 
-let convertEvent (event: SDL_Event) =
-    match event.``type`` with
+let convertEvent (ev: SDL_Event) =
+    match ev.``type`` with
         | c when c = SDL_QUIT -> Quit
-        | c when c = SDL_KEYDOWN -> event.key |> KeyDown
-        | c when c = SDL_KEYUP -> event.key |> KeyUp
-        | c when c = SDL_MOUSEMOTION -> event.motion |> MouseMotion
-        | c when c = SDL_MOUSEBUTTONDOWN -> event.button |> MouseButtonDown
-        | c when c = SDL_MOUSEBUTTONUP -> event.button |> MouseButtonUp
-        | c when c >= SDL_USEREVENT -> event.user |> User
-        | _ -> event |> Raw
+        | c when c = SDL_TEXTINPUT -> TextInput (stringFromTextInput ev.text_input).[0]
+        | c when c = SDL_KEYDOWN -> KeyDown ev.key
+        | c when c = SDL_KEYUP -> KeyUp ev.key
+        | c when c = SDL_MOUSEMOTION -> MouseMotion ev.motion
+        | c when c = SDL_MOUSEBUTTONDOWN -> MouseButtonDown ev.button
+        | c when c = SDL_MOUSEBUTTONUP -> MouseButtonUp ev.button
+        | c when c >= SDL_USEREVENT -> User ev.user
+        | _ -> Raw ev
 
 type SDL_RendererFlags =
     | SDL_RENDERER_SOFTWARE      = 0x00000001
@@ -186,6 +221,9 @@ extern uint32 SDL_RegisterEvents(int numevents)
 
 [<DllImport(libName, CallingConvention = CallingConvention.Cdecl)>]
 extern int SDL_PushEvent(SDL_Event& _event)
+
+[<DllImport(libName, CallingConvention = CallingConvention.Cdecl)>]
+extern unit SDL_StartTextInput()
 
 [<DllImport(libName, CallingConvention = CallingConvention.Cdecl)>]
 extern IntPtr SDL_CreateTexture (IntPtr renderer, uint32 format, int access, int width, int height)

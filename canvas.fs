@@ -20,18 +20,28 @@ let correct draw s = let (Picture pic) = draw s in pic
 
 
 type Event =
-    | KeyDown of int
-    | TimerTick
+    | Key of char
+    | DownArrow
+    | UpArrow
+    | LeftArrow
+    | RightArrow
+    | Return
     | MouseButtonDown of int * int // x,y
     | MouseButtonUp of int * int // x,y
     | MouseMotion of int * int * int * int // x,y, relx, rely
+    | TimerTick
 
 let fromLowlevelEvent = function
-    | Lowlevel.KeyDown t -> KeyDown t
-    | Lowlevel.TimerTick -> TimerTick
+    | Lowlevel.Key t -> Key t
+    | Lowlevel.DownArrow -> DownArrow
+    | Lowlevel.UpArrow -> UpArrow
+    | Lowlevel.LeftArrow -> LeftArrow
+    | Lowlevel.RightArrow -> RightArrow
+    | Lowlevel.Return -> Return
     | Lowlevel.MouseButtonDown (x,y) -> MouseButtonDown (x,y)
     | Lowlevel.MouseButtonUp (x,y) -> MouseButtonUp (x,y)
     | Lowlevel.MouseMotion (x, y, relx, rely) -> MouseMotion (x, y, relx, rely)
+    | Lowlevel.TimerTick -> TimerTick
 
 let renderToFile width height filePath (Picture draw) = Lowlevel.drawToFile width height filePath draw
 let animateToFile width height frameDelay repeatCount filePath drawLst =

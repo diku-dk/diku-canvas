@@ -24,11 +24,16 @@ type Size = float*float
 
 ///<summary>Represents one of the events: KeyDown, TimerTick, MouseButtonDown, MouseButtonUp, and MouseMotion.</summary>
 type Event =
-    | KeyDown of int
-    | TimerTick
+    | Key of char
+    | DownArrow
+    | UpArrow
+    | LeftArrow
+    | RightArrow
+    | Return
     | MouseButtonDown of int * int // x,y
     | MouseButtonUp of int * int // x,y
     | MouseMotion of int * int * int * int // x,y, relx, rely
+    | TimerTick
 
 
 ///<summary>A tree of graphics primitives, define as a tree of graphics primitives.</summary>
