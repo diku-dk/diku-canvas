@@ -1,11 +1,20 @@
 module Canvas
 
 ///<summary>A color define as 4 values red, green, blue, and alpha.</summary>
-type color = Lowlevel.color
+type color
+
+val red : color
+val green : color
+val blue : color
+val yellow : color
+val lightgrey : color
+val white : color
+val black : color
+
 ///<summary>A font defined by a font name and its size in dots-per-inch (dpi).</summary>
-type Font = Lowlevel.Font
+type Font
 ///<summary>A collection of font variations specified by the family name.</summary>
-type FontFamily = Lowlevel.FontFamily
+type FontFamily
 
 ///<summary>Represents the size of a picture, defined by x1,y1,x2,y2 where x2>x1 and y2>y1.</summary>
 type Rectangle = float*float*float*float
@@ -13,16 +22,20 @@ type Rectangle = float*float*float*float
 ///<summary>Represents the size of a picture, defined by its width and height.</summary>
 type Size = float*float
 
-///<summary>Represents one of the 5 control keys: DownArrow, UpArrow, LeftArrow, RightArrow, and Space.</summary>
-type ControlKey = Lowlevel.ControlKey
 ///<summary>Represents one of the events: KeyDown, TimerTick, MouseButtonDown, MouseButtonUp, and MouseMotion.</summary>
-type Event = Lowlevel.Event
+type Event =
+    | KeyDown of int
+    | TimerTick
+    | MouseButtonDown of int * int // x,y
+    | MouseButtonUp of int * int // x,y
+    | MouseMotion of int * int * int * int // x,y, relx, rely
+
 
 ///<summary>A tree of graphics primitives, define as a tree of graphics primitives.</summary>
 type PrimitiveTree
 
-///<summary>A picture, define as a tree of graphics primitives.</summary>
-type Picture = Lowlevel.drawing_fun
+///<summary>A picture.</summary>
+type Picture
 
 ///<summary>An alignh position-value for aligning boxes along their top edge.</summary>
 val Top: float
@@ -73,13 +86,6 @@ val measureText: f: Font -> txt: string -> (float * float)
 /// <param name="txt">The text to render.</param>
 /// <returns>A PrimitiveTree object representing the rendered text.</returns>
 val text: c: color -> sw: float -> f: Font -> txt: string -> PrimitiveTree
-
-/// <summary>
-/// Retrieves the ControlKey corresponding to the given integer value, if it exists.
-/// </summary>
-/// <param name="int">The integer value representing a control key.</param>
-/// <returns>An option containing the ControlKey if found, otherwise None.</returns>
-val getControl: int -> ControlKey option
 
 ///<summary>Retrieves the size of a given graphic primitive tree.</summary>
 ///<param name="p">The graphic primitive tree for which to get the size.</param>

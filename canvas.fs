@@ -5,26 +5,52 @@ open System.Numerics
 type Tool = 
     | Pen of SixLabors.ImageSharp.Drawing.Processing.Pen
     | Brush of SixLabors.ImageSharp.Drawing.Processing.Brush
-type color = Lowlevel.color
-type Font = Lowlevel.Font
-type FontFamily = Lowlevel.FontFamily
+type color = Color of Lowlevel.Color
+type Font = Font of Lowlevel.Font
+type FontFamily = FontFamily of Lowlevel.FontFamily
 let systemFontNames = Lowlevel.systemFontNames
-let getFamily (name:string) = Lowlevel.getFamily name
-let makeFont (fam:string) (size:float) = Lowlevel.makeFont (getFamily fam) size
-let measureText (f:Font) (txt:string) = Lowlevel.measureText f txt
+let getFamily (name:string) = Lowlevel.getFamily name |> FontFamily
+let makeFont (fam:string) (size:float) = Lowlevel.makeFont (Lowlevel.getFamily fam) size |> Font
+let measureText (Font f) (txt:string) = Lowlevel.measureText f txt
 
 type pointF = Lowlevel.pointF
-type Picture = Lowlevel.drawing_fun
-let renderToFile width height filePath draw = Lowlevel.drawToFile width height filePath draw 
-let animateToFile width height frameDelay repeatCount filePath drawLst = Lowlevel.drawToAnimatedGif width height frameDelay repeatCount filePath drawLst
-let interact t w h interval draw react s = Lowlevel.runAppWithTimer t w h interval draw react s
-let render t w h draw = Lowlevel.runApp t w h draw
-let fromRgba r g b a = Lowlevel.fromRgba r g b a
-let fromRgb r g b = Lowlevel.fromRgb r g b
+type Picture = Picture of Lowlevel.drawing_fun
 
-type ControlKey = Lowlevel.ControlKey
-type Event = Lowlevel.Event
-let getControl (k:int) = Lowlevel.getControl k
+let correct draw s = let (Picture pic) = draw s in pic
+
+
+type Event =
+    | KeyDown of int
+    | TimerTick
+    | MouseButtonDown of int * int // x,y
+    | MouseButtonUp of int * int // x,y
+    | MouseMotion of int * int * int * int // x,y, relx, rely
+
+let fromLowlevelEvent = function
+    | Lowlevel.KeyDown t -> KeyDown t
+    | Lowlevel.TimerTick -> TimerTick
+    | Lowlevel.MouseButtonDown (x,y) -> MouseButtonDown (x,y)
+    | Lowlevel.MouseButtonUp (x,y) -> MouseButtonUp (x,y)
+    | Lowlevel.MouseMotion (x, y, relx, rely) -> MouseMotion (x, y, relx, rely)
+
+let renderToFile width height filePath (Picture draw) = Lowlevel.drawToFile width height filePath draw
+let animateToFile width height frameDelay repeatCount filePath drawLst =
+    Lowlevel.drawToAnimatedGif width height frameDelay repeatCount filePath
+                               (List.map (function Picture draw -> draw) drawLst)
+let interact t w h interval draw react s =
+    Lowlevel.runAppWithTimer t w h interval (correct draw) (fun s ev -> react s (fromLowlevelEvent ev)) s
+let render t w h draw = Lowlevel.runApp t w h (correct draw)
+let fromRgba r g b a = Lowlevel.fromRgba r g b a |> Color
+let fromRgb r g b = Lowlevel.fromRgb r g b |> Color
+
+let red : color = fromRgb 255 0 0
+let green : color = fromRgb 0 255 0
+let blue : color = fromRgb 0 0 255
+let yellow : color = fromRgb 255 255 0
+let lightgrey : color = fromRgb 220 220 220
+let white : color = fromRgb 255 255 255
+let black : color = fromRgb 0 0 0
+
 
 type Rectangle = float*float*float*float // x1,y1,x2,y2: x2>x1 && y2>y1
 type Size = float*float // w,h
@@ -180,7 +206,7 @@ and alignv (pic1:PrimitiveTree) (pos:float) (pic2:PrimitiveTree): PrimitiveTree 
     AlignV(pic1, pic2, pos, rect)
 
 /// Drawing content
-let colorLst = [color.Blue; color.Cyan; color.Green; color.Magenta; color.Orange; color.Purple; color.Yellow; color.Red]
+let colorLst = [Lowlevel.Color.Blue; Lowlevel.Color.Cyan; Lowlevel.Color.Green; Lowlevel.Color.Magenta; Lowlevel.Color.Orange; Lowlevel.Color.Purple; Lowlevel.Color.Yellow; Lowlevel.Color.Red]
 let _ellipse (t:Lowlevel.Tool) ((x1,y1,x2,y2):Rectangle): Lowlevel.PathTree =
     let cx, cy = ((x1+x2)/2.0), ((y1+y2)/2.0)
     let rx, ry = ((x2-x1)/2.0), ((y2-y1)/2.0)
@@ -205,33 +231,33 @@ let rec compile (idx:int) (expFlag: bool) (pic:PrimitiveTree): Lowlevel.PathTree
     match pic with
     | Empty(rect) -> 
         Lowlevel.Empty
-    | PiecewiseAffine(lst, c, sw, rect) ->
+    | PiecewiseAffine(lst, Color c, sw, rect) ->
         let pen = Lowlevel.solidPen c sw
         let dc = Lowlevel.Prim (pen, Lowlevel.Lines lst)
         wrap Matrix3x2.Identity rect expFlag dc
-    | FilledPolygon(lst, c, rect) ->
+    | FilledPolygon(lst, Color c, rect) ->
         let brush = Lowlevel.solidBrush c 
         let dc = Lowlevel.Prim (brush, Lowlevel.Lines lst)
         wrap Matrix3x2.Identity rect expFlag dc
-    | Rectangle(c, sw, rect) ->
+    | Rectangle(Color c, sw, rect) ->
         let pen = Lowlevel.solidPen c sw
         let dc = _rectangle pen rect
         wrap Matrix3x2.Identity rect expFlag dc
-    | FilledRectangle(c, rect) ->
+    | FilledRectangle(Color c, rect) ->
         let brush = Lowlevel.solidBrush c 
         let dc = _rectangle brush rect
         wrap Matrix3x2.Identity rect expFlag dc
-    | Ellipse(c, sw, rect) ->
+    | Ellipse(Color c, sw, rect) ->
         let pen = Lowlevel.solidPen c sw
         let dc = _ellipse pen rect
         wrap Matrix3x2.Identity rect expFlag dc
-    | FilledEllipse(c, rect) ->
+    | FilledEllipse(Color c, rect) ->
         let brush = Lowlevel.solidBrush c 
         let dc = _ellipse brush rect
         wrap Matrix3x2.Identity rect expFlag dc
-    | Text(txt, c, font, rect) ->
+    | Text(txt, Color c, Font font, rect) ->
         let brush = Lowlevel.solidBrush c
-        let opt = Lowlevel.TextOptions(font)
+        let opt = Lowlevel.TextOptions font
         let dc = Lowlevel.Text (brush, txt, opt)
         wrap Matrix3x2.Identity rect expFlag dc
     | Onto(p1, p2, rect) ->
@@ -280,6 +306,6 @@ let rec compile (idx:int) (expFlag: bool) (pic:PrimitiveTree): Lowlevel.PathTree
         //wrap M rect false dc
 
 let make (p:PrimitiveTree): Picture = 
-    compile 0 false p |> Lowlevel.drawPathTree
+    compile 0 false p |> Lowlevel.drawPathTree |> Picture
 let explain (p:PrimitiveTree): Picture = 
-    compile 0 true p |> Lowlevel.drawPathTree
+    compile 0 true p |> Lowlevel.drawPathTree |> Picture
