@@ -53,6 +53,76 @@ type Matrix3x2 = System.Numerics.Matrix3x2
 type TextOptions = SixLabors.Fonts.TextOptions
 
 let toPointF (x:float, y:float) = PointF(x = float32 x, y = float32 y)
+let toVector2 (x:float, y:float) = System.Numerics.Vector2(float32 x, float32 y)
+
+type PathDefinition =
+    | EmptyDef
+    | ArcTo of float * float * float * bool * bool * pointF
+    | CubicBezierTo of pointF * pointF * pointF
+    | LineTo of pointF
+    | MoveTo of pointF
+    | QuadraticBezierTo of pointF * pointF
+    | SetTransform of Matrix3x2
+    | GetTransform of (Matrix3x2 -> PathDefinition)
+    | StartFigure
+    | CloseFigure
+    | CloseAllFigures
+    | Combine of PathDefinition * PathDefinition
+
+let (<++>) p1 p2 =
+    match p1, p2 with
+        | EmptyDef, _ -> p2
+        | _, EmptyDef -> p1
+        | defs -> Combine defs
+
+let construct pd : IPath =
+    let initial = Matrix3x2.Identity
+    let builder = PathBuilder initial
+    let rec loop (builder:PathBuilder) curT = function // tail-recursive traversal
+        | [] -> builder
+        | cur :: worklist ->
+            match cur with
+                | EmptyDef ->
+                    loop builder curT worklist
+                | ArcTo(radiusX, radiusY, rotation, largeArc, sweep, point) ->
+                    let builder = builder.ArcTo(float32 radiusX, float32 radiusY,
+                                                float32 rotation, largeArc, sweep,
+                                                toPointF point)
+                    loop builder curT worklist
+                | CubicBezierTo(secondControlPoint, thirdControlPoint, point) ->
+                    let builder = builder.CubicBezierTo(toVector2 secondControlPoint,
+                                                        toVector2 thirdControlPoint,
+                                                        toVector2 point)
+                    loop builder curT worklist
+                | LineTo p ->
+                    let builder = builder.LineTo(toPointF p)
+                    loop builder curT worklist
+                | MoveTo p ->
+                    let builder = builder.MoveTo(toPointF p)
+                    loop builder curT worklist
+                | QuadraticBezierTo(secondControlPoint, point) ->
+                    let builder = builder.QuadraticBezierTo(toVector2 secondControlPoint,
+                                                            toVector2 point)
+                    loop builder curT worklist
+                | SetTransform mat ->
+                    let builder = builder.SetTransform mat
+                    loop builder mat worklist
+                | GetTransform f ->
+                    let transformed = f curT
+                    loop builder curT (transformed :: SetTransform curT :: worklist)
+                | StartFigure ->
+                    let builder = builder.StartFigure()
+                    loop builder curT worklist
+                | CloseFigure ->
+                    let builder = builder.CloseFigure()
+                    loop builder curT worklist
+                | CloseAllFigures ->
+                    let builder = builder.CloseAllFigures()
+                    loop builder curT worklist
+                | Combine (p1, p2) ->
+                    loop builder curT (p1 :: p2 :: worklist)
+    (loop builder initial pd).Build()
+
 
 type PrimPath =
     | Arc of pointF * float * float * float * float * float
