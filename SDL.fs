@@ -3,7 +3,7 @@
 /// tiny-ray-caster uses Unlicense License
 /// parts from tiny-ray-case used with permission. (Obtained by Mads Obitsø via email)
 /// Extensions and modifications made by Ken Friis Larsen and Mads Obitsø
-module SDL
+module internal SDL
 
 open System.Runtime.InteropServices
 open System

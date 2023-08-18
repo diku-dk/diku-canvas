@@ -1,4 +1,4 @@
-module Lowlevel
+module internal Lowlevel
 
 open System.Runtime.InteropServices
 open System
