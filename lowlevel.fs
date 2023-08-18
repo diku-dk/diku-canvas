@@ -187,18 +187,18 @@ type ClassifiedEvent =
 let classifyEvent userClassify ev =
     match SDL.convertEvent ev with
         | SDL.Quit -> Quit
-        | SDL.KeyDown keyEvent when keyEvent.keysym.sym = SDL.SDLK_ESCAPE -> Quit
-        | SDL.KeyDown keyEvent when keyEvent.keysym.sym = SDL.SDLK_UP -> React UpArrow
-        | SDL.KeyDown keyEvent when keyEvent.keysym.sym = SDL.SDLK_DOWN -> React DownArrow
-        | SDL.KeyDown keyEvent when keyEvent.keysym.sym = SDL.SDLK_LEFT -> React LeftArrow
-        | SDL.KeyDown keyEvent when keyEvent.keysym.sym = SDL.SDLK_RIGHT -> React RightArrow
-        | SDL.KeyDown keyEvent when keyEvent.keysym.sym = SDL.SDLK_RETURN -> React Return
+        | SDL.KeyDown kevent when kevent.keysym.sym = SDL.SDLK_ESCAPE -> Quit
+        | SDL.KeyDown kevent when kevent.keysym.sym = SDL.SDLK_UP -> React UpArrow
+        | SDL.KeyDown kevent when kevent.keysym.sym = SDL.SDLK_DOWN -> React DownArrow
+        | SDL.KeyDown kevent when kevent.keysym.sym = SDL.SDLK_LEFT -> React LeftArrow
+        | SDL.KeyDown kevent when kevent.keysym.sym = SDL.SDLK_RIGHT -> React RightArrow
+        | SDL.KeyDown kevent when kevent.keysym.sym = SDL.SDLK_RETURN -> React Return
         | SDL.MouseButtonDown mouseButtonEvent ->
             (mouseButtonEvent.x,mouseButtonEvent.y) |> MouseButtonDown |> React
         | SDL.MouseButtonUp mouseButtonEvent ->
             (mouseButtonEvent.x,mouseButtonEvent.y) |> MouseButtonUp |> React
-        | SDL.MouseMotion mouseMotion ->
-            (mouseMotion.x,mouseMotion.y,mouseMotion.xrel, mouseMotion.yrel) |> MouseMotion |> React
+        | SDL.MouseMotion motion ->
+            (motion.x,motion.y,motion.xrel, motion.yrel) |> MouseMotion |> React
         | SDL.TextInput tinput -> tinput |> Key |> React
         | SDL.User uev -> userClassify uev
         | ev -> Ignore ev
