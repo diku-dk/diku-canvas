@@ -1,6 +1,6 @@
-//#i "nuget:/Users/kfl/projects/fsharp-experiments/diku-canvas/bin/Release"
-#i "nuget:/Users/jrh630/repositories/diku-canvas/bin/Release/"
-#r "nuget:DIKU.Canvas, 2.0.0-alpha4"
+#i "nuget:/Users/kfl/projects/fsharp-experiments/diku-canvas/bin/Release"
+//#i "nuget:/Users/jrh630/repositories/diku-canvas/bin/Release/"
+#r "nuget:DIKU.Canvas, 2.0.0-alpha5"
 open Canvas
 
 type state = Canvas.color // Click with the mouse changes window color
@@ -29,6 +29,6 @@ let react (s:state) (ev:Event) : state option =
         | _ -> None // Ignore all non-mouse events
 
 // Start interaction session
-let initialState = color.Black // First state drawn by draw
+let initialState = black // First state drawn by draw
 let delayTime = None // microseconds (as an option type)
 interact "MouseEvent Test" w h delayTime draw react initialState
