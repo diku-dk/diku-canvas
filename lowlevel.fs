@@ -211,7 +211,7 @@ let runAppWithTimer (t:string) (w:int) (h:int) (interval:int option)
 
     let texture = SDL.SDL_CreateTexture(renderer, SDL.SDL_PIXELFORMAT_RGBA32, SDL.SDL_TEXTUREACCESS_STREAMING, viewWidth, viewHeight)
 
-    let frameBuffer = Array.create (viewWidth * viewHeight *4 ) (byte(0))
+    let frameBuffer = Array.create (viewWidth * viewHeight *4 ) (byte 0)
     let bufferPtr = IntPtr ((Marshal.UnsafeAddrOfPinnedArrayElement (frameBuffer, 0)).ToPointer ())
 
     // Set up a timer
