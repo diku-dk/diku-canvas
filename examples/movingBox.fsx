@@ -1,6 +1,6 @@
 #i "nuget:/Users/kfl/projects/fsharp-experiments/diku-canvas/bin/Release"
 //#i "nuget:/Users/jrh630/repositories/diku-canvas/bin/Release/"
-#r "nuget:DIKU.Canvas, 2.0.0-alpha5"
+#r "nuget:DIKU.Canvas, 2.0.0-alpha6"
 open Canvas
 
 

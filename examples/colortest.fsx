@@ -1,6 +1,6 @@
-//#i "nuget:/Users/kfl/projects/fsharp-experiments/diku-canvas/bin/Release"
-#i "nuget:/Users/jrh630/repositories/diku-canvas/bin/Release/"
-#r "nuget:DIKU.Canvas, 2.0.0-alpha4"
+#i "nuget:/Users/kfl/projects/fsharp-experiments/diku-canvas/bin/Release"
+//#i "nuget:/Users/jrh630/repositories/diku-canvas/bin/Release/"
+#r "nuget:DIKU.Canvas, 2.0.0-alpha6"
 open Canvas
 
 type state = color // state is a color
@@ -18,24 +18,21 @@ let draw (s:state): Picture =
 /// Present state is ignored.
 let react _ (ev:Event) : state option =
     match ev with
-        | Event.KeyDown(k) ->
-            match getControl k with
-                | Some ControlKey.LeftArrow ->
-                    printfn "Going red!"
-                    Some color.Red
-                | Some ControlKey.RightArrow ->
-                    printfn "Going blue!"
-                    Some color.Blue
-                | Some ControlKey.DownArrow ->
-                    printfn "Going green!"
-                    Some color.Green
-                | Some ControlKey.UpArrow->
-                    printfn "Going yellow!"
-                    Some color.Yellow
-                | _ -> None // unknown key, state is not updated
-        | _ -> None // ignore non key events
+        | LeftArrow ->
+            printfn "Going red!"
+            Some red
+        | RightArrow ->
+            printfn "Going blue!"
+            Some blue
+        | DownArrow ->
+            printfn "Going green!"
+            Some green
+        | UpArrow->
+            printfn "Going yellow!"
+            Some yellow
+        | _ -> None // ignore event, state is not updated
 
 // Start interaction session
-let initialState = color.Red // First state drawn by draw
+let initialState = red // First state drawn by draw
 let delayTime = None // no delay time
 interact "ColorTest" w h delayTime draw react initialState

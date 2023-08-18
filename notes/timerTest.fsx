@@ -1,7 +1,7 @@
-//#i "nuget:/Users/kfl/projects/fsharp-experiments/diku-canvas/bin/Debug"
-#r "nuget:DIKU.Canvas, 1.0.2"
+#i "nuget:/Users/kfl/projects/fsharp-experiments/diku-canvas/bin/Release"
+#r "nuget:DIKU.Canvas, 2.0.0-alpha6"
 
-open Canvas
+open Lowlevel
 
 type state =
     | Red
@@ -9,6 +9,7 @@ type state =
     | Blue
     | Yellow
     | Black
+    | White
 
 let getPalette = function
     | Red -> red
@@ -16,32 +17,38 @@ let getPalette = function
     | Blue -> blue
     | Yellow -> yellow
     | Black -> black
+    | White -> white
 
-let draw w h (s:state) =
-  let bm = Canvas.create w h
+let rectangle width height =
+    Lines [0.0, 0.0; width, 0.0; width, height; 0.0, height; 0.0, 0.0]
+
+
+let draw w h (s:state) ctx =
   let c = getPalette s
-  setFillBox bm c (0,0) (w,h)
-  bm
+  let box = Prim (solidBrush c, rectangle w h)
+  drawPathTree box ctx
 
-let react (s:state) (ev:Canvas.event) : state option =
+let react (s:state) (ev:Event) : state option =
     match ev with
         | TimerTick ->
             printfn "Time flies by"
-            Some Black
-        | KeyDown k ->
-            match getKey k with
-                | LeftArrow ->
-                    printfn "Going red!"
-                    Some Red
-                | RightArrow ->
-                    printfn "Going blue!"
-                    Some Blue
-                | DownArrow ->
-                    printfn "Going green!"
-                    Some Green
-                | UpArrow ->
-                    printfn "Going yellow!"
-                    Some Yellow
-                | _ -> None
+            Some (match s with Black -> White | _ -> Black)
+        | LeftArrow ->
+            printfn "Going red!"
+            Some Red
+        | RightArrow ->
+            printfn "Going blue!"
+            Some Blue
+        | DownArrow ->
+            printfn "Going green!"
+            Some Green
+        | UpArrow ->
+            printfn "Going yellow!"
+            Some Yellow
+        | _ ->
+            printfn "Ignored ev: %A" ev
+            None
 
-do runAppWithTimer "Timer Test" 600 600 (Some 2000) draw react Red
+let w, h = 600, 600
+
+do runAppWithTimer "Timer Test" w h (Some 2000) (draw w h) react Red
