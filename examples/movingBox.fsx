@@ -1,7 +1,8 @@
-//#i "nuget:/Users/kfl/projects/fsharp-experiments/diku-canvas/bin/Release"
-#i "nuget:/Users/jrh630/repositories/diku-canvas/bin/Release/"
-#r "nuget:DIKU.Canvas, 2.0.0-alpha4"
+#i "nuget:/Users/kfl/projects/fsharp-experiments/diku-canvas/bin/Release"
+//#i "nuget:/Users/jrh630/repositories/diku-canvas/bin/Release/"
+#r "nuget:DIKU.Canvas, 2.0.0-alpha5"
 open Canvas
+
 
 type state = int * int  // x-pos and direction
 
@@ -19,7 +20,7 @@ let next (x, dir) =
 
 /// Prepare a Picture by the present state whenever needed
 let draw ((x, _):state): Picture =
-    let boundingColor = color.Red
+    let boundingColor = red
     let color = fromRgb 0 0 (x * 255 / (w - boxW))
     onto (rectangle boundingColor 2.0 (float boxW) (float boxW))
         (filledrectangle color (float boxW) (float boxW))
@@ -35,5 +36,5 @@ let react (s:state) (ev:Event) : state option =
 
 // Start interaction session
 let initialState = (0, 5) // First state drawn by draw
-let delayTime = (Some 10) // microseconds (as an option type)
+let delayTime = (Some 16) // microseconds (as an option type)
 interact "Moving box" w h delayTime draw react initialState
