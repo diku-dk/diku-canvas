@@ -10,20 +10,20 @@ open SixLabors.ImageSharp.Drawing.Processing
 open SixLabors.ImageSharp.Drawing
 
 // colors
-type color = SixLabors.ImageSharp.Color
+type Color = SixLabors.ImageSharp.Color
 
-let fromRgba (red:int) (green:int) (blue:int) (a:int) : color =
-    color.FromRgba(byte red, byte green, byte blue, byte a)
-let fromRgb (red:int) (green:int) (blue:int) : color =
-    color.FromRgb(byte red, byte green, byte blue)
+let fromRgba (red:int) (green:int) (blue:int) (a:int) : Color =
+    Color.FromRgba(byte red, byte green, byte blue, byte a)
+let fromRgb (red:int) (green:int) (blue:int) : Color =
+    Color.FromRgb(byte red, byte green, byte blue)
 
-let red : color = fromRgb 255 0 0
-let green : color = fromRgb 0 255 0
-let blue : color = fromRgb 0 0 255
-let yellow : color = fromRgb 255 255 0
-let lightgrey : color = fromRgb 220 220 220
-let white : color = fromRgb 255 255 255
-let black : color = fromRgb 0 0 0
+let red : Color = fromRgb 255 0 0
+let green : Color = fromRgb 0 255 0
+let blue : Color = fromRgb 0 0 255
+let yellow : Color = fromRgb 255 255 0
+let lightgrey : Color = fromRgb 220 220 220
+let white : Color = fromRgb 255 255 255
+let black : Color = fromRgb 0 0 0
 
 type image = SixLabors.ImageSharp.Image<Rgba32>
 
@@ -42,9 +42,9 @@ let measureText (f:Font) (txt:string) =
 type Tool = 
     | Pen of SixLabors.ImageSharp.Drawing.Processing.Pen
     | Brush of SixLabors.ImageSharp.Drawing.Processing.Brush
-let solidBrush (color:color) : Tool =
+let solidBrush (color:Color) : Tool =
     Brush (Brushes.Solid(color))
-let solidPen (color:color) (width:float) : Tool =
+let solidPen (color:Color) (width:float) : Tool =
     Pen (Pens.Solid(color, float32 width))
 
 type point = int * int
