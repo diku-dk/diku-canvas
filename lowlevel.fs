@@ -55,7 +55,7 @@ type PathDefinition =
     | MoveTo of pointF
     | QuadraticBezierTo of pointF * pointF
     | SetTransform of Matrix3x2
-    | GetTransform of (Matrix3x2 -> PathDefinition)
+    | LocalTransform of Matrix3x2 * PathDefinition
     | StartFigure
     | CloseFigure
     | CloseAllFigures
@@ -99,9 +99,9 @@ let construct pd : IPath =
                 | SetTransform mat ->
                     let builder = builder.SetTransform mat
                     loop builder mat worklist
-                | GetTransform f ->
-                    let transformed = f curT
-                    loop builder curT (transformed :: SetTransform curT :: worklist)
+                | LocalTransform (mat, pd) ->
+                    let builder = builder.SetTransform mat
+                    loop builder mat (pd :: SetTransform curT :: worklist)
                 | StartFigure ->
                     let builder = builder.StartFigure()
                     loop builder curT worklist
