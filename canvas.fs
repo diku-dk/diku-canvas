@@ -18,7 +18,6 @@ type Picture = Picture of Lowlevel.drawing_fun
 
 let correct draw s = let (Picture pic) = draw s in pic
 
-
 type Event =
     | Key of char
     | DownArrow
@@ -61,7 +60,6 @@ let lightgrey : color = fromRgb 220 220 220
 let white : color = fromRgb 255 255 255
 let black : color = fromRgb 0 0 0
 
-
 type Rectangle = float*float*float*float // x1,y1,x2,y2: x2>x1 && y2>y1
 type Size = float*float // w,h
 type PrimitiveTree = 
@@ -70,6 +68,10 @@ type PrimitiveTree =
     | FilledPolygon of (pointF list)*color*Rectangle
     | Rectangle of color*float*Rectangle
     | FilledRectangle of color*Rectangle
+    | Arc of pointF * float * float * float * float * float * color * float * Rectangle
+    | FilledArc of pointF * float * float * float * float * float * color * Rectangle
+    | CubicBezier of pointF * pointF * pointF * pointF * color * float * Rectangle
+    | FilledCubicBezier of pointF * pointF * pointF * pointF * color * Rectangle
     | Ellipse of color*float*Rectangle
     | FilledEllipse of color*Rectangle
     | Text of string * color * Font * Rectangle
@@ -89,6 +91,10 @@ let getRectangle (p:PrimitiveTree): Rectangle =
         | FilledPolygon(_,_,rect)
         | Rectangle(_,_,rect)
         | FilledRectangle(_,rect)
+        | Arc(_,_,_,_,_,_,_,_,rect)
+        | FilledArc(_,_,_,_,_,_,_,rect)
+        | CubicBezier(_,_,_,_,_,_,rect)
+        | FilledCubicBezier(_,_,_,_,_,rect)
         | Ellipse(_,_,rect)
         | FilledEllipse(_,rect)
         | Text(_,_,_,rect)
@@ -113,6 +119,14 @@ let tostring (p:PrimitiveTree): string =
                 sprintf "%sRectangle (color,stroke)=%A coordinates=%A" prefix (c,sw) rect
             | FilledRectangle(c,rect) -> 
                 sprintf "%sFilledRectangle color%A cordinates=%A" prefix c rect
+            | Arc(center,rx,ry,rotation,start,sweep,c,sw,rect) ->
+                sprintf "%sArc (color,stroke)=%A center=%A radii=%A rotation=%A start=%A sweep=%A" prefix (c,sw) center (rx,ry) rotation start sweep
+            | FilledArc(center,rx,ry,rotation,start,sweep,c,rect) ->
+                sprintf "%sFilledArc color=%A center=%A radii=%A rotation=%A start=%A sweep=%A" prefix c center (rx,ry) rotation start sweep
+            | CubicBezier(point1,point2,point3,point4,c,sw,rect) ->
+                sprintf "%sCubicBezier (color,stroke)=%A coordinates=%A" prefix (c,sw) [point1,point2,point3,point4]
+            | FilledCubicBezier(point1,point2,point3,point4,c,rect) ->
+                sprintf "%sFilledCubicBezier color=%A coordinates=%A" prefix c [point1,point2,point3,point4]
             | Ellipse(c,sw,rect) -> 
                 let w,h = getSize rect
                 sprintf "%sEllipse (color,stroke)=%A (radiusX,radiusY)=%A" prefix (c,sw) (w/2.0,h/2.0)
@@ -165,6 +179,18 @@ let rectangle (c: color) (sw: float) (w: float) (h: float): PrimitiveTree =
     Rectangle(c,sw,(0.0,0.0,w,h)) 
 let filledrectangle (c: color) (w: float) (h: float): PrimitiveTree = 
     FilledRectangle(c,(0.0,0.0,w,h)) 
+let arc (center:pointF) (rx:float) (ry:float) (rotation:float) (start:float) (sweep:float) (c:color) (sw:float) =
+    Arc(center,rx,ry,rotation,start,sweep,c,sw,((fst center)-rx,(snd center)-ry,(fst center)+rx,(snd center)+ry))
+let filledArc (center:pointF) (rx:float) (ry:float) (rotation:float) (start:float) (sweep:float) (c:color) =
+    FilledArc(center,rx,ry,rotation,start,sweep,c,((fst center)-rx,(snd center)-ry,(fst center)+rx,(snd center)+ry))
+let cubicBezier(point1,point2,point3,point4,c,sw,rect) =
+    let xLst = List.map fst [point1;point2;point3;point4]
+    let yLst = List.map snd [point1;point2;point3;point4]
+    CubicBezier(point1,point2,point3,point4,c,sw,(List.min xLst, List.min yLst, List.max xLst, List.max yLst))
+let FilledCubicBezier(point1,point2,point3,point4,c,rect) =
+    let xLst = List.map fst [point1;point2;point3;point4]
+    let yLst = List.map snd [point1;point2;point3;point4]
+    FilledCubicBezier(point1,point2,point3,point4,c,(List.min xLst, List.min yLst, List.max xLst, List.max yLst))
 let ellipse (c: color) (sw: float) (rx: float) (ry:float): PrimitiveTree = 
     Ellipse(c,sw,(-rx,-ry,rx,ry)) 
 let filledellipse (c: color) (rx: float) (ry:float): PrimitiveTree = 
@@ -256,6 +282,22 @@ let rec compile (idx:int) (expFlag: bool) (pic:PrimitiveTree): Lowlevel.PathTree
     | FilledRectangle(Color c, rect) ->
         let brush = Lowlevel.solidBrush c 
         let dc = _rectangle brush rect
+        wrap Matrix3x2.Identity rect expFlag dc
+    | Arc(center,rx,ry,rotation,start,sweep,Color c,sw,rect) ->
+        let pen = Lowlevel.solidPen c sw
+        let dc = Lowlevel.Prim(pen, Lowlevel.Arc(center,rx,ry,rotation,start,sweep))
+        wrap Matrix3x2.Identity rect expFlag dc
+    | FilledArc(center,rx,ry,rotation,start,sweep,Color c,rect) ->
+        let brush = Lowlevel.solidBrush c 
+        let dc = Lowlevel.Prim(brush,Lowlevel.Arc(center,rx,ry,rotation,start,sweep))
+        wrap Matrix3x2.Identity rect expFlag dc
+    | CubicBezier(point1,point2,point3,point4,Color c,sw,rect) ->
+        let pen = Lowlevel.solidPen c sw
+        let dc = Lowlevel.Prim(pen, Lowlevel.CubicBezier(point1,point2,point3,point4))
+        wrap Matrix3x2.Identity rect expFlag dc
+    | FilledCubicBezier(point1,point2,point3,point4,Color c,rect) ->
+        let brush = Lowlevel.solidBrush c 
+        let dc = Lowlevel.Prim(brush, Lowlevel.CubicBezier(point1,point2,point3,point4))
         wrap Matrix3x2.Identity rect expFlag dc
     | Ellipse(Color c, sw, rect) ->
         let pen = Lowlevel.solidPen c sw

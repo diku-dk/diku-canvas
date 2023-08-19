@@ -8,7 +8,7 @@ type state = int
 
 let defaultFont : Font =
     let fam = getFamily "Arial"
-    let font = makeFont fam 36f
+    let font = makeFont fam 36
     font
 
 let next d = (d % 100) + 1
