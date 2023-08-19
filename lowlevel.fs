@@ -17,14 +17,6 @@ let fromRgba (red:int) (green:int) (blue:int) (a:int) : Color =
 let fromRgb (red:int) (green:int) (blue:int) : Color =
     Color.FromRgb(byte red, byte green, byte blue)
 
-let red : Color = fromRgb 255 0 0
-let green : Color = fromRgb 0 255 0
-let blue : Color = fromRgb 0 0 255
-let yellow : Color = fromRgb 255 255 0
-let lightgrey : Color = fromRgb 220 220 220
-let white : Color = fromRgb 255 255 255
-let black : Color = fromRgb 0 0 0
-
 type image = SixLabors.ImageSharp.Image<Rgba32>
 
 type drawing_context = SixLabors.ImageSharp.Processing.IImageProcessingContext

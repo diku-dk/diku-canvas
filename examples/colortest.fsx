@@ -1,5 +1,5 @@
-#i "nuget:/Users/kfl/projects/fsharp-experiments/diku-canvas/bin/Release"
-//#i "nuget:/Users/jrh630/repositories/diku-canvas/bin/Release/"
+//#i "nuget:/Users/kfl/projects/fsharp-experiments/diku-canvas/bin/Release"
+#i "nuget:/Users/jrh630/repositories/diku-canvas/bin/Release/"
 #r "nuget:DIKU.Canvas, 2.0.0-alpha6"
 open Canvas
 
@@ -9,7 +9,7 @@ let w,h = 600,600 // window size
 
 /// Prepare a Picture by the present state whenever needed
 let draw (s:state): Picture =
-    filledrectangle s w h
+    filledRectangle s w h
     |> make
 
 /// React to whenever an event happens

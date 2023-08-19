@@ -15,6 +15,7 @@ let measureText (Font f) (txt:string) = Lowlevel.measureText f txt
 
 type pointF = Lowlevel.pointF
 type Picture = Picture of Lowlevel.drawing_fun
+type point = pointF
 
 let correct draw s = let (Picture pic) = draw s in pic
 
@@ -52,24 +53,167 @@ let render t w h draw = Lowlevel.runApp t w h (correct draw)
 let fromRgba r g b a = Lowlevel.fromRgba r g b a |> Color
 let fromRgb r g b = Lowlevel.fromRgb r g b |> Color
 
-let red : color = fromRgb 255 0 0
-let green : color = fromRgb 0 255 0
-let blue : color = fromRgb 0 0 255
-let yellow : color = fromRgb 255 255 0
-let lightgrey : color = fromRgb 220 220 220
-let white : color = fromRgb 255 255 255
-let black : color = fromRgb 0 0 0
+let aliceBlue : color = Color Lowlevel.Color.AliceBlue
+let antiqueWhite : color = Color Lowlevel.Color.AntiqueWhite
+let aqua : color = Color Lowlevel.Color.Aqua
+let aquamarine : color = Color Lowlevel.Color.Aquamarine
+let azure : color = Color Lowlevel.Color.Azure
+let beige : color = Color Lowlevel.Color.Beige
+let bisque : color = Color Lowlevel.Color.Bisque
+let black : color = Color Lowlevel.Color.Black
+let blanchedAlmond : color = Color Lowlevel.Color.BlanchedAlmond
+let blue : color = Color Lowlevel.Color.Blue
+let blueViolet : color = Color Lowlevel.Color.BlueViolet
+let brown : color = Color Lowlevel.Color.Brown
+let burlyWood : color = Color Lowlevel.Color.BurlyWood
+let cadetBlue : color = Color Lowlevel.Color.CadetBlue
+let chartreuse : color = Color Lowlevel.Color.Chartreuse
+let chocolate : color = Color Lowlevel.Color.Chocolate
+let coral : color = Color Lowlevel.Color.Coral
+let cornflowerBlue : color = Color Lowlevel.Color.CornflowerBlue
+let cornsilk : color = Color Lowlevel.Color.Cornsilk
+let crimson : color = Color Lowlevel.Color.Crimson
+let cyan : color = Color Lowlevel.Color.Cyan
+let darkBlue : color = Color Lowlevel.Color.DarkBlue
+let darkCyan : color = Color Lowlevel.Color.DarkCyan
+let darkGoldenrod : color = Color Lowlevel.Color.DarkGoldenrod
+let darkGray : color = Color Lowlevel.Color.DarkGray
+let darkGreen : color = Color Lowlevel.Color.DarkGreen
+let darkGrey : color = Color Lowlevel.Color.DarkGrey
+let darkKhaki : color = Color Lowlevel.Color.DarkKhaki
+let darkMagenta : color = Color Lowlevel.Color.DarkMagenta
+let darkOliveGreen : color = Color Lowlevel.Color.DarkOliveGreen
+let darkOrange : color = Color Lowlevel.Color.DarkOrange
+let darkOrchid : color = Color Lowlevel.Color.DarkOrchid
+let darkRed : color = Color Lowlevel.Color.DarkRed
+let darkSalmon : color = Color Lowlevel.Color.DarkSalmon
+let darkSeaGreen : color = Color Lowlevel.Color.DarkSeaGreen
+let darkSlateBlue : color = Color Lowlevel.Color.DarkSlateBlue
+let darkSlateGray : color = Color Lowlevel.Color.DarkSlateGray
+let darkSlateGrey : color = Color Lowlevel.Color.DarkSlateGrey
+let darkTurquoise : color = Color Lowlevel.Color.DarkTurquoise
+let darkViolet : color = Color Lowlevel.Color.DarkViolet
+let deepPink : color = Color Lowlevel.Color.DeepPink
+let deepSkyBlue : color = Color Lowlevel.Color.DeepSkyBlue
+let dimGray : color = Color Lowlevel.Color.DimGray
+let dimGrey : color = Color Lowlevel.Color.DimGrey
+let dodgerBlue : color = Color Lowlevel.Color.DodgerBlue
+let firebrick : color = Color Lowlevel.Color.Firebrick
+let floralWhite : color = Color Lowlevel.Color.FloralWhite
+let forestGreen : color = Color Lowlevel.Color.ForestGreen
+let fuchsia : color = Color Lowlevel.Color.Fuchsia
+let gainsboro : color = Color Lowlevel.Color.Gainsboro
+let ghostWhite : color = Color Lowlevel.Color.GhostWhite
+let gold : color = Color Lowlevel.Color.Gold
+let goldenrod : color = Color Lowlevel.Color.Goldenrod
+let gray : color = Color Lowlevel.Color.Gray
+let green : color = Color Lowlevel.Color.Green
+let greenYellow : color = Color Lowlevel.Color.GreenYellow
+let grey : color = Color Lowlevel.Color.Grey
+let honeydew : color = Color Lowlevel.Color.Honeydew
+let hotPink : color = Color Lowlevel.Color.HotPink
+let indianRed : color = Color Lowlevel.Color.IndianRed
+let indigo : color = Color Lowlevel.Color.Indigo
+let ivory : color = Color Lowlevel.Color.Ivory
+let khaki : color = Color Lowlevel.Color.Khaki
+let lavender : color = Color Lowlevel.Color.Lavender
+let lavenderBlush : color = Color Lowlevel.Color.LavenderBlush
+let lawnGreen : color = Color Lowlevel.Color.LawnGreen
+let lemonChiffon : color = Color Lowlevel.Color.LemonChiffon
+let lightBlue : color = Color Lowlevel.Color.LightBlue
+let lightCoral : color = Color Lowlevel.Color.LightCoral
+let lightCyan : color = Color Lowlevel.Color.LightCyan
+let lightGoldenrodYellow : color = Color Lowlevel.Color.LightGoldenrodYellow
+let lightGray : color = Color Lowlevel.Color.LightGray
+let lightGreen : color = Color Lowlevel.Color.LightGreen
+let lightGrey : color = Color Lowlevel.Color.LightGrey
+let lightPink : color = Color Lowlevel.Color.LightPink
+let lightSalmon : color = Color Lowlevel.Color.LightSalmon
+let lightSeaGreen : color = Color Lowlevel.Color.LightSeaGreen
+let lightSkyBlue : color = Color Lowlevel.Color.LightSkyBlue
+let lightSlateGray : color = Color Lowlevel.Color.LightSlateGray
+let lightSlateGrey : color = Color Lowlevel.Color.LightSlateGrey
+let lightSteelBlue : color = Color Lowlevel.Color.LightSteelBlue
+let lightYellow : color = Color Lowlevel.Color.LightYellow
+let lime : color = Color Lowlevel.Color.Lime
+let limeGreen : color = Color Lowlevel.Color.LimeGreen
+let linen : color = Color Lowlevel.Color.Linen
+let magenta : color = Color Lowlevel.Color.Magenta
+let maroon : color = Color Lowlevel.Color.Maroon
+let mediumAquamarine : color = Color Lowlevel.Color.MediumAquamarine
+let mediumBlue : color = Color Lowlevel.Color.MediumBlue
+let mediumOrchid : color = Color Lowlevel.Color.MediumOrchid
+let mediumPurple : color = Color Lowlevel.Color.MediumPurple
+let mediumSeaGreen : color = Color Lowlevel.Color.MediumSeaGreen
+let mediumSlateBlue : color = Color Lowlevel.Color.MediumSlateBlue
+let mediumSpringGreen : color = Color Lowlevel.Color.MediumSpringGreen
+let mediumTurquoise : color = Color Lowlevel.Color.MediumTurquoise
+let mediumVioletRed : color = Color Lowlevel.Color.MediumVioletRed
+let midnightBlue : color = Color Lowlevel.Color.MidnightBlue
+let mintCream : color = Color Lowlevel.Color.MintCream
+let mistyRose : color = Color Lowlevel.Color.MistyRose
+let moccasin : color = Color Lowlevel.Color.Moccasin
+let navajoWhite : color = Color Lowlevel.Color.NavajoWhite
+let navy : color = Color Lowlevel.Color.Navy
+let oldLace : color = Color Lowlevel.Color.OldLace
+let olive : color = Color Lowlevel.Color.Olive
+let oliveDrab : color = Color Lowlevel.Color.OliveDrab
+let orange : color = Color Lowlevel.Color.Orange
+let orangeRed : color = Color Lowlevel.Color.OrangeRed
+let orchid : color = Color Lowlevel.Color.Orchid
+let paleGoldenrod : color = Color Lowlevel.Color.PaleGoldenrod
+let paleGreen : color = Color Lowlevel.Color.PaleGreen
+let paleTurquoise : color = Color Lowlevel.Color.PaleTurquoise
+let paleVioletRed : color = Color Lowlevel.Color.PaleVioletRed
+let papayaWhip : color = Color Lowlevel.Color.PapayaWhip
+let peachPuff : color = Color Lowlevel.Color.PeachPuff
+let peru : color = Color Lowlevel.Color.Peru
+let pink : color = Color Lowlevel.Color.Pink
+let plum : color = Color Lowlevel.Color.Plum
+let powderBlue : color = Color Lowlevel.Color.PowderBlue
+let purple : color = Color Lowlevel.Color.Purple
+let rebeccaPurple : color = Color Lowlevel.Color.RebeccaPurple
+let red : color = Color Lowlevel.Color.Red
+let rosyBrown : color = Color Lowlevel.Color.RosyBrown
+let royalBlue : color = Color Lowlevel.Color.RoyalBlue
+let saddleBrown : color = Color Lowlevel.Color.SaddleBrown
+let salmon : color = Color Lowlevel.Color.Salmon
+let sandyBrown : color = Color Lowlevel.Color.SandyBrown
+let seaGreen : color = Color Lowlevel.Color.SeaGreen
+let seaShell : color = Color Lowlevel.Color.SeaShell
+let sienna : color = Color Lowlevel.Color.Sienna
+let silver : color = Color Lowlevel.Color.Silver
+let skyBlue : color = Color Lowlevel.Color.SkyBlue
+let slateBlue : color = Color Lowlevel.Color.SlateBlue
+let slateGray : color = Color Lowlevel.Color.SlateGray
+let slateGrey : color = Color Lowlevel.Color.SlateGrey
+let snow : color = Color Lowlevel.Color.Snow
+let springGreen : color = Color Lowlevel.Color.SpringGreen
+let steelBlue : color = Color Lowlevel.Color.SteelBlue
+let tan : color = Color Lowlevel.Color.Tan
+let teal : color = Color Lowlevel.Color.Teal
+let thistle : color = Color Lowlevel.Color.Thistle
+let tomato : color = Color Lowlevel.Color.Tomato
+let transparent : color = Color Lowlevel.Color.Transparent
+let turquoise : color = Color Lowlevel.Color.Turquoise
+let violet : color = Color Lowlevel.Color.Violet
+let wheat : color = Color Lowlevel.Color.Wheat
+let white : color = Color Lowlevel.Color.White
+let whiteSmoke : color = Color Lowlevel.Color.WhiteSmoke
+let yellow : color = Color Lowlevel.Color.Yellow
+let yellowGreen : color = Color Lowlevel.Color.YellowGreen
 
 type Rectangle = float*float*float*float // x1,y1,x2,y2: x2>x1 && y2>y1
 type Size = float*float // w,h
+type Point = float*float
 type PrimitiveTree = 
     | Empty of Rectangle
     | PiecewiseAffine of (pointF list)*color*float*Rectangle
     | FilledPolygon of (pointF list)*color*Rectangle
     | Rectangle of color*float*Rectangle
     | FilledRectangle of color*Rectangle
-    | Arc of pointF * float * float * float * float * float * color * float * Rectangle
-    | FilledArc of pointF * float * float * float * float * float * color * Rectangle
+    | Arc of pointF * float * float * float * float * color * float * Rectangle
+    | FilledArc of pointF * float * float * float * float * color * Rectangle
     | CubicBezier of pointF * pointF * pointF * pointF * color * float * Rectangle
     | FilledCubicBezier of pointF * pointF * pointF * pointF * color * Rectangle
     | Ellipse of color*float*Rectangle
@@ -91,8 +235,8 @@ let getRectangle (p:PrimitiveTree): Rectangle =
         | FilledPolygon(_,_,rect)
         | Rectangle(_,_,rect)
         | FilledRectangle(_,rect)
-        | Arc(_,_,_,_,_,_,_,_,rect)
-        | FilledArc(_,_,_,_,_,_,_,rect)
+        | Arc(_,_,_,_,_,_,_,rect)
+        | FilledArc(_,_,_,_,_,_,rect)
         | CubicBezier(_,_,_,_,_,_,rect)
         | FilledCubicBezier(_,_,_,_,_,rect)
         | Ellipse(_,_,rect)
@@ -105,7 +249,7 @@ let getRectangle (p:PrimitiveTree): Rectangle =
         | Rotate(_,_,_,_,rect)
         | Translate(_,_,_,rect) -> rect
 
-let tostring (p:PrimitiveTree): string =
+let toString (p:PrimitiveTree): string =
     let rec loop (prefix:string) (p:PrimitiveTree): string =
         let descentPrefix = (String.replicate prefix.Length " ")+"\u221F>"
         match p with
@@ -119,10 +263,10 @@ let tostring (p:PrimitiveTree): string =
                 sprintf "%sRectangle (color,stroke)=%A coordinates=%A" prefix (c,sw) rect
             | FilledRectangle(c,rect) -> 
                 sprintf "%sFilledRectangle color%A cordinates=%A" prefix c rect
-            | Arc(center,rx,ry,rotation,start,sweep,c,sw,rect) ->
-                sprintf "%sArc (color,stroke)=%A center=%A radii=%A rotation=%A start=%A sweep=%A" prefix (c,sw) center (rx,ry) rotation start sweep
-            | FilledArc(center,rx,ry,rotation,start,sweep,c,rect) ->
-                sprintf "%sFilledArc color=%A center=%A radii=%A rotation=%A start=%A sweep=%A" prefix c center (rx,ry) rotation start sweep
+            | Arc(center,rx,ry,start,sweep,c,sw,rect) ->
+                sprintf "%sArc (color,stroke)=%A center=%A radii=%A start=%A sweep=%A" prefix (c,sw) center (rx,ry) start sweep
+            | FilledArc(center,rx,ry,start,sweep,c,rect) ->
+                sprintf "%sFilledArc color=%A center=%A radii=%A start=%A sweep=%A" prefix c center (rx,ry) start sweep
             | CubicBezier(point1,point2,point3,point4,c,sw,rect) ->
                 sprintf "%sCubicBezier (color,stroke)=%A coordinates=%A" prefix (c,sw) [point1,point2,point3,point4]
             | FilledCubicBezier(point1,point2,point3,point4,c,rect) ->
@@ -165,35 +309,35 @@ let rotate (x:float) (y:float) (rad:float) (p: PrimitiveTree): PrimitiveTree =
 
 let mapPairLst (f: 'a list -> 'b) (lst: ('a*'a) list): 'b*'b =
     List.unzip lst |> fun (a,b) -> f a, f b
-let piecewiseaffine (c:color) (sw: float) (lst: (float*float) list): PrimitiveTree = 
+let piecewiseAffine (c:color) (sw: float) (lst: Point list): PrimitiveTree = 
     let wMin, hMin = mapPairLst List.min lst 
     let wMax, hMax = mapPairLst List.max lst
     let rect = (wMin,hMin,wMax,hMax)
     PiecewiseAffine(lst, c, sw, rect) 
-let filledpolygon (c:color) (lst: (float*float) list): PrimitiveTree = 
+let filledPolygon (c:color) (lst: Point list): PrimitiveTree = 
     let wMin, hMin = mapPairLst List.min lst 
     let wMax, hMax = mapPairLst List.max lst
     let rect = (wMin,hMin,wMax,hMax)
     FilledPolygon(lst, c, rect)
 let rectangle (c: color) (sw: float) (w: float) (h: float): PrimitiveTree = 
     Rectangle(c,sw,(0.0,0.0,w,h)) 
-let filledrectangle (c: color) (w: float) (h: float): PrimitiveTree = 
+let filledRectangle (c: color) (w: float) (h: float): PrimitiveTree = 
     FilledRectangle(c,(0.0,0.0,w,h)) 
-let arc (center:pointF) (rx:float) (ry:float) (rotation:float) (start:float) (sweep:float) (c:color) (sw:float) =
-    Arc(center,rx,ry,rotation,start,sweep,c,sw,((fst center)-rx,(snd center)-ry,(fst center)+rx,(snd center)+ry))
-let filledArc (center:pointF) (rx:float) (ry:float) (rotation:float) (start:float) (sweep:float) (c:color) =
-    FilledArc(center,rx,ry,rotation,start,sweep,c,((fst center)-rx,(snd center)-ry,(fst center)+rx,(snd center)+ry))
-let cubicBezier(point1,point2,point3,point4,c,sw,rect) =
+let arc (center:Point) (rx:float) (ry:float) (start:float) (sweep:float) (c:color) (sw:float) = // FIXME: tighter boundary box
+    Arc(center,rx,ry,start,sweep,c,sw,((fst center)-rx,(snd center)-ry,(fst center)+rx,(snd center)+ry))
+let filledArc (center:Point) (rx:float) (ry:float) (start:float) (sweep:float) (c:color) =
+    FilledArc(center,rx,ry,start,sweep,c,((fst center)-rx,(snd center)-ry,(fst center)+rx,(snd center)+ry))
+let cubicBezier (point1:Point) (point2:Point) (point3:Point) (point4:Point) (c:color) (sw:float) =
     let xLst = List.map fst [point1;point2;point3;point4]
     let yLst = List.map snd [point1;point2;point3;point4]
     CubicBezier(point1,point2,point3,point4,c,sw,(List.min xLst, List.min yLst, List.max xLst, List.max yLst))
-let FilledCubicBezier(point1,point2,point3,point4,c,rect) =
+let filledCubicBezier (point1:Point) (point2:Point) (point3:Point) (point4:Point) (c:color) =
     let xLst = List.map fst [point1;point2;point3;point4]
     let yLst = List.map snd [point1;point2;point3;point4]
     FilledCubicBezier(point1,point2,point3,point4,c,(List.min xLst, List.min yLst, List.max xLst, List.max yLst))
 let ellipse (c: color) (sw: float) (rx: float) (ry:float): PrimitiveTree = 
     Ellipse(c,sw,(-rx,-ry,rx,ry)) 
-let filledellipse (c: color) (rx: float) (ry:float): PrimitiveTree = 
+let filledEllipse (c: color) (rx: float) (ry:float): PrimitiveTree = 
     FilledEllipse(c, (-rx,-ry,rx,ry)) 
 let text (c: color) (sw:float) (f: Font) (txt:string): PrimitiveTree = 
     let w,h = measureText f txt
@@ -212,7 +356,7 @@ let rec onto (pic1:PrimitiveTree) (pic2:PrimitiveTree): PrimitiveTree =
     let x12,y12,x22,y22 = getRectangle pic2
     let rect = (min x11 x12, min y11 y12, max x21 x22, max y21 y22)
     Onto(pic1, pic2, rect)
-and alignh (pic1:PrimitiveTree) (pos:float) (pic2:PrimitiveTree): PrimitiveTree =
+and alignH (pic1:PrimitiveTree) (pos:float) (pic2:PrimitiveTree): PrimitiveTree =
     if pos < 0 || pos > 1 then 
         raise (System.ArgumentOutOfRangeException ("ppos must be in [0,1]"))
     let x11,y11,x21,y21 = getRectangle pic1
@@ -226,7 +370,7 @@ and alignh (pic1:PrimitiveTree) (pos:float) (pic2:PrimitiveTree): PrimitiveTree 
     let y22a = y22+y11-y12+s
     let rect = (x11, min y11 y12a, x22a, max y21 y22a)
     AlignH(pic1,pic2,pos,rect)
-and alignv (pic1:PrimitiveTree) (pos:float) (pic2:PrimitiveTree): PrimitiveTree =
+and alignV (pic1:PrimitiveTree) (pos:float) (pic2:PrimitiveTree): PrimitiveTree =
     if pos < 0 || pos > 1 then 
         raise (System.ArgumentOutOfRangeException ("pos must be in [0,1]"))
     let x11,y11,x21,y21 = getRectangle pic1
@@ -283,13 +427,13 @@ let rec compile (idx:int) (expFlag: bool) (pic:PrimitiveTree): Lowlevel.PathTree
         let brush = Lowlevel.solidBrush c 
         let dc = _rectangle brush rect
         wrap Matrix3x2.Identity rect expFlag dc
-    | Arc(center,rx,ry,rotation,start,sweep,Color c,sw,rect) ->
+    | Arc(center,rx,ry,start,sweep,Color c,sw,rect) ->
         let pen = Lowlevel.solidPen c sw
-        let dc = Lowlevel.Prim(pen, Lowlevel.Arc(center,rx,ry,rotation,start,sweep))
+        let dc = Lowlevel.Prim(pen, Lowlevel.Arc(center,rx,ry,0.0,start,sweep))
         wrap Matrix3x2.Identity rect expFlag dc
-    | FilledArc(center,rx,ry,rotation,start,sweep,Color c,rect) ->
+    | FilledArc(center,rx,ry,start,sweep,Color c,rect) ->
         let brush = Lowlevel.solidBrush c 
-        let dc = Lowlevel.Prim(brush,Lowlevel.Arc(center,rx,ry,rotation,start,sweep))
+        let dc = Lowlevel.Prim(brush,Lowlevel.Arc(center,rx,ry,0.0,start,sweep))
         wrap Matrix3x2.Identity rect expFlag dc
     | CubicBezier(point1,point2,point3,point4,Color c,sw,rect) ->
         let pen = Lowlevel.solidPen c sw

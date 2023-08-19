@@ -1,6 +1,6 @@
 //#i "nuget:/Users/kfl/projects/fsharp-experiments/diku-canvas/bin/Release"
 #i "nuget:/Users/jrh630/repositories/diku-canvas/bin/Release/"
-#r "nuget:DIKU.Canvas, 2.0.0-alpha4"
+#r "nuget:DIKU.Canvas, 2.0.0-alpha6"
 open Canvas
 open System
 
@@ -15,7 +15,7 @@ let lines = [
         [(rand.NextDouble()*float w,rand.NextDouble()*float h);
         (rand.NextDouble()*float w,rand.NextDouble()*float h)])]
 // Stack all lines onto each other
-let fig = List.fold (fun acc (col,sw,lst) -> onto (piecewiseaffine col sw lst) acc) emptyTree lines
+let fig = List.fold (fun acc (col,sw,lst) -> onto (piecewiseAffine col sw lst) acc) emptyTree lines
 
 /// Prepare a Picture by the present state whenever needed
 let draw (): Picture = 

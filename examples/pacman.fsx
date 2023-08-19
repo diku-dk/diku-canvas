@@ -1,6 +1,6 @@
 //#i "nuget:/Users/kfl/projects/fsharp-experiments/diku-canvas/bin/Release"
 #i "nuget:/Users/jrh630/repositories/diku-canvas/bin/Release/"
-#r "nuget:DIKU.Canvas, 2.0.0-alpha4"
+#r "nuget:DIKU.Canvas, 2.0.0-alpha6"
 open Canvas
 
 type state = int // index into a list
@@ -30,7 +30,7 @@ let draw (i:state): Picture =
     // coordinates of the head with mouth added
     let lst = (0.0,0.0)::(List.map (fun j -> (R*cos(j),R*sin(j))) (theta i))@[(0.0, 0.0)]
     // build tree
-    let cake = filledpolygon color.Yellow lst |> translate (float w/2.0) (float h/2.0)
+    let cake = filledPolygon yellow lst |> translate (float w/2.0) (float h/2.0)
     make cake
 
 /// React to whenever an event happens

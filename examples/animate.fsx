@@ -1,6 +1,6 @@
 //#i "nuget:/Users/kfl/projects/fsharp-experiments/diku-canvas/bin/Release"
 #i "nuget:/Users/jrh630/repositories/diku-canvas/bin/Release/"
-#r "nuget:DIKU.Canvas, 2.0.0-alpha4"
+#r "nuget:DIKU.Canvas, 2.0.0-alpha6"
 open Canvas
 
 type state = float // a rotation degree
@@ -14,10 +14,10 @@ let next d = (d % N) + 1.0
 // A non-trivial tree
 let lst1 = [(10.0,10.0); (60.0, 80.0); (10.0, 80.0); (10.0, 10.0)]
 let lst2 = [(0.0,0.0); (40.0, 30.0); (0.0, 30.0); (0.0, 0.0)]
-let tri1 = piecewiseaffine color.Green 1.0 lst1
-let tri2 = filledpolygon color.Purple lst2
-let ell = ellipse color.Blue 4.0 20.0 25.0
-let fig = translate 50.0 50.0 (alignv (alignh tri1 Center tri2) Center ell)
+let tri1 = piecewiseAffine green 1.0 lst1
+let tri2 = filledPolygon purple lst2
+let ell = ellipse blue 4.0 20.0 25.0
+let fig = translate 50.0 50.0 (alignV (alignH tri1 Center tri2) Center ell)
 
 /// Prepare a Picture by the present state whenever needed
 let draw (i:state): Picture = 
@@ -25,7 +25,7 @@ let draw (i:state): Picture =
     let cx,cy = fw/2.0, fh/2.0
     let rad = i/(N-1.0)*2.0*System.Math.PI
     let figi = rotate cx cy rad fig
-    printfn "%s" (tostring figi) // Print to screen,e.g., for debugging
+    printfn "%s" (toString figi) // Print to screen,e.g., for debugging
     make figi
 
 /// React to whenever an event happens

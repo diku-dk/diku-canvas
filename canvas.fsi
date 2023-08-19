@@ -3,13 +3,155 @@ module Canvas
 ///<summary>A color define as 4 values red, green, blue, and alpha.</summary>
 type color
 
-val red : color
-val green : color
-val blue : color
-val yellow : color
-val lightgrey : color
-val white : color
+val aliceBlue : color
+val antiqueWhite : color
+val aqua : color
+val aquamarine : color
+val azure : color
+val beige : color
+val bisque : color
 val black : color
+val blanchedAlmond : color
+val blue : color
+val blueViolet : color
+val brown : color
+val burlyWood : color
+val cadetBlue : color
+val chartreuse : color
+val chocolate : color
+val coral : color
+val cornflowerBlue : color
+val cornsilk : color
+val crimson : color
+val cyan : color
+val darkBlue : color
+val darkCyan : color
+val darkGoldenrod : color
+val darkGray : color
+val darkGreen : color
+val darkGrey : color
+val darkKhaki : color
+val darkMagenta : color
+val darkOliveGreen : color
+val darkOrange : color
+val darkOrchid : color
+val darkRed : color
+val darkSalmon : color
+val darkSeaGreen : color
+val darkSlateBlue : color
+val darkSlateGray : color
+val darkSlateGrey : color
+val darkTurquoise : color
+val darkViolet : color
+val deepPink : color
+val deepSkyBlue : color
+val dimGray : color
+val dimGrey : color
+val dodgerBlue : color
+val firebrick : color
+val floralWhite : color
+val forestGreen : color
+val fuchsia : color
+val gainsboro : color
+val ghostWhite : color
+val gold : color
+val goldenrod : color
+val gray : color
+val green : color
+val greenYellow : color
+val grey : color
+val honeydew : color
+val hotPink : color
+val indianRed : color
+val indigo : color
+val ivory : color
+val khaki : color
+val lavender : color
+val lavenderBlush : color
+val lawnGreen : color
+val lemonChiffon : color
+val lightBlue : color
+val lightCoral : color
+val lightCyan : color
+val lightGoldenrodYellow : color
+val lightGray : color
+val lightGreen : color
+val lightGrey : color
+val lightPink : color
+val lightSalmon : color
+val lightSeaGreen : color
+val lightSkyBlue : color
+val lightSlateGray : color
+val lightSlateGrey : color
+val lightSteelBlue : color
+val lightYellow : color
+val lime : color
+val limeGreen : color
+val linen : color
+val magenta : color
+val maroon : color
+val mediumAquamarine : color
+val mediumBlue : color
+val mediumOrchid : color
+val mediumPurple : color
+val mediumSeaGreen : color
+val mediumSlateBlue : color
+val mediumSpringGreen : color
+val mediumTurquoise : color
+val mediumVioletRed : color
+val midnightBlue : color
+val mintCream : color
+val mistyRose : color
+val moccasin : color
+val navajoWhite : color
+val navy : color
+val oldLace : color
+val olive : color
+val oliveDrab : color
+val orange : color
+val orangeRed : color
+val orchid : color
+val paleGoldenrod : color
+val paleGreen : color
+val paleTurquoise : color
+val paleVioletRed : color
+val papayaWhip : color
+val peachPuff : color
+val peru : color
+val pink : color
+val plum : color
+val powderBlue : color
+val purple : color
+val rebeccaPurple : color
+val red : color
+val rosyBrown : color
+val royalBlue : color
+val saddleBrown : color
+val salmon : color
+val sandyBrown : color
+val seaGreen : color
+val seaShell : color
+val sienna : color
+val silver : color
+val skyBlue : color
+val slateBlue : color
+val slateGray : color
+val slateGrey : color
+val snow : color
+val springGreen : color
+val steelBlue : color
+val tan : color
+val teal : color
+val thistle : color
+val tomato : color
+val transparent : color
+val turquoise : color
+val violet : color
+val wheat : color
+val white : color
+val whiteSmoke : color
+val yellow : color
+val yellowGreen : color
 
 ///<summary>A font defined by a font name and its size in dots-per-inch (dpi).</summary>
 type Font
@@ -21,6 +163,9 @@ type Rectangle = float*float*float*float
 
 ///<summary>Represents the size of a picture, defined by its width and height.</summary>
 type Size = float*float
+
+///<summary>Represents a coordinate in a picture as (x,y)
+type Point = float*float
 
 ///<summary>Represents one of the events: KeyDown, TimerTick, MouseButtonDown, MouseButtonUp, and MouseMotion.</summary>
 type Event =
@@ -129,13 +274,13 @@ val rotate: x:float -> y:float -> rad:float -> p: PrimitiveTree -> PrimitiveTree
 ///<param name="sw">The stroke width.</param>
 ///<param name="lst">The list of control points for the transformation.</param>
 ///<returns>A new graphic primitive tree object representing the transformed graphic primitive tree.</returns>
-val piecewiseaffine: c:color -> sw: float -> lst:(float*float) list -> PrimitiveTree 
+val piecewiseAffine: c:color -> sw: float -> lst:(float*float) list -> PrimitiveTree 
 
 ///<summary>Creates a filled polygon with the specified vertices.</summary>
 ///<param name="c">The color of the polygon.</param>
 ///<param name="lst">The list of vertices of the polygon.</param>
 ///<returns>A new graphic primitive tree object representing the filled polygon.</returns>
-val filledpolygon: c:color -> lst:(float*float) list -> PrimitiveTree 
+val filledPolygon: c:color -> lst:(float*float) list -> PrimitiveTree 
 
 ///<summary>Creates a rectangle with the specified width, height, and stroke width.</summary>
 ///<param name="c">The color of the rectangle.</param>
@@ -150,7 +295,12 @@ val rectangle: c:color -> sw: float -> w:float -> h:float -> PrimitiveTree
 ///<param name="w">The width of the rectangle.</param>
 ///<param name="h">The height of the rectangle.</param>
 ///<returns>A new graphic primitive tree object representing the filled rectangle.</returns>
-val filledrectangle: c:color -> w:float -> h:float -> PrimitiveTree 
+val filledRectangle: c:color -> w:float -> h:float -> PrimitiveTree 
+
+val arc: center:Point -> rx:float -> ry:float -> start:float -> sweep:float -> c:color -> sw:float  -> PrimitiveTree 
+val filledArc: center:Point -> rx:float -> ry:float -> start:float -> sweep:float -> c:color -> PrimitiveTree 
+val cubicBezier: point1:Point -> point2:Point -> point3:Point -> point4:Point -> c:color -> sw:float -> PrimitiveTree 
+val filledCubicBezier: point1:Point -> point2:Point -> point3:Point -> point4:Point -> c:color -> PrimitiveTree 
 
 ///<summary>Creates an ellipse with the specified radii and stroke width.</summary>
 ///<param name="c">The color of the ellipse.</param>
@@ -165,7 +315,7 @@ val ellipse: c:color -> sw:float -> rx:float -> ry:float -> PrimitiveTree
 ///<param name="rx">The horizontal radius of the ellipse.</param>
 ///<param name="ry">The vertical radius of the ellipse.</param>
 ///<returns>A new graphic primitive tree object representing the filled ellipse.</returns>
-val filledellipse: c:color -> rx:float -> ry:float -> PrimitiveTree 
+val filledEllipse: c:color -> rx:float -> ry:float -> PrimitiveTree 
 
 ///<summary>Places one graphic primitive tree on top of another.</summary>
 ///<param name="pic1">The first graphic primitive tree, which will be placed on top of the second.</param>
@@ -178,19 +328,19 @@ val onto : pic1: PrimitiveTree -> pic2: PrimitiveTree -> PrimitiveTree
 ///<param name="pos">The position at which to align the graphic primitive trees along the horizontal axis.</param>
 ///<param name="pic2">The second graphic primitive tree to be aligned.</param>
 ///<returns>A new graphic primitive tree object representing the two graphic primitive trees aligned horizontally at the specified position.</returns>
-val alignh : pic1: PrimitiveTree -> pos:float -> pic2: PrimitiveTree -> PrimitiveTree 
+val alignH : pic1: PrimitiveTree -> pos:float -> pic2: PrimitiveTree -> PrimitiveTree 
 
 ///<summary>Aligns two graphic primitive trees vertically at a specific position.</summary>
 ///<param name="pic1">The first graphic primitive tree to be aligned.</param>
 ///<param name="pos">The position at which to align the graphic primitive trees along the vertical axis.</param>
 ///<param name="pic2">The second graphic primitive tree to be aligned.</param>
 ///<returns>A new graphic primitive tree object representing the two graphic primitive trees aligned vertically at the specified position.</returns>
-val alignv : pic1: PrimitiveTree -> pos:float -> pic2: PrimitiveTree -> PrimitiveTree 
+val alignV : pic1: PrimitiveTree -> pos:float -> pic2: PrimitiveTree -> PrimitiveTree 
 
 ///<summary>Converts a graphic primitive tree into its string representation.</summary>
 ///<param name="p">The graphic primitive tree to be converted into a string.</param>
 ///<returns>A string representing the given graphic primitive tree.</returns>
-val tostring : p:PrimitiveTree -> string
+val toString : p:PrimitiveTree -> string
 
 ///<summary>Generate a color.</summary>
 ///<param name="r">The amount of red.</param>

@@ -1,8 +1,7 @@
-#i "nuget:/Users/kfl/projects/fsharp-experiments/diku-canvas/bin/Release"
-//#i "nuget:/Users/jrh630/repositories/diku-canvas/bin/Release/"
+//#i "nuget:/Users/kfl/projects/fsharp-experiments/diku-canvas/bin/Release"
+#i "nuget:/Users/jrh630/repositories/diku-canvas/bin/Release/"
 #r "nuget:DIKU.Canvas, 2.0.0-alpha6"
 open Canvas
-
 
 type state = int * int  // x-pos and direction
 
@@ -23,7 +22,7 @@ let draw ((x, _):state): Picture =
     let boundingColor = red
     let color = fromRgb 0 0 (x * 255 / (w - boxW))
     onto (rectangle boundingColor 2.0 (float boxW) (float boxW))
-        (filledrectangle color (float boxW) (float boxW))
+        (filledRectangle color (float boxW) (float boxW))
     |> translate (float x) (float (h-boxW)/2.0)
     |> make
 

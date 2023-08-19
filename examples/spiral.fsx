@@ -1,6 +1,6 @@
 //#i "nuget:/Users/kfl/projects/fsharp-experiments/diku-canvas/bin/Release"
 #i "nuget:/Users/jrh630/repositories/diku-canvas/bin/Release/"
-#r "nuget:DIKU.Canvas, 2.0.0-alpha4"
+#r "nuget:DIKU.Canvas, 2.0.0-alpha6"
 open Canvas
 
 let w,h = 400,400 // The size of the canvas
@@ -17,10 +17,10 @@ let spiral s x y =
       let p3 = (x+i,y+i)
       let p4 = (x-s,y+i)
       let p5 = (x-s,y-s)
-      onto (piecewiseaffine color.Red 1.0 [p1; p2])
-        (onto (piecewiseaffine color.Red 1.0 [p2; p3])
-          (onto (piecewiseaffine color.Red 1.0 [p3; p4])
-            (onto (piecewiseaffine color.Red 1.0 [p4; p5])
+      onto (piecewiseAffine red 1.0 [p1; p2])
+        (onto (piecewiseAffine red 1.0 [p2; p3])
+          (onto (piecewiseAffine red 1.0 [p3; p4])
+            (onto (piecewiseAffine red 1.0 [p4; p5])
               (iterate s (i+2.0*s) (x-s) (y-s)))))
   iterate s s x y
 

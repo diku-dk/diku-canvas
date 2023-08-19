@@ -1,6 +1,6 @@
 //#i "nuget:/Users/kfl/projects/fsharp-experiments/diku-canvas/bin/Release"
 #i "nuget:/Users/jrh630/repositories/diku-canvas/bin/Release/"
-#r "nuget:DIKU.Canvas, 2.0.0-alpha4"
+#r "nuget:DIKU.Canvas, 2.0.0-alpha6"
 open Canvas
 
 let w,h,l = 600,600,512 // size of window and base length of triangle
@@ -8,7 +8,7 @@ let w,h,l = 600,600,512 // size of window and base length of triangle
 // This program draws a Sierpinski triangle with bounding box length,length.
 let rec triangle (length:int) (x:int, y:int): PrimitiveTree =
   if length < 12 then // Smallest element to draw
-    filledrectangle color.Blue length length
+    filledRectangle blue length length
     |> translate x y
   else // every triangle consists of 3 smaller trangles
     let halfLen = length / 2
