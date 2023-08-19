@@ -297,10 +297,45 @@ val rectangle: c:color -> sw: float -> w:float -> h:float -> PrimitiveTree
 ///<returns>A new graphic primitive tree object representing the filled rectangle.</returns>
 val filledRectangle: c:color -> w:float -> h:float -> PrimitiveTree 
 
+/// <summary>Draws an elliptical arc.</summary>
+/// <param name="center">The center point of the ellipse.</param>
+/// <param name="rx">The horizontal radius of the ellipse.</param>
+/// <param name="ry">The vertical radius of the ellipse.</param>
+/// <param name="start">The starting angle of the arc in degrees.</param>
+/// <param name="sweep">The sweep angle of the arc in degrees.</param>
+/// <param name="c">The color of the arc.</param>
+/// <param name="sw">The stroke width of the arc.</param>
+/// <returns>A primitive tree representing the arc.</returns>
 val arc: center:Point -> rx:float -> ry:float -> start:float -> sweep:float -> c:color -> sw:float  -> PrimitiveTree 
-val filledArc: center:Point -> rx:float -> ry:float -> start:float -> sweep:float -> c:color -> PrimitiveTree 
-val cubicBezier: point1:Point -> point2:Point -> point3:Point -> point4:Point -> c:color -> sw:float -> PrimitiveTree 
-val filledCubicBezier: point1:Point -> point2:Point -> point3:Point -> point4:Point -> c:color -> PrimitiveTree 
+
+/// <summary>Draws a filled elliptical arc.</summary>
+/// <param name="center">The center point of the ellipse.</param>
+/// <param name="rx">The horizontal radius of the ellipse.</param>
+/// <param name="ry">The vertical radius of the ellipse.</param>
+/// <param name="start">The starting angle of the arc in degrees.</param>
+/// <param name="sweep">The sweep angle of the arc in degrees.</param>
+/// <param name="c">The fill color of the arc.</param>
+/// <returns>A primitive tree representing the filled arc.</returns>
+val filledArc: center:Point -> rx:float -> ry:float -> start:float -> sweep:float -> c:color -> PrimitiveTree
+
+/// <summary>Draws a cubic Bezier curve.</summary>
+/// <param name="point1">The first control point of the curve.</param>
+/// <param name="point2">The second control point of the curve.</param>
+/// <param name="point3">The third control point of the curve.</param>
+/// <param name="point4">The fourth control point of the curve.</param>
+/// <param name="c">The color of the curve.</param>
+/// <param name="sw">The stroke width of the curve.</param>
+/// <returns>A primitive tree representing the cubic Bezier curve.</returns>
+val cubicBezier: point1:Point -> point2:Point -> point3:Point -> point4:Point -> c:color -> sw:float -> PrimitiveTree
+
+/// <summary> Draws a filled cubic Bezier curve.</summary>
+/// <param name="point1">The first control point of the curve.</param>
+/// <param name="point2">The second control point of the curve.</param>
+/// <param name="point3">The third control point of the curve.</param>
+/// <param name="point4">The fourth control point of the curve.</param>
+/// <param name="c">The fill color of the curve.</param>
+/// <returns>A primitive tree representing the filled cubic Bezier curve.</returns>
+val filledCubicBezier: point1:Point -> point2:Point -> point3:Point -> point4:Point -> c:color -> PrimitiveTree
 
 ///<summary>Creates an ellipse with the specified radii and stroke width.</summary>
 ///<param name="c">The color of the ellipse.</param>
