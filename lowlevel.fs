@@ -315,10 +315,10 @@ let runAppWithTimer (t:string) (w:int) (h:int) (interval:int option)
         if redraw then
             img.Mutate(fun ctx ->
                        (draw (!state) ctx)
-                          // .Crop(min w img.Width, min h img.Height)
-                          // .Resize(ResizeOptions(Position = AnchorPositionMode.TopLeft,
-                          //                       Size = Size(w, h),
-                          //                       Mode = ResizeMode.BoxPad))
+                          .Crop(min w img.Width, min h img.Height)
+                          .Resize(ResizeOptions(Position = AnchorPositionMode.TopLeft,
+                                                Size = Size(w, h),
+                                                Mode = ResizeMode.BoxPad))
                        |> ignore)
             img.CopyPixelDataTo(frameBuffer)
             SDL.SDL_UpdateTexture(texture, IntPtr.Zero, bufferPtr, viewWidth * 4) |> ignore
