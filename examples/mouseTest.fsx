@@ -1,6 +1,4 @@
-//#i "nuget:/Users/kfl/projects/fsharp-experiments/diku-canvas/bin/Release"
-#i "nuget:/Users/jrh630/repositories/diku-canvas/bin/Release/"
-#r "nuget:DIKU.Canvas, 2.0.0-alpha6"
+#r "nuget:DIKU.Canvas, 2.0.0-alpha7"
 open Canvas
 
 type state = Canvas.color // Click with the mouse changes window color
