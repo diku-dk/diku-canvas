@@ -302,7 +302,10 @@ let translate (dx:float) (dy:float) (p: PrimitiveTree): PrimitiveTree =
     Translate(p,dx,dy,(x1+dx,y1+dy,x2+dx,y2+dy))
 let scale (sx:float) (sy:float) (p: PrimitiveTree): PrimitiveTree =
     let (x1,y1,x2,y2) = getRectangle p
-    Scale(p,sx,sy,(sx*x1,sy*y1,sx*x2,sy*y2))
+    if abs (sx*(x2-x1)) < 1.0 || abs (sy*(y2-y1)) < 1.0 then 
+        Empty((0.0,0.0,0.0,0.0))
+    else
+        Scale(p,sx,sy,(sx*x1,sy*y1,sx*x2,sy*y2))
 let rotate (x:float) (y:float) (rad:float) (p: PrimitiveTree): PrimitiveTree =
     let rect = getRectangle p
     Rotate(p,x,y,rad,rect) // FIXME: what should the bounding box be here? Enlarge or clipped?

@@ -83,7 +83,7 @@ let makeRotate i =
 let makeScale i = 
     let factor = 1.0+3.0*(float i)/(float sLim)
     makeFilledPolygon 0
-    |> scale (float i) (float i)
+    |> scale (float factor) (float factor)
 
 /// A tree where makePiecewiseAffine is stacked on top of makeTxt
 let makeOntop i = onto (makePiecewiseAffine i) (makeTxt i)
