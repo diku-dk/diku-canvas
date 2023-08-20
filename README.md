@@ -107,18 +107,30 @@ This should result in a window with a green square in the top left corner on a b
 A number of examples are available in the `examples` folder.
 
 The best show-cases for using the library are
-- `examples/animate.fsx` - demonstrates how to make an animation
-- `examples/animateGif.fsx` - demonstrates how to save an animation as an animated gif
-- `examples/pacman.fsx` - an animation demonstration
-- `examples/movingBox.fsx` -  an animation demonstration
-- `examples/mouseTest.fsx`- demonstrates how to get and react to mouse input
-- `examples/spiral.fsx` - demonstrates how to recursively build a graphics tree
-- `examples/renderToFile.fsx`- demonstrates how to render a graphics tree to a file
-- `examples/colortest.fsx` - demonstrates how to get and react to keyboard input
-- `examples/drawLines.fsx` - demonstrates how to render many lines using the onto combination
-- `examples/sierpinski.fsx` - demonstrates ow to recursively build a graphics tree
-- `examples/basic.fsx` - demonstrates all DIKU-Canvas graphics primitives, transformations, and combinators using argument from the command line
-- `examples/myFirstCanvas.fsx` - demonstrates how to render an image to the screen
+- `examples/animate.fsx`\
+demonstrates how to make an animation
+- `examples/animateGif.fsx`\
+demonstrates how to save an animation as an animated gif
+- `examples/pacman.fsx`\
+an animation demonstration
+- `examples/movingBox.fsx`\
+an animation demonstration
+- `examples/mouseTest.fsx`\
+demonstrates how to get and react to mouse input
+- `examples/spiral.fsx`\
+demonstrates how to recursively build a graphics tree
+- `examples/renderToFile.fsx`\
+demonstrates how to render a graphics tree to a file
+- `examples/colortest.fsx`\
+demonstrates how to get and react to keyboard input
+- `examples/drawLines.fsx`\
+demonstrates how to render many lines using the onto combination
+- `examples/sierpinski.fsx`\
+demonstrates ow to recursively build a graphics tree
+- `examples/basic.fsx`\
+demonstrates all DIKU-Canvas graphics primitives, transformations, and combinators using argument from the command line
+- `examples/myFirstCanvas.fsx`\
+demonstrates how to render an image to the screen
 
 
 ## How to build the Canvas library itself (if you want to contribute)
