@@ -107,30 +107,32 @@ This should result in a window with a green square in the top left corner on a b
 A number of examples are available in the `examples` folder.
 
 The best show-cases for using the library are
-- `examples/animate.fsx`\
+- [`examples/animate.fsx`](https://raw.githubusercontent.com/diku-dk/diku-canvas/main/examples/animate.fsx)\
 demonstrates how to make an animation
-- `examples/animateGif.fsx`\
+- [`examples/animateGif.fsx`](https://raw.githubusercontent.com/diku-dk/diku-canvas/main/examples/animateGif.fsx)\
 demonstrates how to save an animation as an animated gif
-- `examples/pacman.fsx`\
-an animation demonstration
-- `examples/movingBox.fsx`\
-an animation demonstration
-- `examples/mouseTest.fsx`\
-demonstrates how to get and react to mouse input
-- `examples/spiral.fsx`\
-demonstrates how to recursively build a graphics tree
-- `examples/renderToFile.fsx`\
-demonstrates how to render a graphics tree to a file
-- `examples/colortest.fsx`\
-demonstrates how to get and react to keyboard input
-- `examples/drawLines.fsx`\
-demonstrates how to render many lines using the onto combination
-- `examples/sierpinski.fsx`\
-demonstrates ow to recursively build a graphics tree
-- `examples/basic.fsx`\
+- [`examples/basic.fsx`](https://raw.githubusercontent.com/diku-dk/diku-canvas/main/examples/basic.fsx)\
 demonstrates all DIKU-Canvas graphics primitives, transformations, and combinators using argument from the command line
-- `examples/myFirstCanvas.fsx`\
+- [`examples/colortest.fsx`](https://raw.githubusercontent.com/diku-dk/diku-canvas/main/examples/colortest.fsx)\
+demonstrates how to get and react to keyboard input
+- [`examples/drawLines.fsx`](https://raw.githubusercontent.com/diku-dk/diku-canvas/main/examples/drawLines.fsx)\
+demonstrates how to render many lines using the onto combination
+- [`examples/mouseTest.fsx`](https://raw.githubusercontent.com/diku-dk/diku-canvas/main/examples/mouseTest.fsx)\
+demonstrates how to get and react to mouse input
+- [`examples/mouseTest.fsx`](https://raw.githubusercontent.com/diku-dk/diku-canvas/main/examples/mouseTest.fsx)\
+demonstrates how to get and react to mouse input
+- [`examples/miniGame.fsx`](https://raw.githubusercontent.com/diku-dk/diku-canvas/main/examples/miniGame.fsx)\
+a demonstration of a simple catch-the-monster game
+- [`examples/myFirstCanvas.fsx`](https://raw.githubusercontent.com/diku-dk/diku-canvas/main/examples/myFirstCanvas.fsx)\
 demonstrates how to render an image to the screen
+- [`examples/pacman.fsx`](https://raw.githubusercontent.com/diku-dk/diku-canvas/main/examples/pacman.fsx)\
+an animation demonstration
+- [`examples/renderToFile.fsx`](https://raw.githubusercontent.com/diku-dk/diku-canvas/main/examples/renderToFile.fsx)\
+demonstrates how to render a graphics tree to a file
+- [`examples/sierpinski.fsx`](https://raw.githubusercontent.com/diku-dk/diku-canvas/main/examples/sierpinski.fsx)\
+demonstrates ow to recursively build a graphics tree
+- [`examples/spiral.fsx`](https://raw.githubusercontent.com/diku-dk/diku-canvas/main/examples/spiral.fsx)\
+demonstrates how to recursively build a graphics tree
 
 
 ## How to build the Canvas library itself (if you want to contribute)
