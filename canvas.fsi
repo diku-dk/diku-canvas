@@ -187,8 +187,18 @@ type PrimitiveTree
 ///<summary>A picture.</summary>
 type Picture
 
-///<summary>A position type for alignH (Top | Center | Bottom) and alignV (Left | Center | Right).</summary>
-type alignPosition = Top | Left | Center | Bottom | Right
+type Position
+
+///<summary>An alignh position-value for aligning boxes along their top edge.</summary>
+val Top: Position
+///<summary>An alignv position-value for aligning boxes along their left edge.</summary>
+val Left: Position
+///<summary>An alignh and alignv position-value for aligning boxes along their center.</summary>
+val Center: Position
+///<summary>An alignh position-value for aligning boxes along their bottom edge.</summary>
+val Bottom: Position
+///<summary>An alignv position-value for aligning boxes along their right edge.</summary>
+val Right: Position
 
 ///<summary>The list of names of available system fonts.</summary>
 val systemFontNames: string list
@@ -355,14 +365,14 @@ val onto : pic1: PrimitiveTree -> pic2: PrimitiveTree -> PrimitiveTree
 ///<param name="pos">The position at which to align the graphic primitive trees along the horizontal axis.</param>
 ///<param name="pic2">The second graphic primitive tree to be aligned.</param>
 ///<returns>A new graphic primitive tree object representing the two graphic primitive trees aligned horizontally at the specified position.</returns>
-val alignH : pic1: PrimitiveTree -> pos:alignPosition -> pic2: PrimitiveTree -> PrimitiveTree 
+val alignH : pic1: PrimitiveTree -> pos:Position -> pic2: PrimitiveTree -> PrimitiveTree
 
 ///<summary>Aligns two graphic primitive trees vertically at a specific position.</summary>
 ///<param name="pic1">The first graphic primitive tree to be aligned.</param>
 ///<param name="pos">The position at which to align the graphic primitive trees along the vertical axis.</param>
 ///<param name="pic2">The second graphic primitive tree to be aligned.</param>
 ///<returns>A new graphic primitive tree object representing the two graphic primitive trees aligned vertically at the specified position.</returns>
-val alignV : pic1: PrimitiveTree -> pos:alignPosition -> pic2: PrimitiveTree -> PrimitiveTree 
+val alignV : pic1: PrimitiveTree -> pos:Position -> pic2: PrimitiveTree -> PrimitiveTree
 
 ///<summary>Converts a graphic primitive tree into its string representation.</summary>
 ///<param name="p">The graphic primitive tree to be converted into a string.</param>

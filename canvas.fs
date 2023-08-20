@@ -348,49 +348,46 @@ let text (c: color) (sw:float) (f: Font) (txt:string): PrimitiveTree =
 let emptyTree = Empty((0.0,0.0,0.0,0.0))
 
 /// Functions for combining images
-type alignPosition = Top | Left | Center | Bottom | Right
+type Position = Position of float
+let Top = Position 0.0
+let Left = Position 0.0
+let Center = Position 0.5
+let Bottom = Position 1.0
+let Right = Position 1.0
 
 let rec onto (pic1:PrimitiveTree) (pic2:PrimitiveTree): PrimitiveTree =
     let x11,y11,x21,y21 = getRectangle pic1
     let x12,y12,x22,y22 = getRectangle pic2
     let rect = (min x11 x12, min y11 y12, max x21 x22, max y21 y22)
     Onto(pic1, pic2, rect)
-and alignH (pic1:PrimitiveTree) (pos:alignPosition) (pic2:PrimitiveTree): PrimitiveTree =
-    let posF = 
-        match pos with
-            | Top -> 0.0
-            | Center -> 0.5
-            | Bottom -> 1.0
-            | _ -> failwith "Invalid position argument"
+and alignH (pic1:PrimitiveTree) (Position pos) (pic2:PrimitiveTree): PrimitiveTree =
+    if pos < 0 || pos > 1 then 
+        raise (System.ArgumentOutOfRangeException ("ppos must be in [0,1]"))
     let x11,y11,x21,y21 = getRectangle pic1
     let x12,y12,x22,y22 = getRectangle pic2
     let w1,h1 = getSize <| getRectangle pic1
     let w2,h2 = getSize <| getRectangle pic2
-    let s = posF*(h1-h2)
+    let s = pos*(h1-h2)
     let x12a = x12+x21-x12
     let x22a = x22+x21-x12
     let y12a = y12+y11-y12+s
     let y22a = y22+y11-y12+s
     let rect = (x11, min y11 y12a, x22a, max y21 y22a)
-    AlignH(pic1,pic2,posF,rect)
-and alignV (pic1:PrimitiveTree) (pos:alignPosition) (pic2:PrimitiveTree): PrimitiveTree =
-    let posF = 
-        match pos with
-            | Left -> 0.0
-            | Center -> 0.5
-            | Right -> 1.0
-            | _ -> failwith "Invalid position argument"
+    AlignH(pic1,pic2,pos,rect)
+and alignV (pic1:PrimitiveTree) (Position pos) (pic2:PrimitiveTree): PrimitiveTree =
+    if pos < 0 || pos > 1 then 
+        raise (System.ArgumentOutOfRangeException ("pos must be in [0,1]"))
     let x11,y11,x21,y21 = getRectangle pic1
     let x12,y12,x22,y22 = getRectangle pic2
     let w1,h1 = getSize <| getRectangle pic1
     let w2,h2 = getSize <| getRectangle pic2
-    let s = posF*(w1-w2)
+    let s = pos*(w1-w2)
     let x12a = x12+x11-x12+s
     let x22a = x22+x11-x12+s
     let y12a = y12+y21-y12
     let y22a = y22+y21-y12
     let rect = (min x11 x12a, y11, max x21 x22a, y22a)
-    AlignV(pic1, pic2, posF, rect)
+    AlignV(pic1, pic2, pos, rect)
 
 /// Drawing content
 let colorLst = [Lowlevel.Color.Blue; Lowlevel.Color.Cyan; Lowlevel.Color.Green; Lowlevel.Color.Magenta; Lowlevel.Color.Orange; Lowlevel.Color.Purple; Lowlevel.Color.Yellow; Lowlevel.Color.Red]
