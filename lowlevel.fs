@@ -55,7 +55,7 @@ type PathDefinition =
     | MoveTo of pointF
     | QuadraticBezierTo of pointF * pointF
     | SetTransform of Matrix3x2
-    | GetTransform of (Matrix3x2 -> PathDefinition)
+    | LocalTransform of Matrix3x2 * PathDefinition
     | StartFigure
     | CloseFigure
     | CloseAllFigures
@@ -99,9 +99,9 @@ let construct pd : IPath =
                 | SetTransform mat ->
                     let builder = builder.SetTransform mat
                     loop builder mat worklist
-                | GetTransform f ->
-                    let transformed = f curT
-                    loop builder curT (transformed :: SetTransform curT :: worklist)
+                | LocalTransform (mat, pd) ->
+                    let builder = builder.SetTransform mat
+                    loop builder mat (pd :: SetTransform curT :: worklist)
                 | StartFigure ->
                     let builder = builder.StartFigure()
                     loop builder curT worklist
@@ -315,10 +315,10 @@ let runAppWithTimer (t:string) (w:int) (h:int) (interval:int option)
         if redraw then
             img.Mutate(fun ctx ->
                        (draw (!state) ctx)
-                          // .Crop(min w img.Width, min h img.Height)
-                          // .Resize(ResizeOptions(Position = AnchorPositionMode.TopLeft,
-                          //                       Size = Size(w, h),
-                          //                       Mode = ResizeMode.BoxPad))
+                          .Crop(min w img.Width, min h img.Height)
+                          .Resize(ResizeOptions(Position = AnchorPositionMode.TopLeft,
+                                                Size = Size(w, h),
+                                                Mode = ResizeMode.BoxPad))
                        |> ignore)
             img.CopyPixelDataTo(frameBuffer)
             SDL.SDL_UpdateTexture(texture, IntPtr.Zero, bufferPtr, viewWidth * 4) |> ignore
