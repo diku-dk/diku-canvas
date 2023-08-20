@@ -82,4 +82,4 @@ let react (s:state) (ev:Event) : state option =
 // Start interaction session
 let initialState = {player = 0, 0; monster = 0, 5}// First state drawn by draw
 let delayTime = Some 20 // microseconds (as an option type)
-interact "Moving box" w h delayTime draw react initialState
+interact "Minigame" w h delayTime draw react initialState
