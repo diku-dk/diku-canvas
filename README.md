@@ -1,44 +1,76 @@
-
-The DIKU.Canvas library
-=======================
+The DIKU-Canvas library: A Functional Graphics Library for F#
+==============
 
 [![Nuget](https://img.shields.io/nuget/v/DIKU.Canvas)](https://www.nuget.org/packages/DIKU.Canvas/)
-<img src="https://raw.githubusercontent.com/kfl/diku-canvas/main/images/turtle.png" border="2" width="250" align="right">
+<img src="https://raw.githubusercontent.com/diku-dk/diku-canvas/nextgen/images/Sierpinski.png" border="2" width="250" align="right">
+DIKU-Canvas is an advanced graphics library developed specifically for functional programming in F#. Rooted in computational geometry and functional paradigms, DIKU-Canvas provides computer scientists, researchers, and developers with an intuitive and mathematical approach to graphical programming.
 
-This library features a number of utility functions for drawing simple
-2d graphics on a canvas, including features for running simple
-user-interactive apps that display such canvas.  A small DSL for
-drawing using [turtle graphics](https://en.wikipedia.org/wiki/Turtle_graphics) is included.
+Leveraging F#'s functional programming capabilities, DIKU-Canvas emphasizes:
 
-Features for loading a canvas from an image file and saving canvas to
-`.png` are included.  They *should* work out of the box on Windows,
-but on Linux and MacOS they require the user to have `SDL2` installed
-locally.
+- **Immutability**: All shapes and transformations are immutable, promoting a pure functional approach.
+- **Higher-Order Functions**: Utilize functional constructs to create and manipulate complex shapes.
+- **Type Safety**: Benefit from F#'s strong type system to ensure correctness and robustness.
 
-The library, which is based on [SDL2](https://www.libsdl.org/), is
-portable, in the sense that applications built using the library can
-execute on Linux, macOS, and Windows using .NET6.0.
+# Overview
+Graphic primitives may be transformed and combined in a tree structure, and the trees may be rendered to the screen or to file as a still-image or an animation. DIKU-Canvas also has an interactive mode which accepts intput from the keyboard and the mouse.
 
-The library is intended to be built (and consumed) as a NuGet package.
+## Primitives
 
-## The API
+The collection of primitives serve as the foundation for complex geometric shapes:
+- **Piecewise Affine Lines**: Represented as sequences of connected line segments, allowing for intricate paths and outlines.
+- **Circular Arcs**: Defined by a center, radius, and angle, enabling precise circular structures.
+- **Cubic Bezier Curves**: Provide control over curve definition and complexity, facilitating the design of smooth and customizable curves.
+- **Rectangles**: Utilize coordinates for position, width, and height to draw various rectangular shapes.
+- **Ellipses**: Create ellipses by specifying parameters that control shape and orientation.
 
-The library API is available in the file [`canvas.fsi`](canvas.fsi).
+## Transformations and composition
+
+The primitives can be transformed and combined with:
+
+- **Translation**: Translate objects across the 2D plane with user-defined x and y offsets.
+- **Rotation**: Rotate objects around a specific point, providing the angle in degrees or radians.
+- **Scaling**: Resize objects by a given scaling factor, either uniformly or non-uniformly.
+- **Horizontal and Vertical Alignment**: Utilize alignment functions to organize shapes horizontally or vertically, aiding in layout design.
+- **Layering Shapes**: Combine shapes by drawing them on top of each other, allowing for the creation of intricate designs.
+
+## Rendering and interaction with the user
+
+DIKU-Canvas has several rendering and interaction options:
+- **Render**: Graphic trees may be rendered to the screen or to a file
+- **Animation**: Sequences of graphic trees may be rendered as an animation to the screen or to a file
+- **Interaction**: DIKU-Canvas has an interactive mode, which reacts to the user input from the keyboard or mouse and allows the programmer to update the graphic tree and render the result to the screen.
+
+-----------
+
+## The application programming interface (API)
+
+The API is described in the file [`canvas.fsi`](canvas.fsi). There you will find a precise declaration of all available values and functions and their documentation using the [XML](https://learn.microsoft.com/en-us/dotnet/fsharp/language-reference/xml-documentation) standard.
 
 ## How to use Canvas in a F# script (.fsx)
 
-Make an F# script, say `example.fsx` and make a NuGet reference:
+Make an F# script, say `myFirstCanvas.fsx` with a NuGet reference:
 
 ```fsharp
-#r "nuget:DIKU.Canvas";;
+#r "nuget:DIKU.Canvas"
+open Canvas
+
+let w,h = 256,256
+let tree = filledRectangle green ((float w)/2.0) ((float h)/2.0)
+let draw = fun _ -> make tree
+render "My first canvas" w h draw
 ```
 
-Or, if you want a specific version:
+and run it from the commandline using
+
+    dotnet fsi myFirstCanvas.fsx
+
+This should result in a window with a green square in the top left corner on a black background.
+
+If you want a specific version you edit the reference to be, e.g.,:
 
 ```fsharp
-#r "nuget:DIKU.Canvas, 1.0.1";;
+#r "nuget:DIKU.Canvas, 2.0.0-alpha6"
 ```
-
 
 ## How to use Canvas in a F# project (that uses .fsproj)
 
@@ -56,35 +88,37 @@ Add a reference to the `DIKU.Canvas` package with the command:
 Edit `Program.fs` to have the content:
 
 ```fsharp
-let draw width height =
-    let canvas = Canvas.create width height
-    Canvas.setFillBox canvas Canvas.blue (0,0) (width, height)
-    canvas
+open Canvas
 
-do Canvas.runSimpleApp "Hello from F#" 400 400 draw
+let w,h = 256,256
+let tree = filledRectangle green ((float w)/2.0) ((float h)/2.0)
+let draw = fun _ -> make tree
+render "My first canvas" w h draw
 ```
 
 Run your app with the command:
 
     dotnet run
 
-This should result in a window with a blue background.
-
+This should result in a window with a green square in the top left corner on a black background.
 
 ## Examples
-
-<img src="images/applespiral.png" border="2" width="250" align="right">
 
 A number of examples are available in the `examples` folder.
 
 The best show-cases for using the library are
-- `examples/color_boxes.fsx`
-- `examples/keyboard_example.fsx`
-- `examples/spiral.fsx`
-- `examples/turtle.fsx` (eventually)
-
-Note that it is not all the examples in the `examples` directory that
-have been ported to the current version of the Canvas library.
+- `examples/animate.fsx` - demonstrates how to make an animation
+- `examples/animateGif.fsx` - demonstrates how to save an animation as an animated gif
+- `examples/pacman.fsx` - an animation demonstration
+- `examples/movingBox.fsx` -  an animation demonstration
+- `examples/mouseTest.fsx`- demonstrates how to get and react to mouse input
+- `examples/spiral.fsx` - demonstrates how to recursively build a graphics tree
+- `examples/renderToFile.fsx`- demonstrates how to render a graphics tree to a file
+- `examples/colortest.fsx` - demonstrates how to get and react to keyboard input
+- `examples/drawLines.fsx` - demonstrates how to render many lines using the onto combination
+- `examples/sierpinski.fsx` - demonstrates ow to recursively build a graphics tree
+- `examples/basic.fsx` - demonstrates all DIKU-Canvas graphics primitives, transformations, and combinators using argument from the command line
+- `examples/myFirstCanvas.fsx` - demonstrates how to render an image to the screen
 
 
 ## How to build the Canvas library itself (if you want to contribute)
@@ -174,3 +208,4 @@ The following individuals have contributed to the DIKU.Canvas (previosly ImgUtil
 - Jon Sporring
 - Jan Rolandsen
 - Chris Pritchard (original SDL P/Invoke)
+
