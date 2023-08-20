@@ -5,9 +5,9 @@
     <PackageId>DIKU.Canvas</PackageId>
     <Version>2.0.0-alpha7</Version>
     <PackageLicenseFile>LICENSE</PackageLicenseFile>
-    <Authors>Martin Elsman, Ken Friis Larsen, Mads Obitsø, Jon Sporring</Authors>
+    <Authors>Martin Elsman, Ken Friis Larsen, Jon Sporring, Mads Obitsø</Authors>
     <Company>DIKU</Company>
-    <RepositoryUrl>https://github.com/kfl/diku-canvas.git</RepositoryUrl>
+    <RepositoryUrl>https://github.com/diku-canvas/diku-canvas.git</RepositoryUrl>
     <RepositoryType>git</RepositoryType>
     <PackageReadmeFile>README.md</PackageReadmeFile>
     <Description>
