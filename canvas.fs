@@ -348,18 +348,19 @@ let text (c: color) (sw:float) (f: Font) (txt:string): PrimitiveTree =
 let emptyTree = Empty((0.0,0.0,0.0,0.0))
 
 /// Functions for combining images
-let Top = 0.0
-let Left = 0.0
-let Center = 0.5
-let Bottom = 1.0
-let Right = 1.0
+type Position = Position of float
+let Top = Position 0.0
+let Left = Position 0.0
+let Center = Position 0.5
+let Bottom = Position 1.0
+let Right = Position 1.0
 
 let rec onto (pic1:PrimitiveTree) (pic2:PrimitiveTree): PrimitiveTree =
     let x11,y11,x21,y21 = getRectangle pic1
     let x12,y12,x22,y22 = getRectangle pic2
     let rect = (min x11 x12, min y11 y12, max x21 x22, max y21 y22)
     Onto(pic1, pic2, rect)
-and alignH (pic1:PrimitiveTree) (pos:float) (pic2:PrimitiveTree): PrimitiveTree =
+and alignH (pic1:PrimitiveTree) (Position pos) (pic2:PrimitiveTree): PrimitiveTree =
     if pos < 0 || pos > 1 then 
         raise (System.ArgumentOutOfRangeException ("ppos must be in [0,1]"))
     let x11,y11,x21,y21 = getRectangle pic1
@@ -373,7 +374,7 @@ and alignH (pic1:PrimitiveTree) (pos:float) (pic2:PrimitiveTree): PrimitiveTree 
     let y22a = y22+y11-y12+s
     let rect = (x11, min y11 y12a, x22a, max y21 y22a)
     AlignH(pic1,pic2,pos,rect)
-and alignV (pic1:PrimitiveTree) (pos:float) (pic2:PrimitiveTree): PrimitiveTree =
+and alignV (pic1:PrimitiveTree) (Position pos) (pic2:PrimitiveTree): PrimitiveTree =
     if pos < 0 || pos > 1 then 
         raise (System.ArgumentOutOfRangeException ("pos must be in [0,1]"))
     let x11,y11,x21,y21 = getRectangle pic1
