@@ -294,9 +294,6 @@ let toString (p:PrimitiveTree): string =
     loop "" p
 
 /// Graphics primitives
-//let affineLowlevel.transform (M:System.Numerics.Matrix3x2) (p: PrimitiveTree): PrimitiveTree = 
-//  let sz = getSize <| getRectangle p
-//  AffineTransform(p,M,w,h)
 let translate (dx:float) (dy:float) (p: PrimitiveTree): PrimitiveTree =
     let (x1,y1,x2,y2) = getRectangle p
     Translate(p,dx,dy,(x1+dx,y1+dy,x2+dx,y2+dy))
@@ -342,7 +339,7 @@ let ellipse (c: color) (sw: float) (rx: float) (ry:float): PrimitiveTree =
     Ellipse(c,sw,(-rx,-ry,rx,ry)) 
 let filledEllipse (c: color) (rx: float) (ry:float): PrimitiveTree = 
     FilledEllipse(c, (-rx,-ry,rx,ry)) 
-let text (c: color) (sw:float) (f: Font) (txt:string): PrimitiveTree = 
+let text (c: color) (sw:float) (f: Font) (txt:string): PrimitiveTree = //FIXME: remove unused sw
     let w,h = measureText f txt
     Text(txt, c, f, (0.0,0.0,w,h)) 
 let emptyTree = Empty((0.0,0.0,0.0,0.0))

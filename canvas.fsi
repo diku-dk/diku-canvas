@@ -238,9 +238,19 @@ val measureText: f: Font -> txt: string -> (float * float)
 /// <param name="f">The font used to render the text.</param>
 /// <param name="txt">The text to render.</param>
 /// <returns>A PrimitiveTree object representing the rendered text.</returns>
+/// <remarks>
+/// This function is used to create a text primitive with specific styling. The stroke width parameter is accepted but currently not used within the function. For example:
+/// <code>
+///    let fontName = "Microsoft Sans Serif"
+///    let font = makeFont fontName 24.0
+///    let white = yellow
+///    let tree = text white 1.0 font "Hello World"
+/// </code>
+/// creates a graphic primitive of the string "Hello World".
+/// </remarks>
 val text: c: color -> sw: float -> f: Font -> txt: string -> PrimitiveTree
 
-///<summary>Retrieves the size of a given graphic primitive tree.</summary>
+///<summary>Retrieves the bounding box of a given graphic primitive tree.</summary>
 ///<param name="p">The graphic primitive tree for which to get the size.</param>
 ///<returns>The bounding box of the tree as x1,y1,x2,y2 where x2>x1 and y2>y1.</returns>
 val getRectangle : p: PrimitiveTree -> Rectangle
@@ -255,6 +265,19 @@ val getSize : rect:Rectangle -> Size
 ///<param name="dy">The distance to translate the graphic primitive tree along the y-axis.</param>
 ///<param name="p">The graphic primitive tree to be translated.</param>
 ///<returns>A new graphic primitive tree object that is translated by the specified distances.</returns>
+/// <remarks>
+/// The translate function takes a PrimitiveTree and two floating-point values representing the distances to translate
+/// the tree along the x and y axes, respectively. It constructs a new Translate tree that encapsulates the original tree with a translation primitive.
+/// For example:
+/// <code>
+///    let col = darkCyan
+///    let strokeWidth = 2.0
+///    ellipse col strokeWidth 85.0 64.0
+///    |> translate 128.0 128.0
+/// </code>
+/// translates the ellipse with radii 85 and 64 and center in 0,0 a such that the resulting ellipse has its center in 128,128.
+/// The ellipse's bounding box is translated accordingly.
+/// </remarks>
 val translate : dx:float -> dy:float -> p: PrimitiveTree -> PrimitiveTree 
 
 ///<summary>Scales a given graphic primitive tree by the specified factors along the x and y axes.</summary>
@@ -262,6 +285,19 @@ val translate : dx:float -> dy:float -> p: PrimitiveTree -> PrimitiveTree
 ///<param name="sy">The scaling factor along the y-axis.</param>
 ///<param name="p">The graphic primitive tree to be scaled.</param>
 ///<returns>A new graphic primitive tree object that is scaled by the specified factors.</returns>
+/// <remarks>
+/// The scale function takes a PrimitiveTree and two floating-point values representing the scaling factor along
+/// the x and y axes, respectively. It constructs a new Scale tree that encapsulates the original tree.
+/// For example:
+/// <code>
+///    let col = darkCyan
+///    let strokeWidth = 2.0
+///    ellipse col strokeWidth 85.0 64.0
+///    |> scale 1.0 2.0
+/// </code>
+/// scales the ellipse with radii 85 and 64 with its center in 0,0 such that resulting ellipse has radii 85 and 128
+/// and center in 0,0. The ellipse's bounding box is scaled accordingly.
+/// </remarks>
 val scale: sx:float -> sy:float -> p: PrimitiveTree -> PrimitiveTree 
 
 ///<summary>Rotates a given graphic primitive tree by the specified angle in radians around a point.</summary>
@@ -270,6 +306,21 @@ val scale: sx:float -> sy:float -> p: PrimitiveTree -> PrimitiveTree
 ///<param name="rad">The angle in radians to rotate the graphic primitive tree.</param>
 ///<param name="p">The graphic primitive tree to be rotated.</param>
 ///<returns>A new graphic primitive tree object that is rotated by the specified angle.</returns>
+/// <remarks>
+/// The rotate function takes a PrimitiveTree and three floating-point values representing the x and y coordinates
+/// of the center of rotation and the amount of rotation in radians. It constructs a new Rotate tree that
+/// encapsulates the original tree.
+/// For example:
+/// <code>
+///    let col = darkCyan
+///    let strokeWidth = 2.0
+///    ellipse col strokeWidth 85.0 64.0
+///    |> rotate 0.0 0.0 (45.0*System.Math.PI/180.0)
+/// </code>
+/// rotates the ellipse 45 degrees around the point 0,0. The ellipse's bounding box is currently unchanged
+/// which may cause undesired effects when used in together with alignH and alignV and this may change in
+/// future releases.
+/// </remarks>
 val rotate: x:float -> y:float -> rad:float -> p: PrimitiveTree -> PrimitiveTree 
 
 ///<summary>Creates a piecewise affine transformation on a graphic primitive tree.</summary>
