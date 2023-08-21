@@ -167,7 +167,7 @@ type Size = float*float
 /// <summary>Represents a coordinate in a picture as (x,y)
 type Point = float*float
 
-/// <summary>Represents one of the events: KeyDown, TimerTick, MouseButtonDown, MouseButtonUp, and MouseMotion.</summary>
+/// <summary>Represents one of the events: Key, DownArrow, UpArrow, LeftArrow, RightArow, Return, TimerTick, MouseButtonDown, MouseButtonUp, and MouseMotion.</summary>
 type Event =
     | Key of char
     | DownArrow
@@ -186,7 +186,6 @@ type PrimitiveTree
 
 /// <summary>A picture.</summary>
 type Picture
-
 
 type Position
 
