@@ -328,12 +328,39 @@ val rotate: x:float -> y:float -> rad:float -> p: PrimitiveTree -> PrimitiveTree
 ///<param name="sw">The stroke width.</param>
 ///<param name="lst">The list of control points for the transformation.</param>
 ///<returns>A new graphic primitive tree object representing the transformed graphic primitive tree.</returns>
+/// <remarks>
+/// The piecewiseAffine function takes a color, a stroke width, and list of pairs of x and y coordinates and 
+/// makes a PrimitiveTree representing a piecewise affine curve also known as a piecewise linear curve. Note
+/// any smooth curve can be approximately arbitrarily well as piecewise affine curve when the coordinate pairs
+/// are sampled sufficiently closely along the smooth curve. Example of code generating a piecewise affine curve
+/// tree is:
+/// <code>
+///    let col = darkOliveGreen
+///    let strokeWidth = 2.0
+///    piecewiseAffine col strokeWidth [(0.0,0.0);(10.0,80.0);(20.0,40.0);(0.0,0.0)]
+/// </code>
+/// which generates a PrimitiveTree representing a set of lines, colored filledPolygon and with a width of 2.0. In this case is also a closed polygon
+/// and a triangle. The bounding box is the smallest axis aligned rectangle enclosing the shape which in this case is denoted by the 
+/// corners (0.0,0.0) and (20.0,80.0). 
+/// </remarks>
 val piecewiseAffine: c:color -> sw: float -> lst:(float*float) list -> PrimitiveTree 
 
 ///<summary>Creates a filled polygon with the specified vertices.</summary>
 ///<param name="c">The color of the polygon.</param>
 ///<param name="lst">The list of vertices of the polygon.</param>
 ///<returns>A new graphic primitive tree object representing the filled polygon.</returns>
+/// <remarks>
+/// The filledPolygon function takes a color, and list of pairs of x and y coordinates and 
+/// makes a PrimitiveTree representing a polygon. Example of code generating a filled polygon tree is:
+/// <code>
+///    let col = darkOliveGreen
+///    filledPolygon col [(0.0,0.0);(10.0,80.0);(20.0,40.0)]
+/// </code>
+/// which generates a PrimitiveTree representing a closed polygon which is filled with the color dargOliveGreen.
+/// Note that a filledPolygon with its outline marked in another color can be achieved by using this function
+/// together with the onto and the piecewiseAffine functions. The bounding box is the smallest axis aligned
+/// rectangle enclosing the shape which in this case is denoted by the corners (0.0,0.0) and (20.0,80.0).
+/// </remarks>
 val filledPolygon: c:color -> lst:(float*float) list -> PrimitiveTree 
 
 ///<summary>Creates a rectangle with the specified width, height, and stroke width.</summary>
@@ -342,6 +369,18 @@ val filledPolygon: c:color -> lst:(float*float) list -> PrimitiveTree
 ///<param name="w">The width of the rectangle.</param>
 ///<param name="h">The height of the rectangle.</param>
 ///<returns>A new graphic primitive tree object representing the rectangle.</returns>
+/// <remarks>
+/// The rectangle function takes a color, a stroke width, a width, and a height and makes a PrimitiveTree
+/// representing a rectangle, whose lower left corner is (0.0,0.0) and upper right corner is (w,h). Example 
+/// of code generating a rectangle tree is:
+/// <code>
+///    let col = goldenrod
+///    let strokeWidth = 1.0
+///    rectangle col strokeWidth 20.0 80.0
+/// </code>
+/// which generates a PrimitiveTree representing a rectangle drawn with the color goldenrod and the line
+/// width 1.0. The bounding box is the same as the rectangle which in this case is (0.0,0.0) and (20.0,80.0).
+/// </remarks>
 val rectangle: c:color -> sw: float -> w:float -> h:float -> PrimitiveTree 
 
 ///<summary>Creates a filled rectangle with the specified width and height.</summary>
@@ -349,6 +388,19 @@ val rectangle: c:color -> sw: float -> w:float -> h:float -> PrimitiveTree
 ///<param name="w">The width of the rectangle.</param>
 ///<param name="h">The height of the rectangle.</param>
 ///<returns>A new graphic primitive tree object representing the filled rectangle.</returns>
+/// <remarks>
+/// The filledRectangle function takes a color, a width, and a height and makes a PrimitiveTree
+/// representing a rectangle, whose lower left corner is (0.0,0.0) and upper right corner is (w,h). Example 
+/// of code generating a rectangle tree is:
+/// <code>
+///    let col = goldenrod
+///    filledRectangle col 20.0 80.0
+/// </code>
+/// which generates a PrimitiveTree representing a rectangle filled with the color goldenrod. The bounding
+/// box is the same as the rectangle which in this case is (0.0,0.0) and (20.0,80.0). Note that a
+/// filledRectangle with its outline marked in another color can be achieved by using this function
+/// together with the onto and the rectangle functions.
+/// </remarks>
 val filledRectangle: c:color -> w:float -> h:float -> PrimitiveTree 
 
 /// <summary>Draws an elliptical arc.</summary>
@@ -360,7 +412,19 @@ val filledRectangle: c:color -> w:float -> h:float -> PrimitiveTree
 /// <param name="c">The color of the arc.</param>
 /// <param name="sw">The stroke width of the arc.</param>
 /// <returns>A primitive tree representing the arc.</returns>
-val arc: center:Point -> rx:float -> ry:float -> start:float -> sweep:float -> c:color -> sw:float  -> PrimitiveTree 
+/// <remarks>
+/// The arc function represents part of an ellipse. It takes a color, a line width, a center (rx, ry), 
+/// a start angle in radians, and the span of degrees in radians to draw from start.  The drawing direction 
+/// takes it origin along the x-axis and increases in angle clockwise. Example of code generating an arc tree is:
+/// <code>
+///    let col = goldenrod
+///    let strokeWidth = 3.0
+///    arc 128.0 128.0 (-45.0*System.Math.Pi/180.0) System.Math.Pi col strokeWidth
+/// </code>
+/// which generates a PrimitiveTree representing an arc curve from -45 degrees to 135 degrees with color goldenred
+/// and width 3.0. The bounding box is the same as the full ellipse. This may change in the future.
+/// </remarks>
+val arc: center:Point -> rx:float -> ry:float -> start:float -> sweep:float -> c:color -> sw:float  -> PrimitiveTree //FIXME: reorder arguments to be similar to other functions. remove rx and ry to mimic ellipse
 
 /// <summary>Draws a filled elliptical arc.</summary>
 /// <param name="center">The center point of the ellipse.</param>
@@ -370,7 +434,19 @@ val arc: center:Point -> rx:float -> ry:float -> start:float -> sweep:float -> c
 /// <param name="sweep">The sweep angle of the arc in degrees.</param>
 /// <param name="c">The fill color of the arc.</param>
 /// <returns>A primitive tree representing the filled arc.</returns>
-val filledArc: center:Point -> rx:float -> ry:float -> start:float -> sweep:float -> c:color -> PrimitiveTree
+/// <remarks>
+/// The arc function represents part of a filled ellipse. It takes a color, a center (rx, ry), a start angle in
+/// radians, and the span of degrees in radians to draw from start. The drawing direction takes it origin along
+/// the x-axis and increases in angle clockwise. Example of code generating an arc tree is:
+/// <code>
+///    let col = goldenrod
+///    let strokeWidth = 3.0
+///    filledArc 128.0 128.0 (-45.0*System.Math.Pi/180.0) System.Math.Pi col
+/// </code>
+/// which generates a PrimitiveTree representing an filled arc from -45 degrees to 135 degrees. The bounding
+/// box is the same as the full ellipse. This may change in the future.
+/// </remarks>
+val filledArc: center:Point -> rx:float -> ry:float -> start:float -> sweep:float -> c:color -> PrimitiveTree //FIXME: reorder arguments to be similar to other functions. remove rx and ry to mimic ellipse
 
 /// <summary>Draws a cubic Bezier curve.</summary>
 /// <param name="point1">The first control point of the curve.</param>
@@ -380,7 +456,19 @@ val filledArc: center:Point -> rx:float -> ry:float -> start:float -> sweep:floa
 /// <param name="c">The color of the curve.</param>
 /// <param name="sw">The stroke width of the curve.</param>
 /// <returns>A primitive tree representing the cubic Bezier curve.</returns>
-val cubicBezier: point1:Point -> point2:Point -> point3:Point -> point4:Point -> c:color -> sw:float -> PrimitiveTree
+/// <remarks>
+/// The cubic bezier function represents a cubic bezier curve which takes 4 points, a color, and stroke width.
+/// The curve starts and ends in point index 0 and 3, and the line from index 0 to 1 gives the derivative at 0,
+/// while the line from index 2 to 3 gives the derivative at 3. Example of code generating an arc tree is:
+/// <code>
+///    let col = ivory
+///    let strokeWidth = 3.0
+///    cubicBezier (10.0,10.0) (12.0,10.0) (56.0,60.0) (70.0,70.0) col strokeWidth
+/// </code>
+/// which generates a PrimitiveTree representing a bezier curve from (10.0,10.0) to (70.0, 70.0). The bounding
+/// box is the rectangle spanning the minimum and maximum values of all the x- and y-coordinates in the 4 points.
+/// </remarks>
+val cubicBezier: point1:Point -> point2:Point -> point3:Point -> point4:Point -> c:color -> sw:float -> PrimitiveTree //FIXME: reorder arguments to be similar to other functions
 
 /// <summary> Draws a filled cubic Bezier curve.</summary>
 /// <param name="point1">The first control point of the curve.</param>
@@ -389,7 +477,20 @@ val cubicBezier: point1:Point -> point2:Point -> point3:Point -> point4:Point ->
 /// <param name="point4">The fourth control point of the curve.</param>
 /// <param name="c">The fill color of the curve.</param>
 /// <returns>A primitive tree representing the filled cubic Bezier curve.</returns>
-val filledCubicBezier: point1:Point -> point2:Point -> point3:Point -> point4:Point -> c:color -> PrimitiveTree
+/// <remarks>
+/// The filled cubic bezier function represents a cubic bezier curve which takes 4 points, and a color.
+/// The curve starts and ends in point index 0 and 3, and the line from index 0 to 1 gives the derivative at 0,
+/// while the line from index 2 to 3 gives the derivative at 3. The fill area is between the curve and the
+/// straight line between point 0 and 3. Example of code generating an arc tree is:
+/// <code>
+///    let col = ivory
+///    filledCubicBezier (10.0,10.0) (12.0,10.0) (56.0,60.0) (70.0,70.0) col 
+/// </code>
+/// which generates a PrimitiveTree representing a filled bezier curve from (10.0,10.0) to (70.0, 70.0). 
+/// The bounding box is the rectangle spanning the minimum and maximum values of all the x- and
+/// y-coordinates in the 4 points.
+/// </remarks>
+val filledCubicBezier: point1:Point -> point2:Point -> point3:Point -> point4:Point -> c:color -> PrimitiveTree //FIXME: reorder arguments to be similar to other functions
 
 ///<summary>Creates an ellipse with the specified radii and stroke width.</summary>
 ///<param name="c">The color of the ellipse.</param>
@@ -397,6 +498,18 @@ val filledCubicBezier: point1:Point -> point2:Point -> point3:Point -> point4:Po
 ///<param name="rx">The horizontal radius of the ellipse.</param>
 ///<param name="ry">The vertical radius of the ellipse.</param>
 ///<returns>A new graphic primitive tree object representing the ellipse.</returns>
+/// <remarks>
+/// The ellipse function represents an ellipse with center in 0,0, radius rx and ry along the x- and y-axis,
+/// and a color and strokeWidth. Example of code generating an ellipse tree is:
+/// <code>
+///    let col = ivory
+///    let strokeWidth = 3.0
+///    ellipse col strokeWidth 10.0 20.0
+/// </code>
+/// which generates a PrimitiveTree representing an ellipse of radii 10.0 and 20.0 with a line drawn in ivory
+/// and which is 3 wide. The bounding box is the smallest rectangle enclosing the ellipse, which in this case
+/// is (-10,-20) to (10.20).
+/// </remarks>
 val ellipse: c:color -> sw:float -> rx:float -> ry:float -> PrimitiveTree 
 
 ///<summary>Creates a filled ellipse with the specified radii.</summary>
@@ -404,31 +517,99 @@ val ellipse: c:color -> sw:float -> rx:float -> ry:float -> PrimitiveTree
 ///<param name="rx">The horizontal radius of the ellipse.</param>
 ///<param name="ry">The vertical radius of the ellipse.</param>
 ///<returns>A new graphic primitive tree object representing the filled ellipse.</returns>
-val filledEllipse: c:color -> rx:float -> ry:float -> PrimitiveTree 
+/// <remarks>
+/// The filled ellipse function represents an ellipse with center in 0,0, radius rx and ry along the x- and
+/// y-axis, and a color and strokeWidth. Example of code generating a filled ellipse tree is:
+/// <code>
+///    let col = ivory
+///    filledEllipse col 10.0 20.0
+/// </code>
+/// which generates a PrimitiveTree representing an filled ellipse of radii 10.0 and 20.0 in ivory. The
+/// bounding box is the smallest rectangle enclosing the ellipse, which in this case is (-10,-20) to (10.20).
+/// </remarks>
+val ellipse: c:cval filledEllipse: c:color -> rx:float -> ry:float -> PrimitiveTree 
 
 ///<summary>Places one graphic primitive tree on top of another.</summary>
 ///<param name="pic1">The first graphic primitive tree, which will be placed on top of the second.</param>
 ///<param name="pic2">The second graphic primitive tree, over which the first graphic primitive tree will be placed.</param>
 ///<returns>A new graphic primitive tree object representing the combined image with the first graphic primitive tree on top of the second.</returns>
+///<returns>A new graphic primitive tree object representing the filled ellipse.</returns>
+/// <remarks>
+/// The onto function joins two trees where pic1 will be drawn on top of pic2. The following code-example:
+/// <code>
+///    let boundary = ellipse red 3.0 10.0 20.0
+///    let ell = filledEllipse blue 10.0 20.0
+///    onto boundary ell
+/// </code>
+/// represents a tree of a filled ellipse in blue with its boundary on top in red and with a line thickness of
+/// 3. The bounding box is the smallest rectangle enclosing the ellipse, which in this case is (-10,-20) to
+/// (10.20).
+/// </remarks>
 val onto : pic1: PrimitiveTree -> pic2: PrimitiveTree -> PrimitiveTree 
 
 ///<summary>Aligns two graphic primitive trees horizontally at a specific position.</summary>
 ///<param name="pic1">The first graphic primitive tree to be aligned.</param>
-///<param name="pos">The position at which to align the graphic primitive trees along the horizontal axis.</param>
+///<param name="pos">One of Top, Center, or Bottom, defining how pic1 and pic2 are to be aligned.
 ///<param name="pic2">The second graphic primitive tree to be aligned.</param>
 ///<returns>A new graphic primitive tree object representing the two graphic primitive trees aligned horizontally at the specified position.</returns>
+/// <remarks>
+/// The alignH function joins two trees where pic2 is translated such that its boundary box's left edge is aligned
+/// with pic1's boundary box's right edge. When pos=Bottom then the boxes are align along their edge with
+/// lowest x-value, i.e., closest to the top edge of the image. When pos=Center then pic2's midpoint in the
+/// y-direction is aligned with pic1's midpoint in the y-direction. When pos=Top then pic2's boundary box's
+/// highest x-value is aligned with pic1's boundary box's highest x-value. The following code-example:
+/// <code>
+///    let box1 = rectangle goldenrod 1.0 20.0 80.0
+///    let box2 = rectangle yellow 1.0 30.0 30.0
+///    alignH box1 Top box2
+/// </code>
+/// represents a new tree of a box from (0,0) to (20,80) in goldenrod and another (20,50) to (50,80)in yellow.
+/// The bounding box is the enclosing box in this case from (0,0) to (50,80).
+/// </remarks>
 val alignH : pic1: PrimitiveTree -> pos:Position -> pic2: PrimitiveTree -> PrimitiveTree
 
 ///<summary>Aligns two graphic primitive trees vertically at a specific position.</summary>
 ///<param name="pic1">The first graphic primitive tree to be aligned.</param>
-///<param name="pos">The position at which to align the graphic primitive trees along the vertical axis.</param>
+///<param name="pos">One of Left, Center, or Right, defining how pic1 and pic2 are to be aligned
 ///<param name="pic2">The second graphic primitive tree to be aligned.</param>
 ///<returns>A new graphic primitive tree object representing the two graphic primitive trees aligned vertically at the specified position.</returns>
+/// <remarks>
+/// The alignV function joins two trees where pic2 is translated such that its boundary box's bottom edge is
+/// aligned with pic1's boundary box's top edge. When pos=Left then the boxes are align along their edge with
+/// lowest y-value, i.e., closest to the left edge of the image. When pos=Center then pic2's midpoint in the
+/// x-direction is aligned with pic1's midpoint in the x-direction. When pos=Right then pic2's boundary box's
+/// highest y-value is aligned with pic1's boundary box's highest y-value. The following code-example:
+/// <code>
+///    let box1 = rectangle goldenrod 1.0 20.0 80.0
+///    let box2 = rectangle yellow 1.0 30.0 30.0
+///    alignV box1 Right box2
+/// </code>
+/// represents a new tree of a box from (0,0) to (20,80) in goldenrod and another (-10,80) to (20,100)in yellow.
+/// The bounding box is the enclosing box in this case from (-10,0) to (20,100).
+/// </remarks>
 val alignV : pic1: PrimitiveTree -> pos:Position -> pic2: PrimitiveTree -> PrimitiveTree
 
 ///<summary>Converts a graphic primitive tree into its string representation.</summary>
 ///<param name="p">The graphic primitive tree to be converted into a string.</param>
 ///<returns>A string representing the given graphic primitive tree.</returns>
+/// <remarks>
+/// The toString function returns a string representation of a primitive tree including all
+/// graphics primitives, transformations, and combinations, one per line. Enclosed trees are shown below with
+/// indentation according to their level of indentation. For example:
+/// <code>
+///    let box1 = rectangle goldenrod 1.0 20.0 80.0
+///    let box2 = rectangle yellow 1.0 30.0 30.0
+///    let tree = alignV box1 Right box2
+///    printfn "%s" (toString tree)
+/// </code>
+/// results in
+/// <code>
+/// AlignV position=1
+/// ∟>Rectangle (color,stroke)=(Color DAA520FF, 1.0) coordinates=(0.0, 0.0, 20.0, 80.0)
+/// ∟>Rectangle (color,stroke)=(Color FFFF00FF, 1.0) coordinates=(0.0, 0.0, 30.0, 30.0)
+/// </code>
+/// which demonstrates that alignV encloses box1 and box2 including data about each element.
+/// </remarks>
 val toString : p:PrimitiveTree -> string
 
 ///<summary>Generate a color.</summary>
@@ -437,6 +618,14 @@ val toString : p:PrimitiveTree -> string
 ///<param name="b">The amount of blue.</param>
 ///<param name="a">The degree to which the color is transparent.</param>
 ///<returns>A color.</returns>
+/// <remarks>
+/// The fromRgba produces the color representation of the given red, green, blue, and alpha values. All values
+/// are en the range 0 to 255 and in the example:
+/// <code>
+///    fromRgba 255 0 0 128
+/// </code>
+/// the resulting color is semi-transparent red.
+/// </remarks>
 val fromRgba : r:int -> g:int -> b:int -> a:int -> color
 
 ///<summary>Generate a non-transparent color.</summary>
