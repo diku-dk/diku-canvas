@@ -49,7 +49,7 @@ let animateToFile width height frameDelay repeatCount filePath drawLst =
                                (List.map (function Picture draw -> draw) drawLst)
 let interact t w h interval draw react s =
     Lowlevel.runAppWithTimer t w h interval (correct draw) (fun s ev -> react s (fromLowlevelEvent ev)) s
-let render t w h draw = Lowlevel.runApp t w h (correct draw)
+let render t w h draw = Lowlevel.runApp t w h (correct draw) // FIXME: there is no reason for render to accept draw on functional form.
 let fromRgba r g b a = Lowlevel.fromRgba r g b a |> Color
 let fromRgb r g b = Lowlevel.fromRgb r g b |> Color
 
