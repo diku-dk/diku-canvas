@@ -1,4 +1,4 @@
-#r "nuget:DIKU.Canvas, 2.0.0-alpha7"
+#r "nuget:DIKU.Canvas, 2.0.0-alpha8"
 open Canvas
 
 type state = {monster : int * int;  // x-pos and direction

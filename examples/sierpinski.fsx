@@ -1,4 +1,4 @@
-#r "nuget:DIKU.Canvas, 2.0.0-alpha7"
+#r "nuget:DIKU.Canvas, 2.0.0-alpha8"
 open Canvas
 
 let w,h,l = 600,600,512 // size of window and base length of triangle

@@ -2,8 +2,9 @@ The DIKU-Canvas library: A Functional Graphics Library for F#
 ==============
 
 [![Nuget](https://img.shields.io/nuget/v/DIKU.Canvas)](https://www.nuget.org/packages/DIKU.Canvas/)
+
 <img src="https://raw.githubusercontent.com/diku-dk/diku-canvas/nextgen/images/Sierpinski.png" border="2" width="250" align="right">
-DIKU-Canvas is an advanced graphics library developed specifically for functional programming in F#. Rooted in computational geometry and functional paradigms, DIKU-Canvas provides computer scientists, researchers, and developers with an intuitive and mathematical approach to graphical programming.
+DIKU-Canvas is a simple graphics library developed specifically for teaching functional programming in F#. Rooted in computational geometry and functional paradigms, DIKU-Canvas provides computer scientists, researchers, and developers with an intuitive and mathematical approach to graphical programming.
 
 Leveraging F#'s functional programming capabilities, DIKU-Canvas emphasizes:
 
@@ -12,6 +13,7 @@ Leveraging F#'s functional programming capabilities, DIKU-Canvas emphasizes:
 - **Type Safety**: Benefit from F#'s strong type system to ensure correctness and robustness.
 
 # Overview
+
 Graphic primitives may be transformed and combined in a tree structure, and the trees may be rendered to the screen or to file as a still-image or an animation. DIKU-Canvas also has an interactive mode which accepts intput from the keyboard and the mouse.
 
 ## Primitives
@@ -50,8 +52,8 @@ The API is described in the file [`canvas.fsi`](canvas.fsi). There you will find
 
 Make an F# script, say `myFirstCanvas.fsx` with a NuGet reference:
 
-```fsharp
-#r "nuget:DIKU.Canvas"
+```fsx
+#r "nuget:DIKU.Canvas, 2.0"
 open Canvas
 
 let w,h = 256,256
@@ -68,9 +70,10 @@ This should result in a window with a green square in the top left corner on a b
 
 If you want a specific version you edit the reference to be, e.g.,:
 
-```fsharp
-#r "nuget:DIKU.Canvas, 2.0.0-alpha6"
+```fsx
+#r "nuget:DIKU.Canvas, 2.0.1-alpha8"
 ```
+
 
 ## How to use Canvas in a F# project (that uses .fsproj)
 
@@ -104,45 +107,65 @@ This should result in a window with a green square in the top left corner on a b
 
 ## Examples
 
-A number of examples are available in the `examples` folder.
+A number of examples are available in the `examples` folder:
 
-The best show-cases for using the library are
-- [`examples/animate.fsx`](https://raw.githubusercontent.com/diku-dk/diku-canvas/main/examples/animate.fsx)\
-demonstrates how to make an animation
-- [`examples/animateGif.fsx`](https://raw.githubusercontent.com/diku-dk/diku-canvas/main/examples/animateGif.fsx)\
-demonstrates how to save an animation as an animated gif
-- [`examples/basic.fsx`](https://raw.githubusercontent.com/diku-dk/diku-canvas/main/examples/basic.fsx)\
-demonstrates all DIKU-Canvas graphics primitives, transformations, and combinators using argument from the command line
-- [`examples/colortest.fsx`](https://raw.githubusercontent.com/diku-dk/diku-canvas/main/examples/colortest.fsx)\
-demonstrates how to get and react to keyboard input
-- [`examples/drawLines.fsx`](https://raw.githubusercontent.com/diku-dk/diku-canvas/main/examples/drawLines.fsx)\
-demonstrates how to render many lines using the onto combination
-- [`examples/mouseTest.fsx`](https://raw.githubusercontent.com/diku-dk/diku-canvas/main/examples/mouseTest.fsx)\
-demonstrates how to get and react to mouse input
-- [`examples/mouseTest.fsx`](https://raw.githubusercontent.com/diku-dk/diku-canvas/main/examples/mouseTest.fsx)\
-demonstrates how to get and react to mouse input
-- [`examples/miniGame.fsx`](https://raw.githubusercontent.com/diku-dk/diku-canvas/main/examples/miniGame.fsx)\
-a demonstration of a simple catch-the-monster game
-- [`examples/myFirstCanvas.fsx`](https://raw.githubusercontent.com/diku-dk/diku-canvas/main/examples/myFirstCanvas.fsx)\
-demonstrates how to render an image to the screen
-- [`examples/pacman.fsx`](https://raw.githubusercontent.com/diku-dk/diku-canvas/main/examples/pacman.fsx)\
-an animation demonstration
-- [`examples/renderToFile.fsx`](https://raw.githubusercontent.com/diku-dk/diku-canvas/main/examples/renderToFile.fsx)\
-demonstrates how to render a graphics tree to a file
-- [`examples/sierpinski.fsx`](https://raw.githubusercontent.com/diku-dk/diku-canvas/main/examples/sierpinski.fsx)\
-demonstrates ow to recursively build a graphics tree
-- [`examples/spiral.fsx`](https://raw.githubusercontent.com/diku-dk/diku-canvas/main/examples/spiral.fsx)\
-demonstrates how to recursively build a graphics tree
+- [`examples/animate.fsx`](./examples/animate.fsx)
+
+    demonstrates how to make an animation
+
+- [`examples/animateGif.fsx`](./examples/animateGif.fsx)
+
+    demonstrates how to save an animation as an animated gif
+
+- [`examples/basic.fsx`](./examples/basic.fsx)
+
+    demonstrates all DIKU-Canvas graphics primitives, transformations, and combinators using argument from the command line
+
+- [`examples/colortest.fsx`](./examples/colortest.fsx)
+
+    demonstrates how to get and react to keyboard input
+
+- [`examples/drawLines.fsx`](./examples/drawLines.fsx)
+
+    demonstrates how to render many lines using the onto combination
+    
+- [`examples/mouseTest.fsx`](./examples/mouseTest.fsx)
+
+    demonstrates how to get and react to mouse input
+    
+- [`examples/miniGame.fsx`](./examples/miniGame.fsx)
+
+    a simple catch-the-monster game
+    
+- [`examples/myFirstCanvas.fsx`](./examples/myFirstCanvas.fsx)
+
+    demonstrates how to render an image to the screen
+    
+- [`examples/pacman.fsx`](./examples/pacman.fsx)
+
+    an animation demonstration
+    
+- [`examples/renderToFile.fsx`](./examples/renderToFile.fsx)
+
+    demonstrates how to render a graphics tree to a file
+    
+- [`examples/sierpinski.fsx`](./examples/sierpinski.fsx)
+
+    demonstrates ow to recursively build a graphics tree
+    
+- [`examples/spiral.fsx`](./examples/spiral.fsx)
+
+    demonstrates how to recursively build a graphics tree
 
 
 ## How to build the Canvas library itself (if you want to contribute)
 
 If you want to build the library and NuGet package yourself, you will
-need the `.NET6.0 SDK` and development versions of `SDL2` and
+need the `.NET7.0 SDK` and development versions of `SDL2` and
 `SDL2_image` for your platform.
 
 First install [.NET
-6](https://dotnet.microsoft.com/en-us/download/dotnet/6.0) for your
+7](https://dotnet.microsoft.com/en-us/download/dotnet/7.0) for your
 platform.
 
 Then install [SDL2 and SDL2_image](https://www.libsdl.org/index.php):
