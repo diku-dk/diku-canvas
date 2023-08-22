@@ -158,14 +158,14 @@ type Font
 /// <summary>A collection of font variations specified by the family name.</summary>
 type FontFamily
 
+/// <summary>Represents a coordinate in a picture as (x,y).</summary>
+type Point = float*float
+
 /// <summary>Represents the size of a picture, defined by x1,y1,x2,y2 where x2>x1 and y2>y1.</summary>
-type Rectangle = float*float*float*float
+type Rectangle = Point*Point
 
 /// <summary>Represents the size of a picture, defined by its width and height.</summary>
 type Size = float*float
-
-/// <summary>Represents a coordinate in a picture as (x,y).</summary>
-type Point = float*float
 
 /// <summary>Represents one of the events: Key, DownArrow, UpArrow, LeftArrow, RightArow, Return, TimerTick, MouseButtonDown, MouseButtonUp, and MouseMotion.</summary>
 type Event =
@@ -233,26 +233,25 @@ val measureText: f: Font -> txt: string -> (float * float)
 /// Creates a PrimitiveTree representing the given text with specified properties.
 /// </summary>
 /// <param name="c">The color of the text.</param>
-/// <param name="sw">The stroke width of the text.</param>
 /// <param name="f">The font used to render the text.</param>
 /// <param name="txt">The text to render.</param>
 /// <returns>A PrimitiveTree object representing the rendered text.</returns>
 /// <remarks>
-/// This function is used to create a text primitive with specific styling. The stroke width parameter is accepted but currently not used within the function. For example:
+/// This function is used to create a text primitive with specific styling. For example:
 /// <code>
 ///    let fontName = "Microsoft Sans Serif"
 ///    let font = makeFont fontName 24.0
 ///    let white = yellow
-///    let tree = text white 1.0 font "Hello World"
+///    let tree = text white font "Hello World"
 /// </code>
 /// creates a graphic primitive of the string "Hello World".
 /// </remarks>
-val text: c: color -> sw: float -> f: Font -> txt: string -> PrimitiveTree
+val text: c: color -> f: Font -> txt: string -> PrimitiveTree
 
 /// <summary>Retrieves the bounding box of a given graphic primitive tree.</summary>
 /// <param name="p">The graphic primitive tree for which to get the size.</param>
 /// <returns>The bounding box of the tree as x1,y1,x2,y2 where x2>x1 and y2>y1.</returns>
-val getRectangle : p: PrimitiveTree -> Rectangle
+val getBoundingBox : p: PrimitiveTree -> Rectangle
 
 /// <summary>Converts a rectangle into a size.</summary>
 /// <param name="rect">The bounding box as a rectangle x1,y1,x2,y2 where x2>x1 and y2>y1.</param>
@@ -394,13 +393,13 @@ val rectangle: c:color -> sw: float -> w:float -> h:float -> PrimitiveTree
 val filledRectangle: c:color -> w:float -> h:float -> PrimitiveTree 
 
 /// <summary>Draws an elliptical arc.</summary>
+/// <param name="c">The color of the arc.</param>
+/// <param name="sw">The stroke width of the arc.</param>
 /// <param name="center">The center point of the ellipse.</param>
 /// <param name="rx">The horizontal radius of the ellipse.</param>
 /// <param name="ry">The vertical radius of the ellipse.</param>
 /// <param name="start">The starting angle of the arc in degrees.</param>
 /// <param name="sweep">The sweep angle of the arc in degrees.</param>
-/// <param name="c">The color of the arc.</param>
-/// <param name="sw">The stroke width of the arc.</param>
 /// <returns>A primitive tree representing the arc.</returns>
 /// <remarks>
 /// The arc function represents part of an ellipse. It takes a color, a line width, a center (rx, ry), 
@@ -409,20 +408,20 @@ val filledRectangle: c:color -> w:float -> h:float -> PrimitiveTree
 /// <code>
 ///    let col = goldenrod
 ///    let strokeWidth = 3.0
-///    arc (128.0,128.0) 64.0 32.0 (-45.0*System.Math.PI/180.0) System.Math.PI col strokeWidth
+///    arc col strokeWidth (128.0,128.0) 64.0 32.0 (-45.0*System.Math.PI/180.0) System.Math.PI
 /// </code>
 /// which generates a PrimitiveTree representing an arc curve from -45 degrees to 135 degrees with color goldenred
 /// and width 3.0. The bounding box is the same as the full ellipse. This may change in the future.
 /// </remarks>
-val arc: center:Point -> rx:float -> ry:float -> start:float -> sweep:float -> c:color -> sw:float  -> PrimitiveTree //FIXME: reorder arguments to be similar to other functions. remove rx and ry to mimic ellipse
+val arc: c:color -> sw:float ->  center:Point -> rx:float -> ry:float -> start:float -> sweep:float ->PrimitiveTree
 
 /// <summary>Draws a filled elliptical arc.</summary>
+/// <param name="c">The fill color of the arc.</param>
 /// <param name="center">The center point of the ellipse.</param>
 /// <param name="rx">The horizontal radius of the ellipse.</param>
 /// <param name="ry">The vertical radius of the ellipse.</param>
 /// <param name="start">The starting angle of the arc in degrees.</param>
 /// <param name="sweep">The sweep angle of the arc in degrees.</param>
-/// <param name="c">The fill color of the arc.</param>
 /// <returns>A primitive tree representing the filled arc.</returns>
 /// <remarks>
 /// The arc function represents part of a filled ellipse. It takes a color, a center (rx, ry), a start angle in
@@ -431,20 +430,20 @@ val arc: center:Point -> rx:float -> ry:float -> start:float -> sweep:float -> c
 /// <code>
 ///    let col = goldenrod
 ///    let strokeWidth = 3.0
-///    filledArc (128.0,128.0) 64.0 32.0 (-45.0*System.Math.PI/180.0) System.Math.PI col
+///    filledArc col (128.0,128.0) 64.0 32.0 (-45.0*System.Math.PI/180.0) System.Math.PI
 /// </code>
 /// which generates a PrimitiveTree representing an filled arc from -45 degrees to 135 degrees. The bounding
 /// box is the same as the full ellipse. This may change in the future.
 /// </remarks>
-val filledArc: center:Point -> rx:float -> ry:float -> start:float -> sweep:float -> c:color -> PrimitiveTree //FIXME: reorder arguments to be similar to other functions. remove rx and ry to mimic ellipse
+val filledArc: c:color -> center:Point -> rx:float -> ry:float -> start:float -> sweep:float -> PrimitiveTree
 
 /// <summary>Draws a cubic Bezier curve.</summary>
+/// <param name="c">The color of the curve.</param>
+/// <param name="sw">The stroke width of the curve.</param>
 /// <param name="point1">The first control point of the curve.</param>
 /// <param name="point2">The second control point of the curve.</param>
 /// <param name="point3">The third control point of the curve.</param>
 /// <param name="point4">The fourth control point of the curve.</param>
-/// <param name="c">The color of the curve.</param>
-/// <param name="sw">The stroke width of the curve.</param>
 /// <returns>A primitive tree representing the cubic Bezier curve.</returns>
 /// <remarks>
 /// The cubic bezier function represents a cubic bezier curve which takes 4 points, a color, and stroke width.
@@ -453,19 +452,19 @@ val filledArc: center:Point -> rx:float -> ry:float -> start:float -> sweep:floa
 /// <code>
 ///    let col = ivory
 ///    let strokeWidth = 3.0
-///    cubicBezier (10.0,10.0) (12.0,10.0) (56.0,60.0) (70.0,70.0) col strokeWidth
+///    cubicBezier col strokeWidth (10.0,10.0) (12.0,10.0) (56.0,60.0) (70.0,70.0)
 /// </code>
 /// which generates a PrimitiveTree representing a bezier curve from (10.0,10.0) to (70.0, 70.0). The bounding
 /// box is the rectangle spanning the minimum and maximum values of all the x- and y-coordinates in the 4 points.
 /// </remarks>
-val cubicBezier: point1:Point -> point2:Point -> point3:Point -> point4:Point -> c:color -> sw:float -> PrimitiveTree //FIXME: reorder arguments to be similar to other functions
+val cubicBezier: c:color -> sw:float -> point1:Point -> point2:Point -> point3:Point -> point4:Point -> PrimitiveTree
 
 /// <summary> Draws a filled cubic Bezier curve.</summary>
+/// <param name="c">The fill color of the curve.</param>
 /// <param name="point1">The first control point of the curve.</param>
 /// <param name="point2">The second control point of the curve.</param>
 /// <param name="point3">The third control point of the curve.</param>
 /// <param name="point4">The fourth control point of the curve.</param>
-/// <param name="c">The fill color of the curve.</param>
 /// <returns>A primitive tree representing the filled cubic Bezier curve.</returns>
 /// <remarks>
 /// The filled cubic bezier function represents a cubic bezier curve which takes 4 points, and a color.
@@ -474,13 +473,13 @@ val cubicBezier: point1:Point -> point2:Point -> point3:Point -> point4:Point ->
 /// straight line between point 0 and 3. Example of code generating an arc tree is:
 /// <code>
 ///    let col = ivory
-///    filledCubicBezier (10.0,10.0) (12.0,10.0) (56.0,60.0) (70.0,70.0) col
+///    filledCubicBezier col (10.0,10.0) (12.0,10.0) (56.0,60.0) (70.0,70.0)
 /// </code>
 /// which generates a PrimitiveTree representing a filled bezier curve from (10.0,10.0) to (70.0, 70.0). 
 /// The bounding box is the rectangle spanning the minimum and maximum values of all the x- and
 /// y-coordinates in the 4 points.
 /// </remarks>
-val filledCubicBezier: point1:Point -> point2:Point -> point3:Point -> point4:Point -> c:color -> PrimitiveTree //FIXME: reorder arguments to be similar to other functions
+val filledCubicBezier: c:color -> point1:Point -> point2:Point -> point3:Point -> point4:Point -> PrimitiveTree
 
 /// <summary>Creates an ellipse with the specified radii and stroke width.</summary>
 /// <param name="c">The color of the ellipse.</param>
@@ -723,13 +722,13 @@ val animateToFile : width:int -> height:int -> frameDelay:int -> repeatCount:int
 /// The function render shows a Picture in a window on the screen. For example,
 /// <code>
 ///    let tree = ellipse darkCyan 2.0 85.0 64.0 |> translate 128.0 128.0
-///    let picture () = make tree
-///    render "Sample title" 256 256 pictureFct
+///    let pict = make tree
+///    render "Sample title" 256 256 pict
 /// </code>
 /// creates a translated ellipse graphic primitive tree converts it to a Picture using make and shows on the
-/// screen with render. Note that render takes a function as argument.
+/// screen with render.
 /// </remarks>
-val render : t:string -> w:int -> h:int -> draw: (unit -> Picture) ->  unit
+val render : t:string -> w:int -> h:int -> draw:Picture ->  unit
 
 /// <summary>Runs an application with a timer, defining the drawing and reaction functions.</summary>
 /// <param name="t">The title of the application window.</param>
