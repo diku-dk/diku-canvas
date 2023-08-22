@@ -164,7 +164,7 @@ type Rectangle = float*float*float*float
 /// <summary>Represents the size of a picture, defined by its width and height.</summary>
 type Size = float*float
 
-/// <summary>Represents a coordinate in a picture as (x,y)
+/// <summary>Represents a coordinate in a picture as (x,y).</summary>
 type Point = float*float
 
 /// <summary>Represents one of the events: Key, DownArrow, UpArrow, LeftArrow, RightArow, Return, TimerTick, MouseButtonDown, MouseButtonUp, and MouseMotion.</summary>
@@ -539,7 +539,7 @@ val onto : pic1: PrimitiveTree -> pic2: PrimitiveTree -> PrimitiveTree
 
 /// <summary>Aligns two graphic primitive trees horizontally at a specific position.</summary>
 /// <param name="pic1">The first graphic primitive tree to be aligned.</param>
-/// <param name="pos">One of Top, Center, or Bottom, defining how pic1 and pic2 are to be aligned.
+/// <param name="pos">One of Top, Center, or Bottom, defining how pic1 and pic2 are to be aligned.</param>
 /// <param name="pic2">The second graphic primitive tree to be aligned.</param>
 /// <returns>A new graphic primitive tree object representing the two graphic primitive trees aligned horizontally at the specified position.</returns>
 /// <remarks>
@@ -560,7 +560,7 @@ val alignH : pic1: PrimitiveTree -> pos:Position -> pic2: PrimitiveTree -> Primi
 
 /// <summary>Aligns two graphic primitive trees vertically at a specific position.</summary>
 /// <param name="pic1">The first graphic primitive tree to be aligned.</param>
-/// <param name="pos">One of Left, Center, or Right, defining how pic1 and pic2 are to be aligned
+/// <param name="pos">One of Left, Center, or Right, defining how pic1 and pic2 are to be aligned.</param>
 /// <param name="pic2">The second graphic primitive tree to be aligned.</param>
 /// <returns>A new graphic primitive tree object representing the two graphic primitive trees aligned vertically at the specified position.</returns>
 /// <remarks>
