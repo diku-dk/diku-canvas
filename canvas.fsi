@@ -517,7 +517,7 @@ val ellipse: c:color -> sw:float -> rx:float -> ry:float -> PrimitiveTree
 /// which generates a PrimitiveTree representing an filled ellipse of radii 10.0 and 20.0 in ivory. The
 /// bounding box is the smallest rectangle enclosing the ellipse, which in this case is (-10,-20) to (10.20).
 /// </remarks>
-val ellipse: c:cval filledEllipse: c:color -> rx:float -> ry:float -> PrimitiveTree 
+val filledEllipse: c:color -> rx:float -> ry:float -> PrimitiveTree
 
 /// <summary>Places one graphic primitive tree on top of another.</summary>
 /// <param name="pic1">The first graphic primitive tree, which will be placed on top of the second.</param>
