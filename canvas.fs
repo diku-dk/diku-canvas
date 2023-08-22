@@ -49,7 +49,7 @@ let animateToFile width height frameDelay repeatCount filePath drawLst =
                                (List.map (function Picture draw -> draw) drawLst)
 let interact t w h interval draw react s =
     Lowlevel.runAppWithTimer t w h interval (correct draw) (fun s ev -> react s (fromLowlevelEvent ev)) s
-let render t w h draw = Lowlevel.runApp t w h (correct draw)
+let render t w h draw = Lowlevel.runApp t w h (correct draw) // FIXME: there is no reason for render to accept draw on functional form.
 let fromRgba r g b a = Lowlevel.fromRgba r g b a |> Color
 let fromRgb r g b = Lowlevel.fromRgb r g b |> Color
 
@@ -228,7 +228,7 @@ type PrimitiveTree =
 
 let getSize ((x1,y1,x2,y2):Rectangle) : Size =
         (x2-x1,y2-y1) // always positive!
-let getRectangle (p:PrimitiveTree): Rectangle =
+let getRectangle (p:PrimitiveTree): Rectangle = // FIXME: This should be renamed to boundingBox
     match p with
         | Empty(rect)
         | PiecewiseAffine(_,_,_,rect)
@@ -294,9 +294,6 @@ let toString (p:PrimitiveTree): string =
     loop "" p
 
 /// Graphics primitives
-//let affineLowlevel.transform (M:System.Numerics.Matrix3x2) (p: PrimitiveTree): PrimitiveTree = 
-//  let sz = getSize <| getRectangle p
-//  AffineTransform(p,M,w,h)
 let translate (dx:float) (dy:float) (p: PrimitiveTree): PrimitiveTree =
     let (x1,y1,x2,y2) = getRectangle p
     Translate(p,dx,dy,(x1+dx,y1+dy,x2+dx,y2+dy))
@@ -342,7 +339,7 @@ let ellipse (c: color) (sw: float) (rx: float) (ry:float): PrimitiveTree =
     Ellipse(c,sw,(-rx,-ry,rx,ry)) 
 let filledEllipse (c: color) (rx: float) (ry:float): PrimitiveTree = 
     FilledEllipse(c, (-rx,-ry,rx,ry)) 
-let text (c: color) (sw:float) (f: Font) (txt:string): PrimitiveTree = 
+let text (c: color) (sw:float) (f: Font) (txt:string): PrimitiveTree = //FIXME: remove unused sw
     let w,h = measureText f txt
     Text(txt, c, f, (0.0,0.0,w,h)) 
 let emptyTree = Empty((0.0,0.0,0.0,0.0))
@@ -360,7 +357,7 @@ let rec onto (pic1:PrimitiveTree) (pic2:PrimitiveTree): PrimitiveTree =
     let x12,y12,x22,y22 = getRectangle pic2
     let rect = (min x11 x12, min y11 y12, max x21 x22, max y21 y22)
     Onto(pic1, pic2, rect)
-and alignH (pic1:PrimitiveTree) (Position pos) (pic2:PrimitiveTree): PrimitiveTree =
+and alignH (pic1:PrimitiveTree) (Position pos) (pic2:PrimitiveTree): PrimitiveTree = //FIXME: The positions are possibly flipped since y is down
     if pos < 0 || pos > 1 then 
         raise (System.ArgumentOutOfRangeException ("ppos must be in [0,1]"))
     let x11,y11,x21,y21 = getRectangle pic1

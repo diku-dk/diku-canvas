@@ -1,4 +1,4 @@
-#r "nuget:DIKU.Canvas, 2.0.0-alpha7"
+#r "nuget:DIKU.Canvas, 2.0.0-alpha8"
 open Canvas
 open System
 
@@ -59,6 +59,19 @@ let makeFilledArc _ =
     let col = green
     filledArc (W/2.0,H/2.0) (W/4.0) (H/3.0) -45.0 180.0 col
 
+/// A tree with an ellipse. The elllipse is drawn with center in (0.0,0.0), so we translate it
+let makeEllipse _ = 
+    let col = darkCyan
+    let strokeWidth = 2.0
+    ellipse col strokeWidth (W/3.0) (H/4.0)
+    |> translate (W/2.0) (H/2.0)
+
+/// A tree with an filled ellipse. The elllipse is drawn with center in (0.0,0.0), so we translate it
+let makeFilledEllipse _ = 
+    let col = darkCyan
+    filledEllipse col (W/3.0) (H/4.0)
+    |> translate (W/2.0) (H/2.0)
+
 /// A tree of text of its input
 let makeTxt i = 
     let fontName = systemFontNames[0] // or perhaps "Microsoft Sans Serif"
@@ -113,8 +126,10 @@ let mkDraw (txt:string): (state -> PrimitiveTree) =
         | "filledArc" -> makeFilledArc
         | "bezier" -> makeBezier
         | "filledBezier" -> makeFilledBezier
+        | "ellipse" -> makeEllipse
+        | "filledEllipse" -> makeFilledEllipse
         | "translate" -> makeTranslate
-        | "scale" -> makeScale // FIXME! throws SixLabors.ImageSharp.Drawing.Shapes.PolygonClipper.ClipperException
+        | "scale" -> makeScale
         | "rotate" -> makeRotate
         | "ontop" -> makeOntop
         | "4" -> make4
