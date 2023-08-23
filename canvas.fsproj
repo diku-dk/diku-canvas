@@ -16,7 +16,19 @@
     <GenerateDocumentationFile>true</GenerateDocumentationFile>
     <IncludeSymbols>true</IncludeSymbols>
     <SymbolPackageFormat>snupkg</SymbolPackageFormat>
-  </PropertyGroup>
+      <!-- Example ultra-simple styling and generation settings for FsDocs default template-->
+    <!-- <PackageLicenseUrl>https://github.com/diku-dk/diku-canvas/LICENSE</PackageLicenseUrl> -->
+    <PackageProjectUrl>https://diku-dk.github.io/diku-canvas/</PackageProjectUrl>
+    <!-- <RepositoryUrl>https://github.com/foo/bar/</RepositoryUrl> -->
+    <FsDocsLogoLink>https://fsharp.org</FsDocsLogoLink>
+    <FsDocsLicenseLink>https://github.com/diku-dk/diku-canvas/LICENSE</FsDocsLicenseLink>
+    <FsDocsReleaseNotesLink></FsDocsReleaseNotesLink>
+    <FsDocsNavbarPosition>fixed-left</FsDocsNavbarPosition>
+    <FsDocsWarnOnMissingDocs>true</FsDocsWarnOnMissingDocs>
+    <FsDocsTheme>default</FsDocsTheme>
+  <PropertyGroup>
+
+
 
   <ItemGroup>
     <PackageReference Update="FSharp.Core" Version="7.0" />
