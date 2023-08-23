@@ -20,7 +20,7 @@
     <!-- <PackageLicenseUrl>https://github.com/diku-dk/diku-canvas/blob/main/LICENSE</PackageLicenseUrl> -->
     <PackageProjectUrl>https://diku-dk.github.io/diku-canvas/</PackageProjectUrl>
     <!-- <RepositoryUrl>https://github.com/foo/bar/</RepositoryUrl> -->
-    <FsDocsLogoSource>images/Sierpinski.png</FsDocsLogoSource>
+    <FsDocsLogoSource>/images/Sierpinski.png</FsDocsLogoSource>
     <FsDocsLogoLink>https://diku-dk.github.io/diku-canvas/</FsDocsLogoLink>
     <FsDocsLicenseLink>https://github.com/diku-dk/diku-canvas/blob/main/LICENSE</FsDocsLicenseLink>
     <FsDocsReleaseNotesLink>https://www.nuget.org/packages/DIKU.Canvas</FsDocsReleaseNotesLink>
