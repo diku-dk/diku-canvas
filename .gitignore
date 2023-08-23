@@ -109,3 +109,5 @@ canvasNT3Test.png
 examples/renderToFile.png
 renderToFile.png
 sample.tif
+/output/
+/.fsdocs/
