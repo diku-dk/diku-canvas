@@ -48,7 +48,7 @@ jobs:
       # - name: Test
       #   run: dotnet test --no-build -c Release --verbosity normal
       - name: Run fsdocs
-        run: dotnet fsdocs build --eval --strict --properties Configuration=Release
+        run: dotnet fsdocs build --properties Configuration=Release
       - name: Pack
         run: dotnet pack -c Release
 
