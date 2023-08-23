@@ -3,7 +3,7 @@
   <PropertyGroup>
     <TargetFramework>net7.0</TargetFramework>
     <PackageId>DIKU.Canvas</PackageId>
-    <Version>2.0.0-alpha8</Version>
+    <Version>2.0.0-alpha9</Version>
     <PackageLicenseFile>LICENSE</PackageLicenseFile>
     <Authors>Martin Elsman, Ken Friis Larsen, Jon Sporring, Mads Obitsø</Authors>
     <Company>DIKU</Company>
@@ -37,6 +37,8 @@
   <ItemGroup>
     <Compile Include="SDL.fs" />
     <Compile Include="lowlevel.fs" />
+    <!-- <Compile Include="Color.fsi" /> -->
+    <Compile Include="Color.fs" />
     <Compile Include="canvas.fsi" />
     <Compile Include="canvas.fs" />
   </ItemGroup>
