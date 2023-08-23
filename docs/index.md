@@ -9,7 +9,7 @@ index: 1
 
 This library features a number of utility functions for drawing simple
 2D graphics on a canvas, including features for running simple
-user-interactive apps that display such canvas
+user-interactive apps that display such canvas.
 
 
 ## How to use Canvas in a F# script (.fsx)

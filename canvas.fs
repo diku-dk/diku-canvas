@@ -5,7 +5,7 @@ open System.Numerics
 type Tool = 
     | Pen of SixLabors.ImageSharp.Drawing.Processing.Pen
     | Brush of SixLabors.ImageSharp.Drawing.Processing.Brush
-type color = Color of Lowlevel.Color
+type color = Color.color
 type Font = Font of Lowlevel.Font
 type FontFamily = FontFamily of Lowlevel.FontFamily
 let systemFontNames = Lowlevel.systemFontNames
@@ -50,158 +50,8 @@ let animateToFile width height frameDelay repeatCount filePath drawLst =
 let interact t w h interval draw react s =
     Lowlevel.runAppWithTimer t w h interval (correct draw) (fun s ev -> react s (fromLowlevelEvent ev)) s
 let render t w h (Picture draw) = Lowlevel.runApp t w h (fun _ -> draw)
-let fromRgba r g b a = Lowlevel.fromRgba r g b a |> Color
-let fromRgb r g b = Lowlevel.fromRgb r g b |> Color
-
-let aliceBlue : color = Color Lowlevel.Color.AliceBlue
-let antiqueWhite : color = Color Lowlevel.Color.AntiqueWhite
-let aqua : color = Color Lowlevel.Color.Aqua
-let aquamarine : color = Color Lowlevel.Color.Aquamarine
-let azure : color = Color Lowlevel.Color.Azure
-let beige : color = Color Lowlevel.Color.Beige
-let bisque : color = Color Lowlevel.Color.Bisque
-let black : color = Color Lowlevel.Color.Black
-let blanchedAlmond : color = Color Lowlevel.Color.BlanchedAlmond
-let blue : color = Color Lowlevel.Color.Blue
-let blueViolet : color = Color Lowlevel.Color.BlueViolet
-let brown : color = Color Lowlevel.Color.Brown
-let burlyWood : color = Color Lowlevel.Color.BurlyWood
-let cadetBlue : color = Color Lowlevel.Color.CadetBlue
-let chartreuse : color = Color Lowlevel.Color.Chartreuse
-let chocolate : color = Color Lowlevel.Color.Chocolate
-let coral : color = Color Lowlevel.Color.Coral
-let cornflowerBlue : color = Color Lowlevel.Color.CornflowerBlue
-let cornsilk : color = Color Lowlevel.Color.Cornsilk
-let crimson : color = Color Lowlevel.Color.Crimson
-let cyan : color = Color Lowlevel.Color.Cyan
-let darkBlue : color = Color Lowlevel.Color.DarkBlue
-let darkCyan : color = Color Lowlevel.Color.DarkCyan
-let darkGoldenrod : color = Color Lowlevel.Color.DarkGoldenrod
-let darkGray : color = Color Lowlevel.Color.DarkGray
-let darkGreen : color = Color Lowlevel.Color.DarkGreen
-let darkGrey : color = Color Lowlevel.Color.DarkGrey
-let darkKhaki : color = Color Lowlevel.Color.DarkKhaki
-let darkMagenta : color = Color Lowlevel.Color.DarkMagenta
-let darkOliveGreen : color = Color Lowlevel.Color.DarkOliveGreen
-let darkOrange : color = Color Lowlevel.Color.DarkOrange
-let darkOrchid : color = Color Lowlevel.Color.DarkOrchid
-let darkRed : color = Color Lowlevel.Color.DarkRed
-let darkSalmon : color = Color Lowlevel.Color.DarkSalmon
-let darkSeaGreen : color = Color Lowlevel.Color.DarkSeaGreen
-let darkSlateBlue : color = Color Lowlevel.Color.DarkSlateBlue
-let darkSlateGray : color = Color Lowlevel.Color.DarkSlateGray
-let darkSlateGrey : color = Color Lowlevel.Color.DarkSlateGrey
-let darkTurquoise : color = Color Lowlevel.Color.DarkTurquoise
-let darkViolet : color = Color Lowlevel.Color.DarkViolet
-let deepPink : color = Color Lowlevel.Color.DeepPink
-let deepSkyBlue : color = Color Lowlevel.Color.DeepSkyBlue
-let dimGray : color = Color Lowlevel.Color.DimGray
-let dimGrey : color = Color Lowlevel.Color.DimGrey
-let dodgerBlue : color = Color Lowlevel.Color.DodgerBlue
-let firebrick : color = Color Lowlevel.Color.Firebrick
-let floralWhite : color = Color Lowlevel.Color.FloralWhite
-let forestGreen : color = Color Lowlevel.Color.ForestGreen
-let fuchsia : color = Color Lowlevel.Color.Fuchsia
-let gainsboro : color = Color Lowlevel.Color.Gainsboro
-let ghostWhite : color = Color Lowlevel.Color.GhostWhite
-let gold : color = Color Lowlevel.Color.Gold
-let goldenrod : color = Color Lowlevel.Color.Goldenrod
-let gray : color = Color Lowlevel.Color.Gray
-let green : color = Color Lowlevel.Color.Green
-let greenYellow : color = Color Lowlevel.Color.GreenYellow
-let grey : color = Color Lowlevel.Color.Grey
-let honeydew : color = Color Lowlevel.Color.Honeydew
-let hotPink : color = Color Lowlevel.Color.HotPink
-let indianRed : color = Color Lowlevel.Color.IndianRed
-let indigo : color = Color Lowlevel.Color.Indigo
-let ivory : color = Color Lowlevel.Color.Ivory
-let khaki : color = Color Lowlevel.Color.Khaki
-let lavender : color = Color Lowlevel.Color.Lavender
-let lavenderBlush : color = Color Lowlevel.Color.LavenderBlush
-let lawnGreen : color = Color Lowlevel.Color.LawnGreen
-let lemonChiffon : color = Color Lowlevel.Color.LemonChiffon
-let lightBlue : color = Color Lowlevel.Color.LightBlue
-let lightCoral : color = Color Lowlevel.Color.LightCoral
-let lightCyan : color = Color Lowlevel.Color.LightCyan
-let lightGoldenrodYellow : color = Color Lowlevel.Color.LightGoldenrodYellow
-let lightGray : color = Color Lowlevel.Color.LightGray
-let lightGreen : color = Color Lowlevel.Color.LightGreen
-let lightGrey : color = Color Lowlevel.Color.LightGrey
-let lightPink : color = Color Lowlevel.Color.LightPink
-let lightSalmon : color = Color Lowlevel.Color.LightSalmon
-let lightSeaGreen : color = Color Lowlevel.Color.LightSeaGreen
-let lightSkyBlue : color = Color Lowlevel.Color.LightSkyBlue
-let lightSlateGray : color = Color Lowlevel.Color.LightSlateGray
-let lightSlateGrey : color = Color Lowlevel.Color.LightSlateGrey
-let lightSteelBlue : color = Color Lowlevel.Color.LightSteelBlue
-let lightYellow : color = Color Lowlevel.Color.LightYellow
-let lime : color = Color Lowlevel.Color.Lime
-let limeGreen : color = Color Lowlevel.Color.LimeGreen
-let linen : color = Color Lowlevel.Color.Linen
-let magenta : color = Color Lowlevel.Color.Magenta
-let maroon : color = Color Lowlevel.Color.Maroon
-let mediumAquamarine : color = Color Lowlevel.Color.MediumAquamarine
-let mediumBlue : color = Color Lowlevel.Color.MediumBlue
-let mediumOrchid : color = Color Lowlevel.Color.MediumOrchid
-let mediumPurple : color = Color Lowlevel.Color.MediumPurple
-let mediumSeaGreen : color = Color Lowlevel.Color.MediumSeaGreen
-let mediumSlateBlue : color = Color Lowlevel.Color.MediumSlateBlue
-let mediumSpringGreen : color = Color Lowlevel.Color.MediumSpringGreen
-let mediumTurquoise : color = Color Lowlevel.Color.MediumTurquoise
-let mediumVioletRed : color = Color Lowlevel.Color.MediumVioletRed
-let midnightBlue : color = Color Lowlevel.Color.MidnightBlue
-let mintCream : color = Color Lowlevel.Color.MintCream
-let mistyRose : color = Color Lowlevel.Color.MistyRose
-let moccasin : color = Color Lowlevel.Color.Moccasin
-let navajoWhite : color = Color Lowlevel.Color.NavajoWhite
-let navy : color = Color Lowlevel.Color.Navy
-let oldLace : color = Color Lowlevel.Color.OldLace
-let olive : color = Color Lowlevel.Color.Olive
-let oliveDrab : color = Color Lowlevel.Color.OliveDrab
-let orange : color = Color Lowlevel.Color.Orange
-let orangeRed : color = Color Lowlevel.Color.OrangeRed
-let orchid : color = Color Lowlevel.Color.Orchid
-let paleGoldenrod : color = Color Lowlevel.Color.PaleGoldenrod
-let paleGreen : color = Color Lowlevel.Color.PaleGreen
-let paleTurquoise : color = Color Lowlevel.Color.PaleTurquoise
-let paleVioletRed : color = Color Lowlevel.Color.PaleVioletRed
-let papayaWhip : color = Color Lowlevel.Color.PapayaWhip
-let peachPuff : color = Color Lowlevel.Color.PeachPuff
-let peru : color = Color Lowlevel.Color.Peru
-let pink : color = Color Lowlevel.Color.Pink
-let plum : color = Color Lowlevel.Color.Plum
-let powderBlue : color = Color Lowlevel.Color.PowderBlue
-let purple : color = Color Lowlevel.Color.Purple
-let rebeccaPurple : color = Color Lowlevel.Color.RebeccaPurple
-let red : color = Color Lowlevel.Color.Red
-let rosyBrown : color = Color Lowlevel.Color.RosyBrown
-let royalBlue : color = Color Lowlevel.Color.RoyalBlue
-let saddleBrown : color = Color Lowlevel.Color.SaddleBrown
-let salmon : color = Color Lowlevel.Color.Salmon
-let sandyBrown : color = Color Lowlevel.Color.SandyBrown
-let seaGreen : color = Color Lowlevel.Color.SeaGreen
-let seaShell : color = Color Lowlevel.Color.SeaShell
-let sienna : color = Color Lowlevel.Color.Sienna
-let silver : color = Color Lowlevel.Color.Silver
-let skyBlue : color = Color Lowlevel.Color.SkyBlue
-let slateBlue : color = Color Lowlevel.Color.SlateBlue
-let slateGray : color = Color Lowlevel.Color.SlateGray
-let slateGrey : color = Color Lowlevel.Color.SlateGrey
-let snow : color = Color Lowlevel.Color.Snow
-let springGreen : color = Color Lowlevel.Color.SpringGreen
-let steelBlue : color = Color Lowlevel.Color.SteelBlue
-let tan : color = Color Lowlevel.Color.Tan
-let teal : color = Color Lowlevel.Color.Teal
-let thistle : color = Color Lowlevel.Color.Thistle
-let tomato : color = Color Lowlevel.Color.Tomato
-let transparent : color = Color Lowlevel.Color.Transparent
-let turquoise : color = Color Lowlevel.Color.Turquoise
-let violet : color = Color Lowlevel.Color.Violet
-let wheat : color = Color Lowlevel.Color.Wheat
-let white : color = Color Lowlevel.Color.White
-let whiteSmoke : color = Color Lowlevel.Color.WhiteSmoke
-let yellow : color = Color Lowlevel.Color.Yellow
-let yellowGreen : color = Color Lowlevel.Color.YellowGreen
+let fromRgba r g b a = Color.fromRgba r g b a
+let fromRgb r g b = Color.fromRgb r g b
 
 type Point = float*float
 type Rectangle = Point*Point // (x1,y1),(x2,y2): x2>x1 && y2>y1
@@ -416,47 +266,47 @@ let rec compile (idx:int) (expFlag: bool) (pic:PrimitiveTree): Lowlevel.PathTree
     match pic with
     | Empty(rect) -> 
         Lowlevel.Empty
-    | PiecewiseAffine(lst, Color c, sw, rect) ->
+    | PiecewiseAffine(lst, Color.Color c, sw, rect) ->
         let pen = Lowlevel.solidPen c sw
         let dc = Lowlevel.Prim (pen, Lowlevel.Lines lst)
         wrap Matrix3x2.Identity rect expFlag dc
-    | FilledPolygon(lst, Color c, rect) ->
+    | FilledPolygon(lst, Color.Color c, rect) ->
         let brush = Lowlevel.solidBrush c 
         let dc = Lowlevel.Prim (brush, Lowlevel.Lines lst)
         wrap Matrix3x2.Identity rect expFlag dc
-    | Rectangle(Color c, sw, rect) ->
+    | Rectangle(Color.Color c, sw, rect) ->
         let pen = Lowlevel.solidPen c sw
         let dc = _rectangle pen rect
         wrap Matrix3x2.Identity rect expFlag dc
-    | FilledRectangle(Color c, rect) ->
+    | FilledRectangle(Color.Color c, rect) ->
         let brush = Lowlevel.solidBrush c 
         let dc = _rectangle brush rect
         wrap Matrix3x2.Identity rect expFlag dc
-    | Arc(center,rx,ry,start,sweep,Color c,sw,rect) ->
+    | Arc(center,rx,ry,start,sweep,Color.Color c,sw,rect) ->
         let pen = Lowlevel.solidPen c sw
         let dc = Lowlevel.Prim(pen, Lowlevel.Arc(center,rx,ry,0.0,start,sweep))
         wrap Matrix3x2.Identity rect expFlag dc
-    | FilledArc(center,rx,ry,start,sweep,Color c,rect) ->
+    | FilledArc(center,rx,ry,start,sweep,Color.Color c,rect) ->
         let brush = Lowlevel.solidBrush c 
         let dc = Lowlevel.Prim(brush,Lowlevel.Arc(center,rx,ry,0.0,start,sweep))
         wrap Matrix3x2.Identity rect expFlag dc
-    | CubicBezier(point1,point2,point3,point4,Color c,sw,rect) ->
+    | CubicBezier(point1,point2,point3,point4,Color.Color c,sw,rect) ->
         let pen = Lowlevel.solidPen c sw
         let dc = Lowlevel.Prim(pen, Lowlevel.CubicBezier(point1,point2,point3,point4))
         wrap Matrix3x2.Identity rect expFlag dc
-    | FilledCubicBezier(point1,point2,point3,point4,Color c,rect) ->
+    | FilledCubicBezier(point1,point2,point3,point4,Color.Color c,rect) ->
         let brush = Lowlevel.solidBrush c 
         let dc = Lowlevel.Prim(brush, Lowlevel.CubicBezier(point1,point2,point3,point4))
         wrap Matrix3x2.Identity rect expFlag dc
-    | Ellipse(Color c, sw, rect) ->
+    | Ellipse(Color.Color c, sw, rect) ->
         let pen = Lowlevel.solidPen c sw
         let dc = _ellipse pen rect
         wrap Matrix3x2.Identity rect expFlag dc
-    | FilledEllipse(Color c, rect) ->
+    | FilledEllipse(Color.Color c, rect) ->
         let brush = Lowlevel.solidBrush c 
         let dc = _ellipse brush rect
         wrap Matrix3x2.Identity rect expFlag dc
-    | Text(txt, Color c, Font font, rect) ->
+    | Text(txt, Color.Color c, Font font, rect) ->
         let brush = Lowlevel.solidBrush c
         let opt = Lowlevel.TextOptions font
         let dc = Lowlevel.Text (brush, txt, opt)
