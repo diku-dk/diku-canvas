@@ -205,7 +205,7 @@ let yellowGreen : color = Color Lowlevel.Color.YellowGreen
 
 type Point = float*float
 type Rectangle = Point*Point // (x1,y1),(x2,y2): x2>x1 && y2>y1
-type Size = float*float // w,h
+type Size = float*float // w,h both non-negative
 type PrimitiveTree = 
     | Empty of Rectangle
     | PiecewiseAffine of (pointF list)*color*float*Rectangle
@@ -227,7 +227,7 @@ type PrimitiveTree =
     | Translate of PrimitiveTree*float*float*Rectangle
 
 let getSize (((x1,y1),(x2,y2)):Rectangle) : Size =
-        (x2-x1,y2-y1) // always positive!
+        (abs (x2-x1),abs (y2-y1))
 let getBoundingBox (p:PrimitiveTree): Rectangle =
     match p with
         | Empty(rect)
@@ -360,11 +360,13 @@ let rec onto (pic1:PrimitiveTree) (pic2:PrimitiveTree): PrimitiveTree =
 and alignH (pic1:PrimitiveTree) (Position pos) (pic2:PrimitiveTree): PrimitiveTree = //FIXME: The positions are possibly flipped since y is down
     if pos < 0 || pos > 1 then 
         raise (System.ArgumentOutOfRangeException ("ppos must be in [0,1]"))
-    let (x11,y11),(x21,y21) = getBoundingBox pic1
-    let (x12,y12),(x22,y22) = getBoundingBox pic2
-    let w1,h1 = getSize <| getBoundingBox pic1
-    let w2,h2 = getSize <| getBoundingBox pic2
+    let rect1 = getBoundingBox pic1
+    let rect2 = getBoundingBox pic2
+    let _,h1 = getSize rect1
+    let _,h2 = getSize rect2
     let s = pos*(h1-h2)
+    let (x11,y11),(x21,y21) = rect1
+    let (x12,y12),(x22,y22) = rect2
     let x12a = x12+x21-x12
     let x22a = x22+x21-x12
     let y12a = y12+y11-y12+s
@@ -374,11 +376,13 @@ and alignH (pic1:PrimitiveTree) (Position pos) (pic2:PrimitiveTree): PrimitiveTr
 and alignV (pic1:PrimitiveTree) (Position pos) (pic2:PrimitiveTree): PrimitiveTree =
     if pos < 0 || pos > 1 then 
         raise (System.ArgumentOutOfRangeException ("pos must be in [0,1]"))
-    let (x11,y11),(x21,y21) = getBoundingBox pic1
-    let (x12,y12),(x22,y22) = getBoundingBox pic2
-    let w1,h1 = getSize <| getBoundingBox pic1
-    let w2,h2 = getSize <| getBoundingBox pic2
+    let rect1 = getBoundingBox pic1
+    let rect2 = getBoundingBox pic2
+    let w1,_ = getSize rect1
+    let w2,_ = getSize rect2
     let s = pos*(w1-w2)
+    let (x11,y11),(x21,y21) = rect1
+    let (x12,y12),(x22,y22) = rect2
     let x12a = x12+x11-x12+s
     let x22a = x22+x11-x12+s
     let y12a = y12+y21-y12
@@ -463,11 +467,13 @@ let rec compile (idx:int) (expFlag: bool) (pic:PrimitiveTree): Lowlevel.PathTree
         let dc = Lowlevel.(<+>) dc2 dc1 // dc2 is drawn first
         wrap Matrix3x2.Identity rect expFlag dc
     | AlignH(p1, p2, pos, rect) ->
-        let (x11,y11),(x21,y21) = getBoundingBox p1
-        let (x12,y12),(x22,y22) = getBoundingBox p2
-        let w1,h1 = getSize ((x11,y11),(x21,y21))
-        let w2,h2 = getSize ((x12,y12),(x22,y22))
+        let rect1 = getBoundingBox p1
+        let rect2 = getBoundingBox p2
+        let _,h1 = getSize rect1
+        let _,h2 = getSize rect2
         let s = pos*(h1-h2)
+        let (x11,y11),(x21,y21) = rect1
+        let (x12,y12),(x22,y22) = rect2
         let dc1 = compile next expFlag p1
         let dc2 = compile next expFlag p2
         let dc =
@@ -475,11 +481,13 @@ let rec compile (idx:int) (expFlag: bool) (pic:PrimitiveTree): Lowlevel.PathTree
             Lowlevel.(<+>) dc1 (Lowlevel.transform M <| dc2)
         wrap Matrix3x2.Identity rect expFlag dc
     | AlignV(p1, p2, pos, rect) ->
-        let (x11,y11),(x21,y21) = getBoundingBox p1
-        let (x12,y12),(x22,y22) = getBoundingBox p2
-        let w1,h1 = getSize ((x11,y11),(x21,y21))
-        let w2,h2 = getSize ((x12,y12),(x22,y22))
+        let rect1 = getBoundingBox p1
+        let rect2 = getBoundingBox p2
+        let w1,_ = getSize rect1
+        let w2,_ = getSize rect2
         let s = pos*(w1-w2)
+        let (x11,y11),(x21,y21) = rect1
+        let (x12,y12),(x22,y22) = rect2
         let dc1 = compile next expFlag p1 
         let dc2 = compile next expFlag p2
         let dc =
