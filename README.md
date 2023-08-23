@@ -3,7 +3,7 @@ The DIKU-Canvas library: A Functional Graphics Library for F#
 
 [![Nuget](https://img.shields.io/nuget/v/DIKU.Canvas)](https://www.nuget.org/packages/DIKU.Canvas/)
 
-<img src="https://raw.githubusercontent.com/diku-dk/diku-canvas/nextgen/images/Sierpinski.png" border="2" width="250" align="right">
+<img src="https://raw.githubusercontent.com/diku-dk/diku-canvas/main/docs/images/Sierpinski.png" border="2" width="250" align="right">
 DIKU-Canvas is a simple graphics library developed specifically for teaching functional programming in F#. Rooted in computational geometry and functional paradigms, DIKU-Canvas provides computer scientists, researchers, and developers with an intuitive and mathematical approach to graphical programming.
 
 Leveraging F#'s functional programming capabilities, DIKU-Canvas emphasizes:
