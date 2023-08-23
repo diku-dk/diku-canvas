@@ -26,13 +26,14 @@ Make an F# script, say `myFirstCanvas.fsx` with a NuGet reference:
 
 Run it from the commandline using the command:
 
+    [lang=bash]
     dotnet fsi myFirstCanvas.fsx
 
 This should result in a window with a green square in the top left corner on a black background.
 
 If you want a specific version you edit the reference to be, e.g.,:
 
-    #r "nuget:DIKU.Canvas, 2.0.1-alpha8"
+    #r "nuget:DIKU.Canvas, 2.0.1"
 
 
 ## How to use Canvas in a F# project (that uses .fsproj)
@@ -40,12 +41,14 @@ If you want a specific version you edit the reference to be, e.g.,:
 Make an new directory, say `mycanvasapp`, in that directory start a F#
 "Console App" project with the command:
 
+    [lang=bash]
     dotnet new console -lang "F#"
 
 (This will give you both a `Program.fs` file and a `mycanvasapp.fsproj` file.)
 
 Add a reference to the `DIKU.Canvas` package with the command:
 
+    [lang=bash]
     dotnet add package DIKU.Canvas
 
 Edit `Program.fs` to have the content:
@@ -59,6 +62,7 @@ Edit `Program.fs` to have the content:
 
 Run your app with the command:
 
+    [lang=bash]
     dotnet run
 
 This should result in a window with a green square in the top left corner on a black background.
