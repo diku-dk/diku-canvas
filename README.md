@@ -57,7 +57,7 @@ Make an F# script, say `myFirstCanvas.fsx` with a NuGet reference:
 open Canvas
 
 let w,h = 256,256
-let tree = filledRectangle green ((float w)/2.0) ((float h)/2.0)
+let tree = filledRectangle Color.green ((float w)/2.0) ((float h)/2.0)
 let draw = fun _ -> make tree
 render "My first canvas" w h draw
 ```
@@ -94,7 +94,7 @@ Edit `Program.fs` to have the content:
 open Canvas
 
 let w,h = 256,256
-let tree = filledRectangle green ((float w)/2.0) ((float h)/2.0)
+let tree = filledRectangle Color.green ((float w)/2.0) ((float h)/2.0)
 let draw = fun _ -> make tree
 render "My first canvas" w h draw
 ```
