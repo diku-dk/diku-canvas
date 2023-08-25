@@ -271,7 +271,9 @@ let runAppWithTimer (t:string) (w:int) (h:int) (interval:int option)
 
     let state = ref s
 
+    SDL.SDL_SetMainReady()
     SDL.SDL_Init(SDL.SDL_INIT_VIDEO) |> ignore
+    //SDL.SDL_SetHint(SDL.SDL_HINT_QUIT_ON_LAST_WINDOW_CLOSE, "0") |> ignore
 
     let viewWidth, viewHeight = w, h
     let mutable window, renderer = IntPtr.Zero, IntPtr.Zero
@@ -290,19 +292,21 @@ let runAppWithTimer (t:string) (w:int) (h:int) (interval:int option)
 
     // Set up a timer
     let TIMER_EVENT = SDL.SDL_RegisterEvents 1 // TODO: check that we succeed
-    match interval with
-        Some interv when interv > 0 ->
-            let ticker _ =
-                let mutable ev = SDL.SDL_Event()
-                ev.``type`` <- TIMER_EVENT
-                SDL.SDL_PushEvent(&ev) |> ignore
+    let timer =
+        match interval with
+            | Some interv when interv > 0 ->
+                let ticker _ =
+                    let mutable ev = SDL.SDL_Event()
+                    ev.``type`` <- TIMER_EVENT
+                    SDL.SDL_PushEvent(&ev) |> ignore
 
-            let timer = new System.Timers.Timer(float interv)
-            timer.AutoReset <- true
-            timer.Elapsed.Add ticker
-            timer.Start()
-        | _ -> // No timer
-            ()
+                let timer = new System.Timers.Timer(float interv)
+                timer.AutoReset <- true
+                timer.Elapsed.Add ticker
+                timer.Start()
+                Some timer
+            | _ ->
+                None
 
     let userClassify : SDL.SDL_UserEvent -> ClassifiedEvent = function
         | uev when uev.``type`` = TIMER_EVENT -> React TimerTick
@@ -347,11 +351,18 @@ let runAppWithTimer (t:string) (w:int) (h:int) (interval:int option)
 
     SDL.SDL_StartTextInput()
     drawLoop true
+    //printfn "Out of loop"
+    timer |> Option.map (fun timer -> timer.Stop()) |> ignore
+
 
     SDL.SDL_DestroyTexture texture
+    //printfn "Texture destroyed"
     SDL.SDL_DestroyRenderer renderer
+    //printfn "Render destroyed"
     SDL.SDL_DestroyWindow window
-    SDL.SDL_Quit()
+    //printfn "Window destroyed"
+    SDL.SDL_QuitSubSystem(SDL.SDL_INIT_VIDEO) |> ignore
+    //SDL.SDL_Quit()
     ()
 
 let runApp (t:string) (w:int) (h:int) (draw: unit -> drawing_fun) : unit =
