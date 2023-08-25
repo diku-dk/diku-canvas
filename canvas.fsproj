@@ -17,12 +17,13 @@
     <IncludeSymbols>true</IncludeSymbols>
     <SymbolPackageFormat>snupkg</SymbolPackageFormat>
       <!-- Example ultra-simple styling and generation settings for FsDocs default template-->
-    <!-- <PackageLicenseUrl>https://github.com/diku-dk/diku-canvas/LICENSE</PackageLicenseUrl> -->
+    <!-- <PackageLicenseUrl>https://github.com/diku-dk/diku-canvas/blob/main/LICENSE</PackageLicenseUrl> -->
     <PackageProjectUrl>https://diku-dk.github.io/diku-canvas/</PackageProjectUrl>
     <!-- <RepositoryUrl>https://github.com/foo/bar/</RepositoryUrl> -->
-    <FsDocsLogoLink>https://fsharp.org</FsDocsLogoLink>
-    <FsDocsLicenseLink>https://github.com/diku-dk/diku-canvas/LICENSE</FsDocsLicenseLink>
-    <FsDocsReleaseNotesLink></FsDocsReleaseNotesLink>
+    <FsDocsLogoSource>https://diku-dk.github.io/diku-canvas/images/Sierpinski.png</FsDocsLogoSource>
+    <FsDocsLogoLink>https://diku-dk.github.io/diku-canvas/</FsDocsLogoLink>
+    <FsDocsLicenseLink>https://github.com/diku-dk/diku-canvas/blob/main/LICENSE</FsDocsLicenseLink>
+    <FsDocsReleaseNotesLink>https://www.nuget.org/packages/DIKU.Canvas</FsDocsReleaseNotesLink>
     <FsDocsNavbarPosition>fixed-left</FsDocsNavbarPosition>
     <FsDocsWarnOnMissingDocs>true</FsDocsWarnOnMissingDocs>
     <FsDocsTheme>default</FsDocsTheme>

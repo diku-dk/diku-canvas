@@ -1,3 +1,4 @@
+/// Canvas for drawing drawing simple 2D graphics, including features simple user-interaction
 module Canvas
 
 /// <summary>A color define as 4 values red, green, blue, and alpha.</summary>
@@ -19,15 +20,25 @@ type Size = float*float
 
 /// <summary>Represents one of the events: Key, DownArrow, UpArrow, LeftArrow, RightArow, Return, TimerTick, MouseButtonDown, MouseButtonUp, and MouseMotion.</summary>
 type Event =
-    | Key of char
+    /// A key with at letter is pressed
+    | Key of key: char
+    /// Down arrow is pressed
     | DownArrow
+    /// Up arrow is pressed
     | UpArrow
+    /// Left arrow is pressed
     | LeftArrow
+    /// Right arrow is pressed
     | RightArrow
+    /// Return key is pressed
     | Return
-    | MouseButtonDown of int * int // x,y
-    | MouseButtonUp of int * int // x,y
-    | MouseMotion of int * int * int * int // x,y, relx, rely
+    /// The left mouse button is clicked at coordinate `(x,y)`
+    | MouseButtonDown of x: int * y: int // x,y
+    /// The left mouse button is released at coordinate `(x,y)`
+    | MouseButtonUp of x: int * y: int // x,y
+    /// The mouse is moved
+    | MouseMotion of x: int * y: int * relx: int * rely: int // x,y, relx, rely
+    /// A tick event from the timer
     | TimerTick
 
 

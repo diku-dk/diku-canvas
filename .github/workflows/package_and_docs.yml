@@ -1,4 +1,4 @@
-name: Create nuget package (eventually) and generate documentation
+name: Generate documentation and create nuget package (eventually)
 
 on:
   push:
