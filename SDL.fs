@@ -48,6 +48,9 @@ let SDLK_UP = 1073741906u
 let SDL_QUIT = 0x100u
 let SDL_USEREVENT = 0x8000u
 
+[<Literal>]
+let SDL_HINT_QUIT_ON_LAST_WINDOW_CLOSE = "SDL_QUIT_ON_LAST_WINDOW_CLOSE"
+
 [<type:StructLayout(LayoutKind.Sequential)>]
 type SDL_Keysym =
     struct
@@ -192,6 +195,14 @@ type SDL_RendererFlags =
 extern int SDL_Init(uint32 flags)
 
 [<DllImport(libName, CallingConvention = CallingConvention.Cdecl)>]
+extern void SDL_SetMainReady()
+
+[<DllImport(libName, CallingConvention = CallingConvention.Cdecl)>]
+extern int SDL_SetHint([<MarshalAs(UnmanagedType.LPUTF8Str)>] string name,
+                       [<MarshalAs(UnmanagedType.LPUTF8Str)>] string value);
+
+
+[<DllImport(libName, CallingConvention = CallingConvention.Cdecl)>]
 extern int SDL_CreateWindowAndRenderer (int width, int height, SDL_WindowFlags flags, IntPtr& window, IntPtr& renderer)
 
 [<DllImport(libName, CallingConvention = CallingConvention.Cdecl)>]
@@ -251,6 +262,9 @@ extern unit SDL_DestroyWindow(IntPtr window)
 
 [<DllImport(libName, CallingConvention = CallingConvention.Cdecl)>]
 extern unit SDL_Quit()
+
+[<DllImport(libName, CallingConvention = CallingConvention.Cdecl)>]
+extern unit SDL_QuitSubSystem(uint32 flags)
 
 [<DllImport(libName, CallingConvention = CallingConvention.Cdecl)>]
 extern IntPtr SDL_CreateRGBSurfaceFrom (IntPtr pixels, int width, int height, int depth, int pitch, uint32 Rmask, uint32 Gmask, uint32 Bmask, uint32 Amask)
