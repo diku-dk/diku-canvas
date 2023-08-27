@@ -1,5 +1,6 @@
 #r "nuget:DIKU.Canvas, 2.0.0-alpha9"
 open Canvas
+open Color
 
 type state = {monster : int * int;  // x-pos and direction
               player : int * int }  // x-pos and y-pos

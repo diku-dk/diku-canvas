@@ -1,6 +1,6 @@
-#i "nuget:/Users/jrh630/repositories/diku-canvas/bin/Release/"
-#r "nuget:DIKU.Canvas, 2.0.0-alpha8"
+#r "nuget:DIKU.Canvas, 2.0.0-alpha9"
 open Canvas
+open Color
 open System
 
 let w,h = 600,400 // The size of the canvas

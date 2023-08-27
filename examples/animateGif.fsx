@@ -1,5 +1,6 @@
-#r "nuget:DIKU.Canvas, 2.0.0-alpha8"
+#r "nuget:DIKU.Canvas, 2.0.0-alpha9"
 open Canvas
+open Color
 
 type state = float // a rotation degree
 
@@ -16,7 +17,7 @@ let bck = filledRectangle black w h
 
 /// Prepare a Picture by the present state whenever needed
 let draw (i:state): Picture = 
-    let fw,fh = getSize <| getRectangle tree
+    let fw,fh = getSize <| getBoundingBox tree
     let cx,cy = fw/2.0, fh/2.0
     let rad = i*System.Math.PI/180.0
     let fig = onto (rotate cx cy rad tree) bck // Force black background

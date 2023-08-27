@@ -1,5 +1,6 @@
-#r "nuget:DIKU.Canvas, 2.0.0-alpha8"
+#r "nuget:DIKU.Canvas, 2.0.0-alpha9"
 open Canvas
+open Color
 
 type state = float // a rotation degree
 
@@ -19,7 +20,7 @@ let fig = translate 50.0 50.0 (alignV (alignH tri1 Center tri2) Center ell)
 
 /// Prepare a Picture by the present state whenever needed
 let draw (i:state): Picture = 
-    let fw,fh = getSize <| getRectangle fig
+    let fw,fh = getSize <| getBoundingBox fig
     let cx,cy = fw/2.0, fh/2.0
     let rad = i/(N-1.0)*2.0*System.Math.PI
     let figi = rotate cx cy rad fig

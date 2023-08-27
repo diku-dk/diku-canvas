@@ -1,5 +1,6 @@
-#r "nuget:DIKU.Canvas, 2.0.0-alpha8"
+#r "nuget:DIKU.Canvas, 2.0.0-alpha9"
 open Canvas
+open Color
 
 let w,h,l = 600,600,512 // size of window and base length of triangle
 
@@ -15,7 +16,7 @@ let rec triangle (length:int) (x:int, y:int): PrimitiveTree =
         (triangle halfLen (x+halfLen, y+halfLen)))
 
 /// Prepare a Picture by the present state whenever needed
-let draw (): Picture = 
+let draw = 
     let x,y = (w-l)/2, (h-l)/2
     let tri = triangle l (x,y)
     make tri

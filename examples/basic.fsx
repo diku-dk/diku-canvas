@@ -1,5 +1,6 @@
-#r "nuget:DIKU.Canvas, 2.0.0-alpha8"
+#r "nuget:DIKU.Canvas, 2.0.0-alpha9"
 open Canvas
+open Color
 open System
 
 type state = int // a counter
@@ -41,23 +42,23 @@ let bezierPoints = [(W/8.0,H/2.0); (W*3.0/8.0, H/2.0 + H/4.0 * rand.NextDouble()
 let makeBezier _ =
     let col = green
     let strokeWidth = 3.0
-    cubicBezier bezierPoints[0] bezierPoints[1] bezierPoints[2] bezierPoints[3] col strokeWidth
+    cubicBezier col strokeWidth bezierPoints[0] bezierPoints[1] bezierPoints[2] bezierPoints[3]
 
 /// A tree of a filled cubic Bezier curve. Argument is ignores the argument
 let makeFilledBezier _ = 
     let col = green
-    filledCubicBezier bezierPoints[0] bezierPoints[1] bezierPoints[2] bezierPoints[3] col
+    filledCubicBezier col bezierPoints[0] bezierPoints[1] bezierPoints[2] bezierPoints[3]
 
 /// A tree of a circular arc. Argument is ignores the argument
 let makeArc _ = 
     let col = green
     let strokeWidth = 3.0
-    arc (W/2.0,H/2.0) (W/4.0) (H/3.0) -45.0 180.0 col strokeWidth
+    arc col strokeWidth (W/2.0,H/2.0) (W/4.0) (H/3.0) -45.0 180.0
 
 /// A tree of a filled circular arc. Argument is ignores the argument
 let makeFilledArc _ = 
     let col = green
-    filledArc (W/2.0,H/2.0) (W/4.0) (H/3.0) -45.0 180.0 col
+    filledArc col (W/2.0,H/2.0) (W/4.0) (H/3.0) -45.0 180.0
 
 /// A tree with an ellipse. The elllipse is drawn with center in (0.0,0.0), so we translate it
 let makeEllipse _ = 
@@ -77,7 +78,7 @@ let makeTxt i =
     let fontName = systemFontNames[0] // or perhaps "Microsoft Sans Serif"
     let font = makeFont fontName 24.0
     let white = yellow
-    text white 1.0 font (string i)
+    text white font (string i)
 
 /// A tree which is a translated version of mkText
 let makeTranslate i = 
@@ -87,8 +88,8 @@ let makeTranslate i =
 /// A tree which is a rotated version of mkText
 let makeRotate i = 
     let txt = makeTxt i
-    let (x,y,w,h) = getRectangle txt
-    txt |> rotate (x+w/2.0) (y+h/2.0) ((float i)*System.Math.PI/180.0)
+    let ((x1,y1),(x2,y2)) = getBoundingBox txt
+    txt |> rotate ((x1+x2)/2.0) ((y1+y2)/2.0) ((float i)*System.Math.PI/180.0)
 
 /// A tree which is a scaled version of mkText
 let makeScale i = 
@@ -110,7 +111,7 @@ let make4 i =
     let fontName = systemFontNames[0]
     let font = makeFont fontName (4.0*36.0)
     let p = 
-        text white 1.0 font (string i)
+        text white font (string i)
     let q = alignV p Top p
     alignH q Top q
 
