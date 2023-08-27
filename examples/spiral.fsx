@@ -1,5 +1,6 @@
-#r "nuget:DIKU.Canvas, 2.0.0-alpha8"
+#r "nuget:DIKU.Canvas, 2.0.0-alpha9"
 open Canvas
+open Color
 
 let w,h = 400,400 // The size of the canvas
 
@@ -23,8 +24,7 @@ let spiral s x y =
   iterate s s x y
 
 /// Prepare a Picture by the present state whenever needed
-let draw (): Picture = 
-    make (spiral 20.0 200.0 200.0)
+let draw = make (spiral 20.0 200.0 200.0)
 
 // Render the picture to the screen
 render "Spiral" w h draw

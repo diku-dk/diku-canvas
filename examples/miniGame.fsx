@@ -1,5 +1,6 @@
-#r "nuget:DIKU.Canvas, 2.0.0-alpha8"
+#r "nuget:DIKU.Canvas, 2.0.0-alpha9"
 open Canvas
+open Color
 
 type state = {monster : int * int;  // x-pos and direction
               player : int * int }  // x-pos and y-pos
@@ -45,14 +46,14 @@ let boxAt color w h x y =
 
 let drawMonster (s:state) =
     let x, _ = s.monster
-    boxAt green monsterSz monsterSz x ((h-monsterSz)/2)
+    boxAt Color.green monsterSz monsterSz x ((h-monsterSz)/2)
 
 let drawPlayer (s:state) =
     let x, y = s.player
-    boxAt skyBlue 50 50 x y
+    boxAt Color.skyBlue 50 50 x y
 
 let drawEndScreen s =
-    if collision s then boxAt red w h 0 0
+    if collision s then boxAt Color.red w h 0 0
     else emptyTree
 
 let (++) p1 p2 = onto p1 p2

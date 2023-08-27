@@ -1,183 +1,44 @@
+/// Canvas for drawing drawing simple 2D graphics, including features simple user-interaction
 module Canvas
 
 /// <summary>A color define as 4 values red, green, blue, and alpha.</summary>
-type color
-
-val aliceBlue : color
-val antiqueWhite : color
-val aqua : color
-val aquamarine : color
-val azure : color
-val beige : color
-val bisque : color
-val black : color
-val blanchedAlmond : color
-val blue : color
-val blueViolet : color
-val brown : color
-val burlyWood : color
-val cadetBlue : color
-val chartreuse : color
-val chocolate : color
-val coral : color
-val cornflowerBlue : color
-val cornsilk : color
-val crimson : color
-val cyan : color
-val darkBlue : color
-val darkCyan : color
-val darkGoldenrod : color
-val darkGray : color
-val darkGreen : color
-val darkGrey : color
-val darkKhaki : color
-val darkMagenta : color
-val darkOliveGreen : color
-val darkOrange : color
-val darkOrchid : color
-val darkRed : color
-val darkSalmon : color
-val darkSeaGreen : color
-val darkSlateBlue : color
-val darkSlateGray : color
-val darkSlateGrey : color
-val darkTurquoise : color
-val darkViolet : color
-val deepPink : color
-val deepSkyBlue : color
-val dimGray : color
-val dimGrey : color
-val dodgerBlue : color
-val firebrick : color
-val floralWhite : color
-val forestGreen : color
-val fuchsia : color
-val gainsboro : color
-val ghostWhite : color
-val gold : color
-val goldenrod : color
-val gray : color
-val green : color
-val greenYellow : color
-val grey : color
-val honeydew : color
-val hotPink : color
-val indianRed : color
-val indigo : color
-val ivory : color
-val khaki : color
-val lavender : color
-val lavenderBlush : color
-val lawnGreen : color
-val lemonChiffon : color
-val lightBlue : color
-val lightCoral : color
-val lightCyan : color
-val lightGoldenrodYellow : color
-val lightGray : color
-val lightGreen : color
-val lightGrey : color
-val lightPink : color
-val lightSalmon : color
-val lightSeaGreen : color
-val lightSkyBlue : color
-val lightSlateGray : color
-val lightSlateGrey : color
-val lightSteelBlue : color
-val lightYellow : color
-val lime : color
-val limeGreen : color
-val linen : color
-val magenta : color
-val maroon : color
-val mediumAquamarine : color
-val mediumBlue : color
-val mediumOrchid : color
-val mediumPurple : color
-val mediumSeaGreen : color
-val mediumSlateBlue : color
-val mediumSpringGreen : color
-val mediumTurquoise : color
-val mediumVioletRed : color
-val midnightBlue : color
-val mintCream : color
-val mistyRose : color
-val moccasin : color
-val navajoWhite : color
-val navy : color
-val oldLace : color
-val olive : color
-val oliveDrab : color
-val orange : color
-val orangeRed : color
-val orchid : color
-val paleGoldenrod : color
-val paleGreen : color
-val paleTurquoise : color
-val paleVioletRed : color
-val papayaWhip : color
-val peachPuff : color
-val peru : color
-val pink : color
-val plum : color
-val powderBlue : color
-val purple : color
-val rebeccaPurple : color
-val red : color
-val rosyBrown : color
-val royalBlue : color
-val saddleBrown : color
-val salmon : color
-val sandyBrown : color
-val seaGreen : color
-val seaShell : color
-val sienna : color
-val silver : color
-val skyBlue : color
-val slateBlue : color
-val slateGray : color
-val slateGrey : color
-val snow : color
-val springGreen : color
-val steelBlue : color
-val tan : color
-val teal : color
-val thistle : color
-val tomato : color
-val transparent : color
-val turquoise : color
-val violet : color
-val wheat : color
-val white : color
-val whiteSmoke : color
-val yellow : color
-val yellowGreen : color
+type color = Color.color
 
 /// <summary>A font defined by a font name and its size in dots-per-inch (dpi).</summary>
 type Font
 /// <summary>A collection of font variations specified by the family name.</summary>
 type FontFamily
 
+/// <summary>Represents a coordinate in a picture as (x,y).</summary>
+type Point = float*float
+
 /// <summary>Represents the size of a picture, defined by x1,y1,x2,y2 where x2>x1 and y2>y1.</summary>
-type Rectangle = float*float*float*float
+type Rectangle = Point*Point
 
 /// <summary>Represents the size of a picture, defined by its width and height.</summary>
 type Size = float*float
 
-/// <summary>Represents a coordinate in a picture as (x,y)
-type Point = float*float
-
 /// <summary>Represents one of the events: Key, DownArrow, UpArrow, LeftArrow, RightArow, Return, TimerTick, MouseButtonDown, MouseButtonUp, and MouseMotion.</summary>
 type Event =
-    | Key of char
+    /// A key with at letter is pressed
+    | Key of key: char
+    /// Down arrow is pressed
     | DownArrow
+    /// Up arrow is pressed
     | UpArrow
+    /// Left arrow is pressed
     | LeftArrow
+    /// Right arrow is pressed
     | RightArrow
+    /// Return key is pressed
     | Return
-    | MouseButtonDown of int * int // x,y
-    | MouseButtonUp of int * int // x,y
-    | MouseMotion of int * int * int * int // x,y, relx, rely
+    /// The left mouse button is clicked at coordinate `(x,y)`
+    | MouseButtonDown of x: int * y: int // x,y
+    /// The left mouse button is released at coordinate `(x,y)`
+    | MouseButtonUp of x: int * y: int // x,y
+    /// The mouse is moved
+    | MouseMotion of x: int * y: int * relx: int * rely: int // x,y, relx, rely
+    /// A tick event from the timer
     | TimerTick
 
 
@@ -233,26 +94,25 @@ val measureText: f: Font -> txt: string -> (float * float)
 /// Creates a PrimitiveTree representing the given text with specified properties.
 /// </summary>
 /// <param name="c">The color of the text.</param>
-/// <param name="sw">The stroke width of the text.</param>
 /// <param name="f">The font used to render the text.</param>
 /// <param name="txt">The text to render.</param>
 /// <returns>A PrimitiveTree object representing the rendered text.</returns>
 /// <remarks>
-/// This function is used to create a text primitive with specific styling. The stroke width parameter is accepted but currently not used within the function. For example:
+/// This function is used to create a text primitive with specific styling. For example:
 /// <code>
 ///    let fontName = "Microsoft Sans Serif"
 ///    let font = makeFont fontName 24.0
 ///    let white = yellow
-///    let tree = text white 1.0 font "Hello World"
+///    let tree = text white font "Hello World"
 /// </code>
 /// creates a graphic primitive of the string "Hello World".
 /// </remarks>
-val text: c: color -> sw: float -> f: Font -> txt: string -> PrimitiveTree
+val text: c: color -> f: Font -> txt: string -> PrimitiveTree
 
 /// <summary>Retrieves the bounding box of a given graphic primitive tree.</summary>
 /// <param name="p">The graphic primitive tree for which to get the size.</param>
 /// <returns>The bounding box of the tree as x1,y1,x2,y2 where x2>x1 and y2>y1.</returns>
-val getRectangle : p: PrimitiveTree -> Rectangle
+val getBoundingBox : p: PrimitiveTree -> Rectangle
 
 /// <summary>Converts a rectangle into a size.</summary>
 /// <param name="rect">The bounding box as a rectangle x1,y1,x2,y2 where x2>x1 and y2>y1.</param>
@@ -394,13 +254,13 @@ val rectangle: c:color -> sw: float -> w:float -> h:float -> PrimitiveTree
 val filledRectangle: c:color -> w:float -> h:float -> PrimitiveTree 
 
 /// <summary>Draws an elliptical arc.</summary>
+/// <param name="c">The color of the arc.</param>
+/// <param name="sw">The stroke width of the arc.</param>
 /// <param name="center">The center point of the ellipse.</param>
 /// <param name="rx">The horizontal radius of the ellipse.</param>
 /// <param name="ry">The vertical radius of the ellipse.</param>
 /// <param name="start">The starting angle of the arc in degrees.</param>
 /// <param name="sweep">The sweep angle of the arc in degrees.</param>
-/// <param name="c">The color of the arc.</param>
-/// <param name="sw">The stroke width of the arc.</param>
 /// <returns>A primitive tree representing the arc.</returns>
 /// <remarks>
 /// The arc function represents part of an ellipse. It takes a color, a line width, a center (rx, ry), 
@@ -409,20 +269,20 @@ val filledRectangle: c:color -> w:float -> h:float -> PrimitiveTree
 /// <code>
 ///    let col = goldenrod
 ///    let strokeWidth = 3.0
-///    arc (128.0,128.0) 64.0 32.0 (-45.0*System.Math.PI/180.0) System.Math.PI col strokeWidth
+///    arc col strokeWidth (128.0,128.0) 64.0 32.0 (-45.0*System.Math.PI/180.0) System.Math.PI
 /// </code>
 /// which generates a PrimitiveTree representing an arc curve from -45 degrees to 135 degrees with color goldenred
 /// and width 3.0. The bounding box is the same as the full ellipse. This may change in the future.
 /// </remarks>
-val arc: center:Point -> rx:float -> ry:float -> start:float -> sweep:float -> c:color -> sw:float  -> PrimitiveTree //FIXME: reorder arguments to be similar to other functions. remove rx and ry to mimic ellipse
+val arc: c:color -> sw:float ->  center:Point -> rx:float -> ry:float -> start:float -> sweep:float ->PrimitiveTree
 
 /// <summary>Draws a filled elliptical arc.</summary>
+/// <param name="c">The fill color of the arc.</param>
 /// <param name="center">The center point of the ellipse.</param>
 /// <param name="rx">The horizontal radius of the ellipse.</param>
 /// <param name="ry">The vertical radius of the ellipse.</param>
 /// <param name="start">The starting angle of the arc in degrees.</param>
 /// <param name="sweep">The sweep angle of the arc in degrees.</param>
-/// <param name="c">The fill color of the arc.</param>
 /// <returns>A primitive tree representing the filled arc.</returns>
 /// <remarks>
 /// The arc function represents part of a filled ellipse. It takes a color, a center (rx, ry), a start angle in
@@ -431,20 +291,20 @@ val arc: center:Point -> rx:float -> ry:float -> start:float -> sweep:float -> c
 /// <code>
 ///    let col = goldenrod
 ///    let strokeWidth = 3.0
-///    filledArc (128.0,128.0) 64.0 32.0 (-45.0*System.Math.PI/180.0) System.Math.PI col
+///    filledArc col (128.0,128.0) 64.0 32.0 (-45.0*System.Math.PI/180.0) System.Math.PI
 /// </code>
 /// which generates a PrimitiveTree representing an filled arc from -45 degrees to 135 degrees. The bounding
 /// box is the same as the full ellipse. This may change in the future.
 /// </remarks>
-val filledArc: center:Point -> rx:float -> ry:float -> start:float -> sweep:float -> c:color -> PrimitiveTree //FIXME: reorder arguments to be similar to other functions. remove rx and ry to mimic ellipse
+val filledArc: c:color -> center:Point -> rx:float -> ry:float -> start:float -> sweep:float -> PrimitiveTree
 
 /// <summary>Draws a cubic Bezier curve.</summary>
+/// <param name="c">The color of the curve.</param>
+/// <param name="sw">The stroke width of the curve.</param>
 /// <param name="point1">The first control point of the curve.</param>
 /// <param name="point2">The second control point of the curve.</param>
 /// <param name="point3">The third control point of the curve.</param>
 /// <param name="point4">The fourth control point of the curve.</param>
-/// <param name="c">The color of the curve.</param>
-/// <param name="sw">The stroke width of the curve.</param>
 /// <returns>A primitive tree representing the cubic Bezier curve.</returns>
 /// <remarks>
 /// The cubic bezier function represents a cubic bezier curve which takes 4 points, a color, and stroke width.
@@ -453,19 +313,19 @@ val filledArc: center:Point -> rx:float -> ry:float -> start:float -> sweep:floa
 /// <code>
 ///    let col = ivory
 ///    let strokeWidth = 3.0
-///    cubicBezier (10.0,10.0) (12.0,10.0) (56.0,60.0) (70.0,70.0) col strokeWidth
+///    cubicBezier col strokeWidth (10.0,10.0) (12.0,10.0) (56.0,60.0) (70.0,70.0)
 /// </code>
 /// which generates a PrimitiveTree representing a bezier curve from (10.0,10.0) to (70.0, 70.0). The bounding
 /// box is the rectangle spanning the minimum and maximum values of all the x- and y-coordinates in the 4 points.
 /// </remarks>
-val cubicBezier: point1:Point -> point2:Point -> point3:Point -> point4:Point -> c:color -> sw:float -> PrimitiveTree //FIXME: reorder arguments to be similar to other functions
+val cubicBezier: c:color -> sw:float -> point1:Point -> point2:Point -> point3:Point -> point4:Point -> PrimitiveTree
 
 /// <summary> Draws a filled cubic Bezier curve.</summary>
+/// <param name="c">The fill color of the curve.</param>
 /// <param name="point1">The first control point of the curve.</param>
 /// <param name="point2">The second control point of the curve.</param>
 /// <param name="point3">The third control point of the curve.</param>
 /// <param name="point4">The fourth control point of the curve.</param>
-/// <param name="c">The fill color of the curve.</param>
 /// <returns>A primitive tree representing the filled cubic Bezier curve.</returns>
 /// <remarks>
 /// The filled cubic bezier function represents a cubic bezier curve which takes 4 points, and a color.
@@ -474,13 +334,13 @@ val cubicBezier: point1:Point -> point2:Point -> point3:Point -> point4:Point ->
 /// straight line between point 0 and 3. Example of code generating an arc tree is:
 /// <code>
 ///    let col = ivory
-///    filledCubicBezier (10.0,10.0) (12.0,10.0) (56.0,60.0) (70.0,70.0) col
+///    filledCubicBezier col (10.0,10.0) (12.0,10.0) (56.0,60.0) (70.0,70.0)
 /// </code>
 /// which generates a PrimitiveTree representing a filled bezier curve from (10.0,10.0) to (70.0, 70.0). 
 /// The bounding box is the rectangle spanning the minimum and maximum values of all the x- and
 /// y-coordinates in the 4 points.
 /// </remarks>
-val filledCubicBezier: point1:Point -> point2:Point -> point3:Point -> point4:Point -> c:color -> PrimitiveTree //FIXME: reorder arguments to be similar to other functions
+val filledCubicBezier: c:color -> point1:Point -> point2:Point -> point3:Point -> point4:Point -> PrimitiveTree
 
 /// <summary>Creates an ellipse with the specified radii and stroke width.</summary>
 /// <param name="c">The color of the ellipse.</param>
@@ -539,7 +399,7 @@ val onto : pic1: PrimitiveTree -> pic2: PrimitiveTree -> PrimitiveTree
 
 /// <summary>Aligns two graphic primitive trees horizontally at a specific position.</summary>
 /// <param name="pic1">The first graphic primitive tree to be aligned.</param>
-/// <param name="pos">One of Top, Center, or Bottom, defining how pic1 and pic2 are to be aligned.
+/// <param name="pos">One of Top, Center, or Bottom, defining how pic1 and pic2 are to be aligned.</param>
 /// <param name="pic2">The second graphic primitive tree to be aligned.</param>
 /// <returns>A new graphic primitive tree object representing the two graphic primitive trees aligned horizontally at the specified position.</returns>
 /// <remarks>
@@ -560,7 +420,7 @@ val alignH : pic1: PrimitiveTree -> pos:Position -> pic2: PrimitiveTree -> Primi
 
 /// <summary>Aligns two graphic primitive trees vertically at a specific position.</summary>
 /// <param name="pic1">The first graphic primitive tree to be aligned.</param>
-/// <param name="pos">One of Left, Center, or Right, defining how pic1 and pic2 are to be aligned
+/// <param name="pos">One of Left, Center, or Right, defining how pic1 and pic2 are to be aligned.</param>
 /// <param name="pic2">The second graphic primitive tree to be aligned.</param>
 /// <returns>A new graphic primitive tree object representing the two graphic primitive trees aligned vertically at the specified position.</returns>
 /// <remarks>
@@ -723,13 +583,13 @@ val animateToFile : width:int -> height:int -> frameDelay:int -> repeatCount:int
 /// The function render shows a Picture in a window on the screen. For example,
 /// <code>
 ///    let tree = ellipse darkCyan 2.0 85.0 64.0 |> translate 128.0 128.0
-///    let picture () = make tree
-///    render "Sample title" 256 256 pictureFct
+///    let pict = make tree
+///    render "Sample title" 256 256 pict
 /// </code>
 /// creates a translated ellipse graphic primitive tree converts it to a Picture using make and shows on the
-/// screen with render. Note that render takes a function as argument.
+/// screen with render.
 /// </remarks>
-val render : t:string -> w:int -> h:int -> draw: (unit -> Picture) ->  unit
+val render : t:string -> w:int -> h:int -> draw:Picture ->  unit
 
 /// <summary>Runs an application with a timer, defining the drawing and reaction functions.</summary>
 /// <param name="t">The title of the application window.</param>

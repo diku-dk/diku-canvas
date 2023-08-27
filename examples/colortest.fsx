@@ -1,5 +1,6 @@
-#r "nuget:DIKU.Canvas, 2.0.0-alpha8"
+#r "nuget:DIKU.Canvas, 2.0.0-alpha9"
 open Canvas
+open Color
 
 type state = color // state is a color
 

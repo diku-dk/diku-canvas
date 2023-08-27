@@ -1,24 +1,22 @@
-#r "nuget:DIKU.Canvas, 2.0.0-alpha8"
+#r "nuget:DIKU.Canvas, 2.0.0-alpha9"
 open Canvas
+open Color
 
-let w,h,l = 600,600,512 // size of window and base length of triangle
+let w,l = 512,64 // base length of triangle, and smalles triangle to draw
 
 // This program draws a Sierpinski triangle with bounding box length,length.
-let rec triangle (length:int) (x:int, y:int): PrimitiveTree =
-  if length < 12 then // Smallest element to draw
-    filledRectangle blue length length
-    |> translate x y
-  else // every triangle consists of 3 smaller trangles
-    let halfLen = length / 2
-    onto (triangle halfLen (x+halfLen/2, y))
-      (onto (triangle halfLen (x, y+halfLen))
-        (triangle halfLen (x+halfLen, y+halfLen)))
+let rec triangle (c:color) (minLength:float) (length:float): PrimitiveTree =
+  if length <= minLength then // Smallest element to draw
+    filledPolygon c [0.0,length; length,length; length/2.0,0.0; 0.0,length]
+  else // every triangle consists of 3 smaller, identical triangles
+    let subTriangle = triangle c minLength (length/2.0)
+    alignV subTriangle Center (alignH subTriangle Center subTriangle)
 
-/// Prepare a Picture by the present state whenever needed
-let draw (): Picture = 
-    let x,y = (w-l)/2, (h-l)/2
-    let tri = triangle l (x,y)
-    make tri
+/// Prepare a Picture
+let draw = 
+  let tree = triangle blue (float l) (float w)
+  let ((x1,y1),(x2,y2)) = getBoundingBox tree
+  translate -x1 y1 tree |> make
 
 // Render Sierpinski's triangle
-render "Sierpinski" w h draw
+render "Sierpinski" w w draw

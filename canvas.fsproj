@@ -3,7 +3,7 @@
   <PropertyGroup>
     <TargetFramework>net7.0</TargetFramework>
     <PackageId>DIKU.Canvas</PackageId>
-    <Version>2.0.0-alpha8</Version>
+    <Version>2.0.0-alpha9</Version>
     <PackageLicenseFile>LICENSE</PackageLicenseFile>
     <Authors>Martin Elsman, Ken Friis Larsen, Jon Sporring, Mads Obitsø</Authors>
     <Company>DIKU</Company>
@@ -16,7 +16,20 @@
     <GenerateDocumentationFile>true</GenerateDocumentationFile>
     <IncludeSymbols>true</IncludeSymbols>
     <SymbolPackageFormat>snupkg</SymbolPackageFormat>
+      <!-- Example ultra-simple styling and generation settings for FsDocs default template-->
+    <!-- <PackageLicenseUrl>https://github.com/diku-dk/diku-canvas/blob/main/LICENSE</PackageLicenseUrl> -->
+    <PackageProjectUrl>https://diku-dk.github.io/diku-canvas/</PackageProjectUrl>
+    <!-- <RepositoryUrl>https://github.com/foo/bar/</RepositoryUrl> -->
+    <FsDocsLogoSource>https://diku-dk.github.io/diku-canvas/images/Sierpinski.png</FsDocsLogoSource>
+    <FsDocsLogoLink>https://diku-dk.github.io/diku-canvas/</FsDocsLogoLink>
+    <FsDocsLicenseLink>https://github.com/diku-dk/diku-canvas/blob/main/LICENSE</FsDocsLicenseLink>
+    <FsDocsReleaseNotesLink>https://www.nuget.org/packages/DIKU.Canvas</FsDocsReleaseNotesLink>
+    <FsDocsNavbarPosition>fixed-left</FsDocsNavbarPosition>
+    <FsDocsWarnOnMissingDocs>true</FsDocsWarnOnMissingDocs>
+    <FsDocsTheme>default</FsDocsTheme>
   </PropertyGroup>
+
+
 
   <ItemGroup>
     <PackageReference Update="FSharp.Core" Version="7.0" />
@@ -25,6 +38,8 @@
   <ItemGroup>
     <Compile Include="SDL.fs" />
     <Compile Include="lowlevel.fs" />
+    <!-- <Compile Include="Color.fsi" /> -->
+    <Compile Include="Color.fs" />
     <Compile Include="canvas.fsi" />
     <Compile Include="canvas.fs" />
   </ItemGroup>
