@@ -1,9 +1,9 @@
 The DIKU-Canvas library: A Functional Graphics Library for F#
-==============
+=============================================================
 
 [![Nuget](https://img.shields.io/nuget/v/DIKU.Canvas)](https://www.nuget.org/packages/DIKU.Canvas/)
 
-<img src="https://raw.githubusercontent.com/diku-dk/diku-canvas/main/images/Sierpinski.png" border="2" width="250" align="right">
+<img src="https://raw.githubusercontent.com/diku-dk/diku-canvas/main/docs/images/Sierpinski.png" border="2" width="250" align="right">
 DIKU-Canvas is a simple graphics library developed specifically for teaching functional programming in F#. Rooted in computational geometry and functional paradigms, DIKU-Canvas provides computer scientists, researchers, and developers with an intuitive and mathematical approach to graphical programming.
 
 Leveraging F#'s functional programming capabilities, DIKU-Canvas emphasizes:
@@ -111,11 +111,13 @@ A simple graphics primitive such as a rectangle or an ellipse are leaves in a tr
 <img src="https://raw.githubusercontent.com/diku-dk/diku-canvas/main/images/tree.png" border="2" width="150">
 
 The figure has been produced by rendering the following `tree`:
+
 ```fsharp
 let box1 = rectangle goldenrod 1.0 20.0 80.0
 let box2 = rectangle yellow 1.0 30.0 30.0
 let tree = alignH (alignV box1 Right box2) Center box1  
 ```
+
 Here, two boxes are created and combined with the alignV and alignH functions. The resulting tree is depicted below.
 
 <img src="https://raw.githubusercontent.com/diku-dk/diku-canvas/main/images/primitiveTree.png" border="2" width="150">
@@ -123,6 +125,7 @@ Here, two boxes are created and combined with the alignV and alignH functions. T
 Our functional approach allows us to reuse box1 such that it is the same goldenrod rectangle that appears twice. Such reused can be made with any tree. 
 
 Canvas can print the tree structure with `toString` which gives
+
 ```fsharp
 AlignH position=0.5
 ∟>AlignV position=1
@@ -130,20 +133,25 @@ AlignH position=0.5
   ∟>Rectangle (color,stroke)=(Color FFFF00FF, 1.0) coordinates=(0.0, 0.0, 30.0, 30.0)
 ∟>Rectangle (color,stroke)=(Color DAA520FF, 1.0) coordinates=(0.0, 0.0, 20.0, 80.0)
 ```
+
 indentation illustrates which node is a child of which node. From the output of `toString` we cannot see that `box1` has been reused. The function `toString` also gives other information, e.g.,  that `alignH` was called with the `Center` argument which is internally represented as the value 0.5, and likewise, `Right` for `alignV` is internally represented as the value 1.0. 
 
 ## Rendering on a canvas
 
 The value `tree` can be rendered on screen by
+
 ```fsharp
 let pict = make tree
 render "Graphics tree" 75 150 pict
 ```
+
 which opens a window on the screen showing the 3 boxes. In interactive mode, `render` opens a window, and the function returns, when that window is closed. The graphics tree may also be rendered to a file by
+
 ```fsharp
 let pict = make tree
 renderToFile 75 150 "tree.png" tree
 ```
+
 In both cases, first `tree` is converted to a picture here called `pict`, and then a canvas of width 75 and height 150 is created and pict is rendered on it.
 
 Note that the size of the canvas is first specified at the point of rendering, and it is up to the programmer to ensure that the relevant graphics are placed on the canvas. Anything outside the canvas is ignored.
@@ -157,16 +165,19 @@ Each tree has a bounding box, and the bounding box is set differently for each e
 ## Making animations and interacting with the user
 
 The workhorse of Canvas is the `interact` function. To set up an interactive session, two functions must be made: `draw` and `react`. These functions reign over a model, which is programmed by the programmer. The function `react` reacts to input from the user and possibly updates the model, and `draw` produces a picture for `interact` to render on the screen. The functions `draw` and `react` communicate through a state value defined by the programmer. The simplest example of this is an interactive session with no state and `draw` and `react` functions, which ignore their input, as shown below.
+
 ```fsharp
 let tree = ellipse darkCyan 2.0 85.0 64.0 |> translate 128.0 128.0
 let draw _ = make tree
 let react _ _ = None
 interact "Render an image" 256 256 None draw react 0
 ```
+
 When executed, this program opens a window showing an ellipse centered on the screen. 
 The setup of `draw`, `interact`, and `interact` is essentially how the `render` function is implemented.
 
 A more interesting example is shown below, where we define the state value to be a float, which will be used to communicate to `draw` where on the screen an ellipse is to be drawn. The `react` function is set to react on timer ticks and ignore anything else, and when a timer tick event occurs, it returns a new state value.
+
 ```fsharp
 type state = float
 let tree (i:state) : PrimitiveTree = 
@@ -180,6 +191,7 @@ let interval = Some 100
 let initialState = 0.0
 interact "Render an image" 256 256 interval draw react initialState
 ```
+
 When executed, the window should show an ellipse being translated diagonally down from the top left corner to the bottom right. The speed will be as close to 0.1 seconds per step as possible.
 
 # Documentation
