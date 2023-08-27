@@ -51,10 +51,11 @@ Canvas is a system for combining simple graphics primitives into new figures org
 let box1 = rectangle goldenrod 1.0 20.0 80.0
 let box2 = rectangle yellow 1.0 30.0 30.0
 let tree = alignH (alignV box1 Right box2) Center box1  
-printfn "%s" (toString tree)
 ```
-results in
-<img src="https://raw.githubusercontent.com/diku-dk/diku-canvas/main/images/Sierpinski.png" border="2" width="250" align="right">
+Rendering this results in the image to the left
+<img src="https://raw.githubusercontent.com/diku-dk/diku-canvas/main/images/tree.png" border="2" width="150" align="left">
+<img src="https://raw.githubusercontent.com/diku-dk/diku-canvas/main/images/primitiveTree.png" border="2" width="150" align="right">
+while the internal representation is 
 ```fsharp
 AlignH position=0.5
 ∟>AlignV position=1
