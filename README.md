@@ -16,11 +16,12 @@ Leveraging F#'s functional programming capabilities, DIKU-Canvas emphasizes:
 
 ## How to use Canvas in an F# script (.fsx)
 
-Make an F# script, say `myFirstCanvas.fsx` with a NuGet reference:
+Make an F# script, say `myFirstCanvas.fsx`, with a NuGet reference:
 
 ```fsharp
 #r "nuget:DIKU.Canvas, 2.0"
 open Canvas
+open Color
 
 let w,h = 256,256
 let tree = filledRectangle green ((float w)/2.0) ((float h)/2.0)
@@ -58,6 +59,7 @@ Edit `Program.fs` to have the content:
 
 ```fsharp
 open Canvas
+open Color
 
 let w,h = 256,256
 let tree = filledRectangle green ((float w)/2.0) ((float h)/2.0)
