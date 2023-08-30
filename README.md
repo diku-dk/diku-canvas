@@ -200,7 +200,7 @@ When executed, the window should show an ellipse being translated diagonally dow
 
 ## The application programming interface (API)
 
-The API is described in the file [`canvas.fsi`](canvas.fsi). There you will find a precise declaration of all available values and functions and their documentation using the [XML](https://learn.microsoft.com/en-us/dotnet/fsharp/language-reference/xml-documentation) standard.
+The API is described in the file [`canvas.fsi`](canvas.fsi). There you will find a precise declaration of all available values and functions and their documentation using the [XML](https://learn.microsoft.com/en-us/dotnet/fsharp/language-reference/xml-documentation) standard. The same documentation is also available at [https://diku-dk.github.io/diku-canvas/] (see API Reference in the left column of that page).
 
 ## Examples
 
