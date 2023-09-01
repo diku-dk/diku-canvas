@@ -1,4 +1,4 @@
-#r "nuget:DIKU.Canvas, 2.0.0-beta1"
+#r "nuget:DIKU.Canvas, 2.0"
 open Canvas
 open Color
 
