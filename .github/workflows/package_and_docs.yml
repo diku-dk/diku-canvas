@@ -3,7 +3,7 @@ name: Generate documentation and create nuget package (eventually)
 on:
   push:
     branches:
-      - $default-branch
+      - main
 
 # Eventually we'll only build when a new version tag is created
     # tags:
