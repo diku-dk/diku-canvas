@@ -4,7 +4,6 @@ on:
   push:
     branches:
       - $default-branch
-      - nextgen
 
 # Eventually we'll only build when a new version tag is created
     # tags:
