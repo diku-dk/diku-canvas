@@ -19,7 +19,7 @@ Leveraging F#'s functional programming capabilities, DIKU-Canvas emphasizes:
 Make an F# script, say `myFirstCanvas.fsx`, with a NuGet reference:
 
 ```fsharp
-#r "nuget:DIKU.Canvas, 2.0"
+#r "nuget:DIKU.Canvas, 2.0.1"
 open Canvas
 open Color
 
