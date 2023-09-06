@@ -249,6 +249,11 @@ type ClassifiedEvent =
 let classifyEvent userClassify ev =
     match SDL.convertEvent ev with
         | SDL.Quit -> Quit
+        // | SDL.Window wevent->
+        //     printfn "Window event %A" wevent.event
+        //     // if wevent.event = SDL.SDL_WindowEventID.SDL_WINDOWEVENT_CLOSE then Quit
+        //     // else Ignore(SDL.Window wevent)
+        //     Ignore(SDL.Window wevent)
         | SDL.KeyDown kevent when kevent.keysym.sym = SDL.SDLK_ESCAPE -> Quit
         | SDL.KeyDown kevent when kevent.keysym.sym = SDL.SDLK_UP -> React UpArrow
         | SDL.KeyDown kevent when kevent.keysym.sym = SDL.SDLK_DOWN -> React DownArrow
@@ -338,6 +343,7 @@ let runAppWithTimer (t:string) (w:int) (h:int) (interval:int option)
             match classifyEvent userClassify event with
                 | Quit ->
                     // printfn "We quit"
+                    SDL.SDL_HideWindow window
                     () // quit the interaction by exiting the loop
                 |  React ev ->
                     let redraw =
