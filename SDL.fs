@@ -268,6 +268,10 @@ extern int SDL_PollEvent(SDL_Event& _event)
 [<DllImport(libName, CallingConvention = CallingConvention.Cdecl)>]
 extern int SDL_WaitEvent(SDL_Event& _event)
 
+[<DllImport(libName, CallingConvention = CallingConvention.Cdecl)>]
+extern int SDL_WaitEventTimeout(SDL_Event& _event, int32 millis)
+
+
 (* Allocate a set of user-defined events *)
 [<DllImport(libName, CallingConvention = CallingConvention.Cdecl)>]
 extern uint32 SDL_RegisterEvents(int numevents)
