@@ -259,29 +259,28 @@ Several examples are available in the `examples` folder:
 ## Build the Canvas library itself
 
 If you want to build the library and NuGet package yourself, you will
-need the `.NET7.0 SDK` and development versions of `SDL2` and
-`SDL2_image` for your platform.
+need the `.NET7.0 SDK` and the development version of `SDL2` for your platform.
 
 First, install [.NET
 7](https://dotnet.microsoft.com/en-us/download/dotnet/7.0) for your
 platform.
 
-Then install [SDL2 and SDL2_image](https://www.libsdl.org/index.php):
+Then install [SDL2](https://www.libsdl.org/index.php):
 
   * On **macOS** with homebrew:
 
-        brew install sdl2 sdl2_image
+        brew install sdl2
 
   * On **Debian** and **Ubuntu**:
 
-        apt install libsdl2-dev libdl2-image-dev
+        apt install libsdl2-dev
 
   * On **Arch** (and probably **Manjaro**), `sdl2` is available in `extra`:
 
-        sudo pacman -S sdl2 sdl2_image
+        sudo pacman -S sdl2
 
-  * On **Windows** you need `SDL2.dll` and `SDL2_image.dll` in a
-    search path available to dotnet.  The `.dll`'s in the `lib/`
+  * On **Windows** you need `SDL2.dll` in a
+    search path available to `dotnet`.  The `.dll`'s in the `lib/`
     folder should be sufficient for building.  (Better instructions
     are a welcome contribution if anyone builds on Windows)
 
