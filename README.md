@@ -274,7 +274,7 @@ Then install [SDL2 and SDL2_image](https://www.libsdl.org/index.php):
 
   * On **Debian** and **Ubuntu**:
 
-        apt install libsdl2-dev libdl2-image-dev
+        apt install libsdl2-dev libsdl2-image-dev
 
   * On **Arch** (and probably **Manjaro**), `sdl2` is available in `extra`:
 
