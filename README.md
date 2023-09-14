@@ -166,7 +166,7 @@ Each tree has a bounding box, and the bounding box is set differently for each e
 
 ## Making animations and interacting with the user
 
-The workhorse of Canvas is the `interact` function. To set up an interactive session, two functions must be made: `draw` and `react`. These functions reign over a model, which is programmed by the programmer. The function `react` reacts to input from the user and possibly updates the model, and `draw` produces a picture for `interact` to render on the screen. The functions `draw` and `react` communicate through a state value defined by the programmer. The simplest example of this is an interactive session with no state and `draw` and `react` functions, which ignore their input, as shown below.
+The workhorse of Canvas is the `interact` function. To set up an interactive session, two functions must be defined: `draw` and `react`. The function `react` reacts to input from the user and possibly updates the model, and `draw` produces a picture for `interact` to render on the screen. The functions `draw` and `react` communicate through a state value defined by the programmer. The simplest example of this is an interactive session with no state and `draw` and `react` functions, which ignore their input, as shown below.
 
 ```fsharp
 let tree = ellipse darkCyan 2.0 85.0 64.0 |> translate 128.0 128.0
