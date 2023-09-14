@@ -206,7 +206,7 @@ val piecewiseAffine: c:color -> sw: float -> lst:(float*float) list -> Primitive
 ///    let col = darkOliveGreen
 ///    filledPolygon col [(0.0,0.0);(10.0,80.0);(20.0,40.0)]
 /// </code>
-/// which generates a PrimitiveTree representing a closed polygon which is filled with the color dargOliveGreen.
+/// which generates a PrimitiveTree representing a closed polygon which is filled with the color darkOliveGreen.
 /// Note that a filledPolygon with its outline marked in another color can be achieved by using this function
 /// together with the onto and the piecewiseAffine functions. The bounding box is the smallest axis aligned
 /// rectangle enclosing the shape which in this case is denoted by the corners (0.0,0.0) and (20.0,80.0).
