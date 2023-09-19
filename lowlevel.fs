@@ -151,9 +151,12 @@ let transform (mat:Matrix3x2) = function
     | p ->
         Transform(mat, p)
 
-let rotateDegreeAround (degree:float) point p =
-    let rad = GeometryUtilities.DegreeToRadian (float32 degree)
-    let mat = Matrix3x2Extensions.CreateRotation(rad, toPointF point)
+let rotateDegreeAround (degrees:float) point p =
+    let mat = Matrix3x2Extensions.CreateRotationDegrees(float32 degrees, toPointF point)
+    transform mat p
+
+let rotateRadiansAround (radians:float) point p =
+    let mat = Matrix3x2Extensions.CreateRotation(float32 radians, toPointF point)
     transform mat p
 
 let toILineSegment : PrimPath -> ILineSegment = function
