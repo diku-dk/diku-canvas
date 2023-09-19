@@ -136,9 +136,11 @@ let (<+>) p1 p2 =
         | _, Empty -> p1
         | _ -> PathAdd (p1, p2)
 
+let pathAdd = (<+>)
+
 let emptyPath = Empty
 
-let pathFromList ps = List.fold (<+>) emptyPath ps
+let pathFromList ps = List.fold pathAdd emptyPath ps
 
 let transform (mat:Matrix3x2) = function
     | Transform (cur, p) ->
