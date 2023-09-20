@@ -322,10 +322,19 @@ let rec compile (idx:int) (expFlag: bool) (pic:PrimitiveTree): Lowlevel.PathTree
         let dc = Lowlevel.Text (brush, txt, opt)
         wrap Matrix3x2.Identity rect expFlag dc
     | Onto(p1, p2, rect) ->
-        let dc1 = compile next expFlag p1
-        let dc2 = compile next expFlag p2
-        let dc = Lowlevel.(<+>) dc2 dc1 // dc2 is drawn first
-        wrap Matrix3x2.Identity rect expFlag dc
+        let compile' p cont =
+          cont (compile next expFlag p)
+        let add' dc2 dc1 cont =
+          cont (Lowlevel.(<+>) dc2 dc1)
+        compile' p1 (fun dc1 -> 
+            compile' p2 (fun dc2 -> 
+                add' dc2 dc1 (fun dc -> 
+                    wrap Matrix3x2.Identity rect expFlag dc)))
+//
+//        let dc1 = compile next expFlag p1
+//        let dc2 = compile next expFlag p2
+//        let dc = Lowlevel.(<+>) dc2 dc1 // dc2 is drawn first
+//        wrap Matrix3x2.Identity rect expFlag dc
     | AlignH(p1, p2, pos, rect) ->
         let rect1 = getBoundingBox p1
         let rect2 = getBoundingBox p2
