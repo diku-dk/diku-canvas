@@ -264,9 +264,20 @@ let _ellipse (t:Lowlevel.Tool) (((x1,y1),(x2,y2)):Rectangle): Lowlevel.PathTree 
 let _rectangle (t:Lowlevel.Tool) (((x1,y1),(x2,y2)):Rectangle): Lowlevel.PathTree =
         let lst = [(x1,y1);(x1,y2);(x2,y2);(x2,y1);(x1,y1)]
         Lowlevel.Prim (t, Lowlevel.Lines lst)
-let rec compile (idx:int) (expFlag: bool) (pic:PrimitiveTree): Lowlevel.PathTree =
+
+// A CPS monad
+type ContinuationBuilder() =
+    member this.Return x = fun k -> k x
+    member this.ReturnFrom x = x
+    member this.Bind (m, f) = (fun k -> m (fun a -> f a k))
+    member this.Delay f = fun k -> f () k
+
+let cps = ContinuationBuilder()
+
+
+let rec compileCps idx expFlag pic = cps {
     let next = (idx+1) % colorLst.Length
-    let wrap M rect expFlag dc =
+    let wrap M rect dc =
         if expFlag then
             let pen = Lowlevel.solidPen colorLst[idx] 1.0
             let b = _rectangle pen rect
@@ -274,58 +285,58 @@ let rec compile (idx:int) (expFlag: bool) (pic:PrimitiveTree): Lowlevel.PathTree
         else
             dc
     match pic with
-    | Empty(rect) -> 
-        Lowlevel.Empty
+    | Empty _ ->
+        return Lowlevel.Empty
     | PiecewiseAffine(lst, Color.Color c, sw, rect) ->
         let pen = Lowlevel.solidPen c sw
         let dc = Lowlevel.Prim (pen, Lowlevel.Lines lst)
-        wrap Matrix3x2.Identity rect expFlag dc
+        return wrap Matrix3x2.Identity rect dc
     | FilledPolygon(lst, Color.Color c, rect) ->
         let brush = Lowlevel.solidBrush c 
         let dc = Lowlevel.Prim (brush, Lowlevel.Lines lst)
-        wrap Matrix3x2.Identity rect expFlag dc
+        return wrap Matrix3x2.Identity rect dc
     | Rectangle(Color.Color c, sw, rect) ->
         let pen = Lowlevel.solidPen c sw
         let dc = _rectangle pen rect
-        wrap Matrix3x2.Identity rect expFlag dc
+        return wrap Matrix3x2.Identity rect dc
     | FilledRectangle(Color.Color c, rect) ->
         let brush = Lowlevel.solidBrush c 
         let dc = _rectangle brush rect
-        wrap Matrix3x2.Identity rect expFlag dc
+        return wrap Matrix3x2.Identity rect dc
     | Arc(center,rx,ry,start,sweep,Color.Color c,sw,rect) ->
         let pen = Lowlevel.solidPen c sw
         let dc = Lowlevel.Prim(pen, Lowlevel.Arc(center,rx,ry,0.0,start,sweep))
-        wrap Matrix3x2.Identity rect expFlag dc
+        return wrap Matrix3x2.Identity rect dc
     | FilledArc(center,rx,ry,start,sweep,Color.Color c,rect) ->
         let brush = Lowlevel.solidBrush c 
         let dc = Lowlevel.Prim(brush,Lowlevel.Arc(center,rx,ry,0.0,start,sweep))
-        wrap Matrix3x2.Identity rect expFlag dc
+        return wrap Matrix3x2.Identity rect dc
     | CubicBezier(point1,point2,point3,point4,Color.Color c,sw,rect) ->
         let pen = Lowlevel.solidPen c sw
         let dc = Lowlevel.Prim(pen, Lowlevel.CubicBezier(point1,point2,point3,point4))
-        wrap Matrix3x2.Identity rect expFlag dc
+        return wrap Matrix3x2.Identity rect dc
     | FilledCubicBezier(point1,point2,point3,point4,Color.Color c,rect) ->
         let brush = Lowlevel.solidBrush c 
         let dc = Lowlevel.Prim(brush, Lowlevel.CubicBezier(point1,point2,point3,point4))
-        wrap Matrix3x2.Identity rect expFlag dc
+        return wrap Matrix3x2.Identity rect dc
     | Ellipse(Color.Color c, sw, rect) ->
         let pen = Lowlevel.solidPen c sw
         let dc = _ellipse pen rect
-        wrap Matrix3x2.Identity rect expFlag dc
+        return wrap Matrix3x2.Identity rect dc
     | FilledEllipse(Color.Color c, rect) ->
         let brush = Lowlevel.solidBrush c 
         let dc = _ellipse brush rect
-        wrap Matrix3x2.Identity rect expFlag dc
+        return wrap Matrix3x2.Identity rect dc
     | Text(txt, Color.Color c, Font font, rect) ->
         let brush = Lowlevel.solidBrush c
         let opt = Lowlevel.TextOptions font
         let dc = Lowlevel.Text (brush, txt, opt)
-        wrap Matrix3x2.Identity rect expFlag dc
+        return wrap Matrix3x2.Identity rect dc
     | Onto(p1, p2, rect) ->
-        let dc1 = compile next expFlag p1
-        let dc2 = compile next expFlag p2
+        let! dc1 = compileCps next expFlag p1
+        let! dc2 = compileCps next expFlag p2
         let dc = Lowlevel.(<+>) dc2 dc1 // dc2 is drawn first
-        wrap Matrix3x2.Identity rect expFlag dc
+        return wrap Matrix3x2.Identity rect dc
     | AlignH(p1, p2, pos, rect) ->
         let rect1 = getBoundingBox p1
         let rect2 = getBoundingBox p2
@@ -334,12 +345,12 @@ let rec compile (idx:int) (expFlag: bool) (pic:PrimitiveTree): Lowlevel.PathTree
         let s = pos*(h1-h2)
         let (x11,y11),(x21,y21) = rect1
         let (x12,y12),(x22,y22) = rect2
-        let dc1 = compile next expFlag p1
-        let dc2 = compile next expFlag p2
+        let! dc1 = compileCps next expFlag p1
+        let! dc2 = compileCps next expFlag p2
         let dc =
             let M = Matrix3x2.CreateTranslation(float32 (x21-x12),float32 (y11-y12+s))
             Lowlevel.(<+>) dc1 (Lowlevel.transform M <| dc2)
-        wrap Matrix3x2.Identity rect expFlag dc
+        return wrap Matrix3x2.Identity rect dc
     | AlignV(p1, p2, pos, rect) ->
         let rect1 = getBoundingBox p1
         let rect2 = getBoundingBox p2
@@ -348,27 +359,35 @@ let rec compile (idx:int) (expFlag: bool) (pic:PrimitiveTree): Lowlevel.PathTree
         let s = pos*(w1-w2)
         let (x11,y11),(x21,y21) = rect1
         let (x12,y12),(x22,y22) = rect2
-        let dc1 = compile next expFlag p1 
-        let dc2 = compile next expFlag p2
+        let! dc1 = compileCps next expFlag p1
+        let! dc2 = compileCps next expFlag p2
         let dc =
             let M = Matrix3x2.CreateTranslation(float32 (x11-x12+s),float32 (y21-y12))
             Lowlevel.(<+>) dc1 (Lowlevel.transform M <| dc2)
-        wrap Matrix3x2.Identity rect expFlag dc
+        return wrap Matrix3x2.Identity rect dc
     | Translate(p, dx, dy, rect) ->
         let M = Matrix3x2.CreateTranslation(float32 dx,float32 dy)
-        Lowlevel.transform M <| compile next expFlag p
+        let! dc = compileCps next expFlag p
+        return Lowlevel.transform M dc
         //wrap M rect false dc
     | Scale(p, sx, sy, rect) -> 
         let M = Matrix3x2.CreateScale(float32 sx, float32 sy)
-        Lowlevel.transform M <| compile next expFlag p
+        let! dc = compileCps next expFlag p
+        return Lowlevel.transform M dc
         //wrap M rect false dc
     | Rotate(p, cx, cy, rad, rect) ->
         let R = Matrix3x2.CreateRotation(float32 rad)
         let T1 = Matrix3x2.CreateTranslation(float32 cx,float32 cy)
         let T2 = Matrix3x2.CreateTranslation(float32 -cx,float32 -cy)
         let M = T2*R*T1
-        Lowlevel.transform M <| compile next expFlag p
+        let! dc = compileCps next expFlag p
+        return Lowlevel.transform M dc
         //wrap M rect false dc
+    }
+
+let compile (idx:int) (expFlag: bool) (pic:PrimitiveTree): Lowlevel.PathTree =
+    compileCps idx expFlag pic id
+
 
 let make (p:PrimitiveTree): Picture = 
     compile 0 false p |> Lowlevel.drawPathTree |> Picture
