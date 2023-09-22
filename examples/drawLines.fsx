@@ -1,11 +1,11 @@
-#r "nuget:DIKU.Canvas, 2.0.2-alpha1"
+#r "nuget:DIKU.Canvas, 2.0.2"
 open Canvas
 open Color
 open System
 
 let w,h = 600,400 // The size of the canvas
 let rand = Random() // Initialize a random number generator
-let num_lines = 100_000
+let num_lines = 1000
 
 // Produce a list of random (color, stroke-width, list of a start and an end coordinate pair)
 let lines = [
