@@ -44,12 +44,6 @@ let SDLK_RIGHT = 1073741903u
 let SDLK_LEFT = 1073741904u
 let SDLK_DOWN = 1073741905u
 let SDLK_UP = 1073741906u
-// Define keymod for SDL
-// https://wiki.libsdl.org/SDL2/SDL_Keymod
-let KMOD_LSHIFT = 0001us
-let KMOD_RSHIFT = 0002us
-let KMOD_CAPS = 8192us
-let KMOD_NONE = 0000us
 
 let SDL_QUIT = 0x100u
 let SDL_USEREVENT = 0x8000u
@@ -67,6 +61,7 @@ type SDL_Keysym =
     end
 
 let SDL_SCANCODE_ESCAPE : int32 = 41
+let KMOD_NONE : uint16 = 0x0000us
 
 [<type:StructLayout(LayoutKind.Sequential)>]
 type SDL_KeyboardEvent =
@@ -84,30 +79,10 @@ type SDL_KeyboardEvent =
 [<DllImport(libName, CallingConvention = CallingConvention.Cdecl)>]
 extern IntPtr SDL_GetKeyName(uint32 key)
 
-[<DllImport(libName, CallingConvention = CallingConvention.Cdecl)>]
-extern uint16 SDL_GetModState()
-
 let stringFromKeyboard (kevent:SDL_KeyboardEvent) : string =
     let keyCode = kevent.keysym.sym
-    let keyNamePtr = SDL_GetKeyName keyCode
-    let keyName = Marshal.PtrToStringUTF8(keyNamePtr)
-
-    let modState = SDL_GetModState()
-    let leftShift = modState &&& KMOD_LSHIFT <> KMOD_NONE
-    let rightShift = modState &&& KMOD_RSHIFT <> KMOD_NONE
-    let caps = modState &&& KMOD_CAPS <> KMOD_NONE
-
-    if keyName.Length > 1 then // special keys
-        keyName
-    else
-        if caps && (leftShift || rightShift) then // caps and shift
-            keyName.ToLower()
-        elif (caps && not leftShift && not rightShift) 
-            || (not caps && leftShift && not rightShift) 
-            || (not caps && not leftShift && rightShift) then // caps or shift
-            keyName
-        else
-            keyName.ToLower()
+    let keyName = SDL_GetKeyName keyCode
+    Marshal.PtrToStringUTF8(keyName)
 
 let SDL_TEXTINPUTEVENT_TEXT_SIZE = 32
 
