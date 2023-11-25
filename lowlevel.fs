@@ -231,6 +231,7 @@ let drawToAnimatedGif width heigth (frameDelay:int) (repeatCount:int) (filePath:
 
 type Event =
     | Key of char
+    | KeyUp of string
     | DownArrow
     | UpArrow
     | LeftArrow
@@ -255,6 +256,7 @@ let classifyEvent userClassify ev =
         | SDL.KeyDown kevent when kevent.keysym.sym = SDL.SDLK_LEFT -> React LeftArrow
         | SDL.KeyDown kevent when kevent.keysym.sym = SDL.SDLK_RIGHT -> React RightArrow
         | SDL.KeyDown kevent when kevent.keysym.sym = SDL.SDLK_RETURN -> React Return
+        | SDL.KeyUp kevent -> SDL.stringFromKeyboard kevent |> KeyUp |> React
         | SDL.MouseButtonDown mouseButtonEvent ->
             (mouseButtonEvent.x,mouseButtonEvent.y) |> MouseButtonDown |> React
         | SDL.MouseButtonUp mouseButtonEvent ->

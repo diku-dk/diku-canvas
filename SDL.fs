@@ -76,6 +76,13 @@ type SDL_KeyboardEvent =
         val keysym: SDL_Keysym
     end
 
+[<DllImport(libName, CallingConvention = CallingConvention.Cdecl)>]
+extern IntPtr SDL_GetKeyName(uint32 key)
+
+let stringFromKeyboard (kevent:SDL_KeyboardEvent) : string =
+    let keyCode = kevent.keysym.sym
+    let keyName = SDL_GetKeyName keyCode
+    Marshal.PtrToStringUTF8(keyName)
 
 let SDL_TEXTINPUTEVENT_TEXT_SIZE = 32
 
@@ -99,8 +106,6 @@ type SDL_TextInputEvent =
 let stringFromTextInput (tinput:SDL_TextInputEvent) : string =
     let addr = &&tinput.text.first
     Marshal.PtrToStringUTF8(NativePtr.toNativeInt addr)
-
-
 
 [<StructLayout(LayoutKind.Sequential)>]
 type SDL_UserEvent=
