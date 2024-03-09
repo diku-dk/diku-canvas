@@ -19,7 +19,7 @@ Leveraging F#'s functional programming capabilities, DIKU-Canvas emphasizes:
 Make an F# script, say `myFirstCanvas.fsx`, with a NuGet reference:
 
 ```fsharp
-#r "nuget:DIKU.Canvas, 2.0.1"
+#r "nuget:DIKU.Canvas, 2.0.3"
 open Canvas
 open Color
 
@@ -38,7 +38,7 @@ This should result in a window with a green square in the top left corner on a b
 If you want a specific version you edit the reference to be, e.g.,:
 
 ```fsharp
-#r "nuget:DIKU.Canvas, 2.0.1-alpha8"
+#r "nuget:DIKU.Canvas, 2.0.4-alpha8"
 ```
 
 
