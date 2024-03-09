@@ -595,7 +595,7 @@ val render : t:string -> w:int -> h:int -> draw:Picture ->  unit
 /// <param name="t">The title of the application window.</param>
 /// <param name="w">The width of the application window in pixels.</param>
 /// <param name="h">The height of the application window in pixels.</param>
-/// <param name="interval">An optional interval for the timer in microseconds.</param>
+/// <param name="interval">An optional interval for the timer in milliseconds.</param>
 /// <param name="draw">A function that takes the current state and returns a Picture object representing the current visual state of the application.</param>
 /// <param name="react">A function that takes the current state and an Event object and returns an optional new state, allowing the application to react to events.</param>
 /// <param name="s">The initial state of the application.</param>
