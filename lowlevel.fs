@@ -1,4 +1,4 @@
-module internal Lowlevel
+module Lowlevel
 
 open System.Runtime.InteropServices
 open System
@@ -8,7 +8,6 @@ open SixLabors.ImageSharp.PixelFormats
 open SixLabors.ImageSharp.Processing
 open SixLabors.ImageSharp.Drawing.Processing
 open SixLabors.ImageSharp.Drawing
-
 // colors
 type Color = SixLabors.ImageSharp.Color
 
@@ -246,12 +245,12 @@ type Event =
     | MouseMotion of int * int * int * int // x,y, relx, rely
     | TimerTick
 
-type ClassifiedEvent =
+type private ClassifiedEvent =
     | React of Event
     | Quit
     | Ignore of SDL.Event
 
-let classifyEvent userClassify ev =
+let private classifyEvent userClassify ev =
     match SDL.convertEvent ev with
         | SDL.Quit -> Quit
         // | SDL.Window wevent->

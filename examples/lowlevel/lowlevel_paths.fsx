@@ -1,6 +1,6 @@
-//#i "nuget:/Users/kfl/projects/fsharp-experiments/diku-canvas/bin/Release"
-#i "nuget:/Users/jrh630/repositories/diku-canvas/bin/Release/"
-#r "nuget:DIKU.Canvas, 2.0.0-alpha7"
+#i "nuget:/Users/kfl/projects/fsharp-experiments/diku-canvas/bin/Release"
+//#i "nuget:/Users/jrh630/repositories/diku-canvas/bin/Release/"
+#r "nuget:DIKU.Canvas, 2.1.0-alpha1"
 
 open Lowlevel
 
@@ -17,11 +17,11 @@ let rectangle (width, height) =
     Lines [0.0, 0.0; width, 0.0; width, height; 0.0, height; 0.0, 0.0]
 
 let draw d dc =
-    let whitePen = solidPen white 2.0
-    let bluePen = solidPen blue 2.0
-    let greenBrush = solidBrush green
-    let redBrush = solidBrush red
-    let yellowBrush = solidBrush yellow
+    let whitePen = solidPen Color.White 2.0
+    let bluePen = solidPen Color.Blue 2.0
+    let greenBrush = solidBrush Color.Green
+    let redBrush = solidBrush Color.Red
+    let yellowBrush = solidBrush Color.Yellow
     let tri = Prim (whitePen, Lines [(0.0, 0.0); (100.0, 100.0); 0.0, 100.0; 0.0, 0.0])
     let text = Text (bluePen, "Hello"+(string d), TextOptions(defaultFont,
                                               Origin = System.Numerics.Vector2(0.0f, 0.0f) ))
