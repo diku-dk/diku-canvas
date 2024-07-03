@@ -32,7 +32,7 @@ This should result in a window with a green square in the top left corner on a b
 If you want a specific version you edit the reference to be, e.g.,:
 
 ```fsharp
-#r "nuget:DIKU.Canvas, 2.0.3-alpha8"
+#r "nuget:DIKU.Canvas, 2.0.5-alpha8"
 ```
 
 
