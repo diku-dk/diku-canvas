@@ -15,9 +15,7 @@ let fromRgba (red:int) (green:int) (blue:int) (a:int) : Color =
     Color.FromRgba(byte red, byte green, byte blue, byte a)
 let fromRgb (red:int) (green:int) (blue:int) : Color =
     Color.FromRgb(byte red, byte green, byte blue)
-
 type image = SixLabors.ImageSharp.Image<Rgba32>
-
 type drawing_context = SixLabors.ImageSharp.Processing.IImageProcessingContext
 type drawing_fun = drawing_context -> drawing_context
 
@@ -33,6 +31,7 @@ let measureText (f:Font) (txt:string) =
 type Tool = 
     | Pen of SixLabors.ImageSharp.Drawing.Processing.Pen
     | Brush of SixLabors.ImageSharp.Drawing.Processing.Brush
+
 let solidBrush (color:Color) : Tool =
     Brush (Brushes.Solid(color))
 let solidPen (color:Color) (width:float) : Tool =
@@ -199,6 +198,12 @@ let flatten (p : PathTree) : (Tool*IPathCollection) list =  //FIXME: should mayb
                     traverse acc worklist
     traverse [] [p]
 
+let createText (text, options) =
+    TextBuilder.GenerateGlyphs(text, options)
+
+let transformIPathCollection (mat: Matrix3x2, p: IPathCollection) =
+    p.Transform(mat)
+
 let drawCollection ((tool,col):Tool * IPathCollection) (ctx:drawing_context) : drawing_context =
     match tool with
         | Pen pen ->
@@ -233,6 +238,360 @@ let drawToAnimatedGif width heigth (frameDelay:int) (repeatCount:int) (filePath:
             gif.SaveAsGif(filePath)
         | _ -> ()
 
+type KeyAction =
+    | KeyPress
+    | KeyRelease
+
+type KeyboardKey =
+    | Unknown // Matches the case of an invalid, non-existent, or unsupported keyboard key.
+    | Space // The spacebar key
+    | Apostrophe // The apostrophe key '''
+    | Comma // The comma key ','
+    | Minus // The minus key '-'
+    | Plus // The plus key '+'
+    | Period // The period/dot key '.'
+    | Slash // The slash key '/'
+    | Num0 // The 0 key.
+    | Num1 // The 1 key.
+    | Num2 // The 2 key.
+    | Num3 // The 3 key.
+    | Num4 // The 4 key.
+    | Num5 // The 5 key.
+    | Num6 // The 6 key.
+    | Num7 // The 7 key.
+    | Num8 // The 8 key.
+    | Num9 // The 9 key.
+    | Semicolon // The semicolon key.
+    | Equal // The equal key.
+    | A // The A key.
+    | B // The B key.
+    | C // The C key.
+    | D // The D key.
+    | E // The E key.
+    | F // The F key.
+    | G // The G key.
+    | H // The H key.
+    | I // The I key.
+    | J // The J key.
+    | K // The K key.
+    | L // The L key.
+    | M // The M key.
+    | N // The N key.
+    | O // The O key.
+    | P // The P key.
+    | Q // The Q key.
+    | R // The R key.
+    | S // The S key.
+    | T // The T key.
+    | U // The U key.
+    | V // The V key.
+    | W // The W key.
+    | X // The X key.
+    | Y // The Y key.
+    | Z // The Z key.
+    | LeftBracket // The left bracket(opening bracket) key '['
+    | Backslash // The backslash '\'
+    | RightBracket // The right bracket(closing bracket) key ']'
+    | GraveAccent // The grave accent key '`'
+    | AcuteAccent // The acute accent key ("inverted" grave accent) '´'
+    | Escape // The escape key.
+    | Enter // The enter key.
+    | Tab // The tab key.
+    | Backspace // The backspace key.
+    | Insert // The insert key.
+    | Delete // The delete key.
+    | Right // The right arrow key.
+    | Left // The left arrow key.
+    | Down // The down arrow key.
+    | Up // The up arrow key.
+    | PageUp // The page up key.
+    | PageDown // The page down key.
+    | Home // The home key.
+    | End // The end key.
+    | CapsLock // The caps lock key.
+    | ScrollLock // The scroll lock key.
+    | NumLock // The num lock key.
+    | PrintScreen // The print screen key.
+    | Pause // The pause key.
+    | F1 // The F1 key.
+    | F2 // The F2 key.
+    | F3 // The F3 key.
+    | F4 // The F4 key.
+    | F5 // The F5 key.
+    | F6 // The F6 key.
+    | F7 // The F7 key.
+    | F8 // The F8 key.
+    | F9 // The F9 key.
+    | F10 // The F10 key.
+    | F11 // The F11 key.
+    | F12 // The F12 key.
+    | KeyPad0 // The 0 key on the key pad.
+    | KeyPad1 // The 1 key on the key pad.
+    | KeyPad2 // The 2 key on the key pad.
+    | KeyPad3 // The 3 key on the key pad.
+    | KeyPad4 // The 4 key on the key pad.
+    | KeyPad5 // The 5 key on the key pad.
+    | KeyPad6 // The 6 key on the key pad.
+    | KeyPad7 // The 7 key on the key pad.
+    | KeyPad8 // The 8 key on the key pad.
+    | KeyPad9 // The 9 key on the key pad.
+    | KeyPadDecimal // The decimal key on the key pad.
+    | KeyPadDivide // The divide key on the key pad.
+    | KeyPadMultiply // The multiply key on the key pad.
+    | KeyPadSubtract // The subtract key on the key pad.
+    | KeyPadAdd // The add key on the key pad.
+    | KeyPadEnter // The enter key on the key pad.
+    | KeyPadEqual // The equal key on the key pad.
+    | LeftShift // The left shift key.
+    | LeftControl // The left control key.
+    | LeftAlt // The left alt key.
+    | LeftSuper // The left super key.
+    | RightShift // The right shift key.
+    | RightControl // The right control key.
+    | RightAlt // The right alt key.
+    | RightSuper // The right super key.
+    | Menu // The menu key.
+    | Diaresis // The Diaresis key '¨'
+    | LessThan // The less than sign '<'
+    | GreaterThan // The greater than sign '>'
+    | FractionOneHalf // The "vulgar fraction one half" key '½'
+    | DanishAA // The Danish AA key 'Å'
+    | DanishAE // The Danish AE key 'Æ'
+    | DanishOE // The Danish OE key 'Ø'
+
+let private toKeyboardKey key =
+    match SDL.stringFromKeyboard key with
+    | "Space" -> Space
+    | "'" -> Apostrophe
+    | "," -> Comma
+    | "-" -> Minus
+    | "+" -> Plus
+    | "." -> Period
+    | "/" -> Slash
+    | "0" -> Num0
+    | "1" -> Num1
+    | "2" -> Num2
+    | "3" -> Num3
+    | "4" -> Num4
+    | "5" -> Num5
+    | "6" -> Num6
+    | "7" -> Num7
+    | "8" -> Num8
+    | "9" -> Num9
+    | ";" -> Semicolon
+    | "=" -> Equal
+    | "A" -> A
+    | "B" -> B
+    | "C" -> C
+    | "D" -> D
+    | "E" -> E
+    | "F" -> F
+    | "G" -> G
+    | "H" -> H
+    | "I" -> I
+    | "J" -> J
+    | "K" -> K
+    | "L" -> L
+    | "M" -> M
+    | "N" -> N
+    | "O" -> O
+    | "P" -> P
+    | "Q" -> Q
+    | "R" -> R
+    | "S" -> S
+    | "T" -> T
+    | "U" -> U
+    | "V" -> V
+    | "W" -> W
+    | "X" -> X
+    | "Y" -> Y
+    | "Z" -> Z
+    | "[" -> LeftBracket
+    | "\\" -> Backslash
+    | "]" -> RightBracket
+    | "`" -> GraveAccent
+    | "´" -> AcuteAccent
+    | "Escape" -> Escape
+    | "Return" -> Enter // This should probably be Return.
+    | "Tab" -> Tab
+    | "Backspace" -> Backspace
+    | "Insert" -> Insert
+    | "Delete" -> Delete
+    | "Right" -> Right
+    | "Left" -> Left
+    | "Down" -> Down
+    | "Up" -> Up
+    | "PageUp" -> PageUp
+    | "PageDown" -> PageDown
+    | "Home" -> Home
+    | "End" -> End
+    | "CapsLock" -> CapsLock
+    | "ScrollLock" -> ScrollLock
+    | "Numlock" -> NumLock // Has to be lowercase.
+    | "PrintScreen" -> PrintScreen
+    | "Pause" -> Pause
+    | "F1" -> F1
+    | "F2" -> F2
+    | "F3" -> F3
+    | "F4" -> F4
+    | "F5" -> F5
+    | "F6" -> F6
+    | "F7" -> F7
+    | "F8" -> F8
+    | "F9" -> F9
+    | "F10" -> F10
+    | "F11" -> F11
+    | "F12" -> F12
+    | "Keypad 0" -> KeyPad0
+    | "Keypad 1" -> KeyPad1
+    | "Keypad 2" -> KeyPad2
+    | "Keypad 3" -> KeyPad3
+    | "Keypad 4" -> KeyPad4
+    | "Keypad 5" -> KeyPad5
+    | "Keypad 6" -> KeyPad6
+    | "Keypad 7" -> KeyPad7
+    | "Keypad 8" -> KeyPad8
+    | "Keypad 9" -> KeyPad9
+    | "Keypad ." -> KeyPadDecimal
+    | "Keypad /" -> KeyPadDivide
+    | "Keypad *" -> KeyPadMultiply
+    | "Keypad -" -> KeyPadSubtract
+    | "Keypad +" -> KeyPadAdd
+    | "Keypad Enter" -> KeyPadEnter
+    | "Keypad =" -> KeyPadEqual
+    | "Left Shift" -> LeftShift
+    | "Left Ctrl" -> LeftControl
+    | "Left Alt" -> LeftAlt
+    | "Left GUI" -> LeftSuper
+    | "Right Shift" -> RightShift
+    | "Right Ctrl" -> RightControl
+    | "Right Alt" -> RightAlt
+    | "Right GUI" -> RightSuper
+    | "Menu" -> Menu // Not sure if this does anything.
+    | "¨" -> Diaresis
+    | "<" -> LessThan
+    | ">" -> GreaterThan
+    | "½" -> FractionOneHalf
+    | "å" -> DanishAA
+    | "æ" -> DanishAE
+    | "ø" -> DanishOE
+    | _ -> Unknown
+
+let TIMER_EVENT =
+    match SDL.SDL_RegisterEvents 1 with
+    | UInt32.MaxValue -> failwith "Error: Could not allocate a user-defined Timer Event."
+    | x -> x
+
+let timerTickEvent () =
+    let mutable ev = SDL.SDL_Event()
+    ev.``type`` <- TIMER_EVENT
+    SDL.SDL_PushEvent(&ev) |> ignore
+
+let mutable private is_initialized = false
+let private lockObj = obj()
+
+let private set_init () =
+    lock lockObj (fun () ->
+        match is_initialized with
+        | true -> failwith "Error: Cannot open a window more than once."
+        | false -> is_initialized <- true
+    )
+
+let private unset_init () =
+    lock lockObj (fun () ->
+        match is_initialized with
+        | false -> failwith "Error: Cannot close an uninitialized window."
+        | true -> is_initialized <- false
+    )
+
+let private assert_init () =
+    lock lockObj (fun () ->
+        if not is_initialized then
+            failwith "Error: Cannot run this command with initializing a window."
+    )
+
+let mutable private viewWidth, viewHeight = -1, -1
+let mutable private window, renderer, texture, bufferPtr = IntPtr.Zero, IntPtr.Zero, IntPtr.Zero, IntPtr.Zero
+let mutable private frameBuffer = Array.create 0 (byte 0)
+let mutable private event = SDL.SDL_Event()
+let mutable private img = None
+
+let init (t:string, w:int, h:int) =
+    set_init ()
+
+    SDL.SDL_SetMainReady()
+    SDL.SDL_Init(SDL.SDL_INIT_VIDEO) |> ignore
+    //SDL.SDL_SetHint(SDL.SDL_HINT_QUIT_ON_LAST_WINDOW_CLOSE, "0") |> ignore
+
+    viewWidth <- w
+    viewHeight <- h
+    let windowFlags =
+        SDL.SDL_WindowFlags.SDL_WINDOW_SHOWN |||
+        SDL.SDL_WindowFlags.SDL_WINDOW_INPUT_FOCUS
+
+    window <- SDL.SDL_CreateWindow(t, SDL.SDL_WINDOWPOS_CENTERED, SDL.SDL_WINDOWPOS_CENTERED,
+                                viewWidth, viewHeight, windowFlags)
+    renderer <- SDL.SDL_CreateRenderer(window, -1, SDL.SDL_RendererFlags.SDL_RENDERER_ACCELERATED |||
+                                                SDL.SDL_RendererFlags.SDL_RENDERER_PRESENTVSYNC)
+
+    texture <- SDL.SDL_CreateTexture(renderer, SDL.SDL_PIXELFORMAT_RGBA32, SDL.SDL_TEXTUREACCESS_STREAMING, viewWidth, viewHeight)
+
+    frameBuffer <- Array.create (viewWidth * viewHeight * 4) (byte 0)
+    bufferPtr <- IntPtr ((Marshal.UnsafeAddrOfPinnedArrayElement (frameBuffer, 0)).ToPointer ())
+
+    img <- new Image<Rgba32>(w, h, Color.Black) |> Some
+    SDL.SDL_StartTextInput()
+
+let cleanup () =
+    assert_init ()
+    SDL.SDL_DestroyTexture texture
+    //printfn "Texture destroyed"
+    SDL.SDL_DestroyRenderer renderer
+    //printfn "Render destroyed"
+    SDL.SDL_DestroyWindow window
+    //printfn "Window destroyed"
+    SDL.SDL_QuitSubSystem(SDL.SDL_INIT_VIDEO) |> ignore
+    //SDL.SDL_Quit()
+    viewWidth <- -1
+    viewHeight <- -1
+    window <- IntPtr.Zero
+    renderer <- IntPtr.Zero
+    texture <- IntPtr.Zero
+    bufferPtr <- IntPtr.Zero
+    frameBuffer <- Array.create 0 (byte 0)
+    event <- SDL.SDL_Event()
+    img <- None
+    unset_init ()
+
+let render (draw : 's -> drawing_fun, state: 's) =
+    assert_init ()
+    Option.map(fun (img': Image<Rgba32>) ->
+        img'.Mutate(fun ctx' ->
+                (draw state ctx')
+                    .Crop(min viewWidth img'.Width, min viewHeight img'.Height)
+                    .Resize(ResizeOptions(Position = AnchorPositionMode.TopLeft,
+                                        Size = Size(viewWidth, viewHeight),
+                                        Mode = ResizeMode.BoxPad))
+                |> ignore)
+        img'.CopyPixelDataTo(frameBuffer)
+        SDL.SDL_UpdateTexture(texture, IntPtr.Zero, bufferPtr, viewWidth * 4) |> ignore
+        SDL.SDL_RenderClear(renderer) |> ignore
+        SDL.SDL_RenderCopy(renderer, texture, IntPtr.Zero, IntPtr.Zero) |> ignore
+        SDL.SDL_RenderPresent(renderer) |> ignore
+        img'.Mutate(fun ctx -> ctx.Clear(Color.Black) |> ignore)
+    ) img |> ignore
+    ()
+
+let internal waitEvent classifyEvent =
+    assert_init ()
+    if 0 = SDL.SDL_WaitEvent(&event)
+    then failwith "Error: No event arrived."
+    else classifyEvent event
+
+let hideWindow () =
+    assert_init ()
+    SDL.SDL_HideWindow window
+
 type Event =
     | Key of char
     | DownArrow
@@ -245,12 +604,12 @@ type Event =
     | MouseMotion of int * int * int * int // x,y, relx, rely
     | TimerTick
 
-type private ClassifiedEvent =
+type ClassifiedEvent =
     | React of Event
     | Quit
-    | Ignore of SDL.Event
+    | Ignore
 
-let private classifyEvent userClassify ev =
+let internal classifyEvent userClassify ev =
     match SDL.convertEvent ev with
         | SDL.Quit -> Quit
         // | SDL.Window wevent->
@@ -272,108 +631,57 @@ let private classifyEvent userClassify ev =
             (motion.x,motion.y,motion.xrel, motion.yrel) |> MouseMotion |> React
         | SDL.TextInput tinput -> tinput |> Key |> React
         | SDL.User uev -> userClassify uev
-        | ev -> Ignore ev
+        | _ -> Ignore
+
+let private userClassify : SDL.SDL_UserEvent -> ClassifiedEvent = function
+    | uev when uev.``type`` = TIMER_EVENT -> React TimerTick
+    | _ -> Ignore
+
+let private timer interval =
+    let ticker _ = timerTickEvent () 
+    let timer = new System.Timers.Timer(float interval)
+    timer.AutoReset <- true
+    timer.Elapsed.Add ticker
+    timer.Start()
+    Some timer
+
+let pollEvents notify =
+    assert_init ()
+    while 1 = SDL.SDL_PollEvent(&event) do
+        match SDL.convertEvent event with
+        | SDL.KeyDown kevent -> notify (KeyPress, toKeyboardKey kevent)
+        | SDL.KeyUp kevent -> notify (KeyRelease, toKeyboardKey kevent)
+        | _ -> ()
 
 let runAppWithTimer (t:string) (w:int) (h:int) (interval:int option)
-           (draw: 's -> drawing_fun)
-           (react: 's -> Event -> 's option) (s:'s) : unit =
-
-    let state = ref s
-
-    SDL.SDL_SetMainReady()
-    SDL.SDL_Init(SDL.SDL_INIT_VIDEO) |> ignore
-    //SDL.SDL_SetHint(SDL.SDL_HINT_QUIT_ON_LAST_WINDOW_CLOSE, "0") |> ignore
-
-    let viewWidth, viewHeight = w, h
-    let mutable window, renderer = IntPtr.Zero, IntPtr.Zero
-    let windowFlags = SDL.SDL_WindowFlags.SDL_WINDOW_SHOWN |||
-                      SDL.SDL_WindowFlags.SDL_WINDOW_INPUT_FOCUS
-
-    window <- SDL.SDL_CreateWindow(t, SDL.SDL_WINDOWPOS_CENTERED, SDL.SDL_WINDOWPOS_CENTERED,
-                                   viewWidth, viewHeight, windowFlags)
-    renderer <- SDL.SDL_CreateRenderer(window, -1, SDL.SDL_RendererFlags.SDL_RENDERER_ACCELERATED |||
-                                                   SDL.SDL_RendererFlags.SDL_RENDERER_PRESENTVSYNC)
-
-    let texture = SDL.SDL_CreateTexture(renderer, SDL.SDL_PIXELFORMAT_RGBA32, SDL.SDL_TEXTUREACCESS_STREAMING, viewWidth, viewHeight)
-
-    let frameBuffer = Array.create (viewWidth * viewHeight *4 ) (byte 0)
-    let bufferPtr = IntPtr ((Marshal.UnsafeAddrOfPinnedArrayElement (frameBuffer, 0)).ToPointer ())
-
-    // Set up a timer
-    let TIMER_EVENT = SDL.SDL_RegisterEvents 1 // TODO: check that we succeed
-    let timer =
-        match interval with
-            | Some interv when interv > 0 ->
-                let ticker _ =
-                    let mutable ev = SDL.SDL_Event()
-                    ev.``type`` <- TIMER_EVENT
-                    SDL.SDL_PushEvent(&ev) |> ignore
-
-                let timer = new System.Timers.Timer(float interv)
-                timer.AutoReset <- true
-                timer.Elapsed.Add ticker
-                timer.Start()
-                Some timer
-            | _ ->
-                None
-
-    let userClassify : SDL.SDL_UserEvent -> ClassifiedEvent = function
-        | uev when uev.``type`` = TIMER_EVENT -> React TimerTick
-        | uev -> Ignore(SDL.User uev)
-
-    let mutable event = SDL.SDL_Event()
-    let img = new Image<Rgba32>(w, h, Color.Black) // FIXME: can we use framebuffer directly?
-
+        (draw: 's -> drawing_fun)
+        (react: 's -> Event -> 's option) (s: 's) : unit =
+    init (t, w, h)
+    
+    let mutable state = s
     let rec drawLoop redraw =
         if redraw then
-            img.Mutate(fun ctx ->
-                       (draw (!state) ctx)
-                          .Crop(min w img.Width, min h img.Height)
-                          .Resize(ResizeOptions(Position = AnchorPositionMode.TopLeft,
-                                                Size = Size(w, h),
-                                                Mode = ResizeMode.BoxPad))
-                       |> ignore)
-            img.CopyPixelDataTo(frameBuffer)
-            SDL.SDL_UpdateTexture(texture, IntPtr.Zero, bufferPtr, viewWidth * 4) |> ignore
-            SDL.SDL_RenderClear(renderer) |> ignore
-            SDL.SDL_RenderCopy(renderer, texture, IntPtr.Zero, IntPtr.Zero) |> ignore
-            SDL.SDL_RenderPresent(renderer) |> ignore
-            img.Mutate(fun ctx -> ctx.Clear(Color.Black) |> ignore)
-            ()
-
-        let ret = SDL.SDL_WaitEvent(&event)
-        if ret = 0 then () // an error happened so we exit
-        else
-            match classifyEvent userClassify event with
-                | Quit ->
-                    // printfn "We quit"
-                    SDL.SDL_HideWindow window
-                    () // quit the interaction by exiting the loop
-                |  React ev ->
-                    let redraw =
-                        match react (!state) ev with
-                            | Some s -> (state := s; true)
-                            | None   -> false
-                    drawLoop redraw
-                | Ignore sdlEvent ->
-                    // printfn "We loop because of: %A" sdlEvent
-                    drawLoop false
-
-    SDL.SDL_StartTextInput()
+            render (draw, state)
+        match waitEvent (classifyEvent userClassify) with
+            | Quit ->
+                // printfn "We quit"
+                hideWindow ()
+                () // quit the interaction by exiting the loop
+            | React ev ->
+                let redraw =
+                    match react state ev with
+                        | Some s' -> state <- s'; true
+                        | None   -> false
+                drawLoop redraw
+            | Ignore ->
+                // printfn "We loop because of: %A" sdlEvent
+                drawLoop false
+    let timer = Option.bind (fun t -> timer t) interval
+    
     drawLoop true
-    //printfn "Out of loop"
     timer |> Option.map (fun timer -> timer.Stop()) |> ignore
-
-
-    SDL.SDL_DestroyTexture texture
-    //printfn "Texture destroyed"
-    SDL.SDL_DestroyRenderer renderer
-    //printfn "Render destroyed"
-    SDL.SDL_DestroyWindow window
-    //printfn "Window destroyed"
-    SDL.SDL_QuitSubSystem(SDL.SDL_INIT_VIDEO) |> ignore
-    //SDL.SDL_Quit()
-    ()
+    //printfn "Out of loop"
+    cleanup ()
 
 let runApp (t:string) (w:int) (h:int) (draw: unit -> drawing_fun) : unit =
     let drawWState s = draw ()
