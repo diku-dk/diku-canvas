@@ -2,7 +2,7 @@
 #r "nuget: SixLabors.Fonts, 2.0.4"
 #r "nuget: SixLabors.ImageSharp, 3.1.4"
 #r "nuget: SixLabors.ImageSharp.Drawing, 2.1.3"
-#r "/home/due/Documents/due/diku-canvas/bin/Release/net6.0/canvas.dll"
+#r "/home/due/Documents/diku-canvas/bin/Release/net6.0/canvas.dll"
 open Canvas
 open Color
 
@@ -86,5 +86,5 @@ let react (s:state) (ev:Event) : state option =
 
 // Start interaction session
 let initialState = {player = 0, 0; monster = 0, 5}// First state drawn by draw
-let delayTime = Some 20 // microseconds (as an option type)
+let delayTime = Some 200 // microseconds (as an option type)
 interact "Minigame" w h delayTime draw react initialState

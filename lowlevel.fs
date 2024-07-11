@@ -2,6 +2,7 @@ module Lowlevel
 
 open System.Runtime.InteropServices
 open System
+open System.Collections.Generic
 
 open SixLabors.ImageSharp
 open SixLabors.ImageSharp.PixelFormats
@@ -10,6 +11,8 @@ open SixLabors.ImageSharp.Drawing.Processing
 open SixLabors.ImageSharp.Drawing
 // colors
 type Color = SixLabors.ImageSharp.Color
+
+type InternalEvent = internal InternalEvent of SDL.SDL_Event
 
 let fromRgba (red:int) (green:int) (blue:int) (a:int) : Color =
     Color.FromRgba(byte red, byte green, byte blue, byte a)
@@ -487,110 +490,130 @@ let timerTickEvent () =
     ev.``type`` <- TIMER_EVENT
     SDL.SDL_PushEvent(&ev) |> ignore
 
-let mutable private is_initialized = false
-let private lockObj = obj()
-
-let private set_init () =
-    lock lockObj (fun () ->
-        match is_initialized with
-        | true -> failwith "Error: Cannot open a window more than once."
-        | false -> is_initialized <- true
-    )
-
-let private unset_init () =
-    lock lockObj (fun () ->
-        match is_initialized with
-        | false -> failwith "Error: Cannot close an uninitialized window."
-        | true -> is_initialized <- false
-    )
-
-let private assert_init () =
-    lock lockObj (fun () ->
-        if not is_initialized then
-            failwith "Error: Cannot run this command with initializing a window."
-    )
-
-let mutable private viewWidth, viewHeight = -1, -1
-let mutable private window, renderer, texture, bufferPtr = IntPtr.Zero, IntPtr.Zero, IntPtr.Zero, IntPtr.Zero
-let mutable private frameBuffer = Array.create 0 (byte 0)
-let mutable private event = SDL.SDL_Event()
-let mutable private img = None
-
-let init (t:string, w:int, h:int) =
-    set_init ()
-
-    SDL.SDL_SetMainReady()
-    SDL.SDL_Init(SDL.SDL_INIT_VIDEO) |> ignore
-    //SDL.SDL_SetHint(SDL.SDL_HINT_QUIT_ON_LAST_WINDOW_CLOSE, "0") |> ignore
-
-    viewWidth <- w
-    viewHeight <- h
+type Window(t:string, w:int, h:int) =
+    let mutable disposed = false
+    static let mutable eventQueues = Map.empty
+    let viewWidth, viewHeight = w, h
+    let mutable window, renderer, texture, bufferPtr = IntPtr.Zero, IntPtr.Zero, IntPtr.Zero, IntPtr.Zero
+    let mutable frameBuffer = Array.create 0 (byte 0)
+    let mutable event = SDL.SDL_Event()
+    let mutable img = None
+    let mutable windowId = 0u
     let windowFlags =
         SDL.SDL_WindowFlags.SDL_WINDOW_SHOWN |||
         SDL.SDL_WindowFlags.SDL_WINDOW_INPUT_FOCUS
+    
+    do
+        SDL.SDL_SetMainReady()
+        SDL.SDL_Init(SDL.SDL_INIT_VIDEO) |> ignore
+        //SDL.SDL_SetHint(SDL.SDL_HINT_QUIT_ON_LAST_WINDOW_CLOSE, "0") |> ignore
 
-    window <- SDL.SDL_CreateWindow(t, SDL.SDL_WINDOWPOS_CENTERED, SDL.SDL_WINDOWPOS_CENTERED,
+        window <- SDL.SDL_CreateWindow(t, SDL.SDL_WINDOWPOS_CENTERED, SDL.SDL_WINDOWPOS_CENTERED,
                                 viewWidth, viewHeight, windowFlags)
-    renderer <- SDL.SDL_CreateRenderer(window, -1, SDL.SDL_RendererFlags.SDL_RENDERER_ACCELERATED |||
+        renderer <- SDL.SDL_CreateRenderer(window, -1, SDL.SDL_RendererFlags.SDL_RENDERER_ACCELERATED |||
                                                 SDL.SDL_RendererFlags.SDL_RENDERER_PRESENTVSYNC)
 
-    texture <- SDL.SDL_CreateTexture(renderer, SDL.SDL_PIXELFORMAT_RGBA32, SDL.SDL_TEXTUREACCESS_STREAMING, viewWidth, viewHeight)
+        texture <- SDL.SDL_CreateTexture(renderer, SDL.SDL_PIXELFORMAT_RGBA32, SDL.SDL_TEXTUREACCESS_STREAMING, viewWidth, viewHeight)
 
-    frameBuffer <- Array.create (viewWidth * viewHeight * 4) (byte 0)
-    bufferPtr <- IntPtr ((Marshal.UnsafeAddrOfPinnedArrayElement (frameBuffer, 0)).ToPointer ())
+        frameBuffer <- Array.create (viewWidth * viewHeight * 4) (byte 0)
+        bufferPtr <- IntPtr ((Marshal.UnsafeAddrOfPinnedArrayElement (frameBuffer, 0)).ToPointer ())
 
-    img <- new Image<Rgba32>(w, h, Color.Black) |> Some
-    SDL.SDL_StartTextInput()
+        img <- new Image<Rgba32>(w, h, Color.Black) |> Some
+        SDL.SDL_StartTextInput()
+        windowId <- SDL.SDL_GetWindowID(window)
+        eventQueues <- eventQueues.Add (windowId, Queue())
+    
+    member this.cleanup () = 
+        if not disposed then
+            disposed <- true
+            this.hideWindow ()
+            SDL.SDL_DestroyTexture texture
+            //printfn "Texture destroyed"
+            SDL.SDL_DestroyRenderer renderer
+            //printfn "Render destroyed"
+            SDL.SDL_DestroyWindow window
+            //printfn "Window destroyed"
+            SDL.SDL_QuitSubSystem(SDL.SDL_INIT_VIDEO) |> ignore
+            eventQueues <- eventQueues.Remove windowId
 
-let cleanup () =
-    assert_init ()
-    SDL.SDL_DestroyTexture texture
-    //printfn "Texture destroyed"
-    SDL.SDL_DestroyRenderer renderer
-    //printfn "Render destroyed"
-    SDL.SDL_DestroyWindow window
-    //printfn "Window destroyed"
-    SDL.SDL_QuitSubSystem(SDL.SDL_INIT_VIDEO) |> ignore
-    //SDL.SDL_Quit()
-    viewWidth <- -1
-    viewHeight <- -1
-    window <- IntPtr.Zero
-    renderer <- IntPtr.Zero
-    texture <- IntPtr.Zero
-    bufferPtr <- IntPtr.Zero
-    frameBuffer <- Array.create 0 (byte 0)
-    event <- SDL.SDL_Event()
-    img <- None
-    unset_init ()
+            window <- IntPtr.Zero
+            renderer <- IntPtr.Zero
+            texture <- IntPtr.Zero
+            bufferPtr <- IntPtr.Zero
+            frameBuffer <- Array.create 0 (byte 0)
+            event <- SDL.SDL_Event()
+            img <- None
+            windowId <- 0u
+    
+    interface IDisposable with
+        member self.Dispose() =
+            self.cleanup()
+            GC.SuppressFinalize(self)
+    
+    override this.Finalize () =
+        this.cleanup()
 
-let render (draw : 's -> drawing_fun, state: 's) =
-    assert_init ()
-    Option.map(fun (img': Image<Rgba32>) ->
-        img'.Mutate(fun ctx' ->
-                (draw state ctx')
-                    .Crop(min viewWidth img'.Width, min viewHeight img'.Height)
-                    .Resize(ResizeOptions(Position = AnchorPositionMode.TopLeft,
-                                        Size = Size(viewWidth, viewHeight),
-                                        Mode = ResizeMode.BoxPad))
-                |> ignore)
-        img'.CopyPixelDataTo(frameBuffer)
-        SDL.SDL_UpdateTexture(texture, IntPtr.Zero, bufferPtr, viewWidth * 4) |> ignore
-        SDL.SDL_RenderClear(renderer) |> ignore
-        SDL.SDL_RenderCopy(renderer, texture, IntPtr.Zero, IntPtr.Zero) |> ignore
-        SDL.SDL_RenderPresent(renderer) |> ignore
-        img'.Mutate(fun ctx -> ctx.Clear(Color.Black) |> ignore)
-    ) img |> ignore
-    ()
+    member this.render (draw : 's -> drawing_fun, state: 's) =
+        Option.map(fun (img': Image<Rgba32>) ->
+            img'.Mutate(fun ctx' ->
+                    (draw state ctx')
+                        .Crop(min viewWidth img'.Width, min viewHeight img'.Height)
+                        .Resize(ResizeOptions(Position = AnchorPositionMode.TopLeft,
+                                            Size = Size(viewWidth, viewHeight),
+                                            Mode = ResizeMode.BoxPad))
+                    |> ignore)
+            img'.CopyPixelDataTo(frameBuffer)
+            SDL.SDL_UpdateTexture(texture, IntPtr.Zero, bufferPtr, viewWidth * 4) |> ignore
+            SDL.SDL_RenderClear(renderer) |> ignore
+            SDL.SDL_RenderCopy(renderer, texture, IntPtr.Zero, IntPtr.Zero) |> ignore
+            SDL.SDL_RenderPresent(renderer) |> ignore
+            img'.Mutate(fun ctx -> ctx.Clear(Color.Black) |> ignore)
+        ) img |> ignore
+        ()
 
-let internal waitEvent classifyEvent =
-    assert_init ()
-    if 0 = SDL.SDL_WaitEvent(&event)
-    then failwith "Error: No event arrived."
-    else classifyEvent event
+    member private this.enqueueEvent (event: SDL.SDL_Event)  =
+        if event.window.windowID = 0u
+        then
+            Map.iter (
+                fun _ (q: Queue<SDL.SDL_Event>) -> q.Enqueue event
+            ) eventQueues
+        else
+            match Map.tryFind event.window.windowID eventQueues with
+            | Some queue -> queue.Enqueue event
+            | None -> ()
+    
+    member private this.assertWindowExists () =
+        if Map.containsKey windowId eventQueues |> not then
+            failwith "Error: You can not get events from a disposed Window."
 
-let hideWindow () =
-    assert_init ()
-    SDL.SDL_HideWindow window
+    member this.waitEvent f =
+        this.assertWindowExists ()
+
+        if eventQueues[windowId].Count = 0
+        then
+            if 0 = SDL.SDL_WaitEvent(&event) then
+                failwith "Error: No event arrived."
+            
+            this.enqueueEvent event
+            this.waitEvent f
+        else
+            eventQueues[windowId].Dequeue ()
+            |> InternalEvent
+            |> f
+    
+    member this.pollEvents f =
+        this.assertWindowExists ()
+
+        while 1 = SDL.SDL_PollEvent(&event) do
+            this.enqueueEvent event
+
+        while eventQueues[windowId].Count <> 0 do
+            eventQueues[windowId].Dequeue ()
+            |> InternalEvent
+            |> f 
+            
+    member this.hideWindow () =
+        SDL.SDL_HideWindow window
 
 type Event =
     | Key of char
@@ -604,14 +627,24 @@ type Event =
     | MouseMotion of int * int * int * int // x,y, relx, rely
     | TimerTick
 
-type ClassifiedEvent =
-    | React of Event
+type ClassifiedEvent<'e> =
+    | React of 'e
     | Quit
     | Ignore
 
+let toKeyboardEvent event =
+    let (InternalEvent _event) = event
+    match SDL.convertEvent _event with
+    | SDL.Window wev when wev.event = SDL.SDL_WindowEventID.SDL_WINDOWEVENT_CLOSE -> Quit
+    | SDL.KeyDown kevent when kevent.keysym.sym = SDL.SDLK_ESCAPE -> Quit
+    | SDL.KeyDown kevent -> React (KeyPress, toKeyboardKey kevent)
+    | SDL.KeyUp kevent -> React (KeyRelease, toKeyboardKey kevent)
+    | _ -> Ignore
+
 let internal classifyEvent userClassify ev =
-    match SDL.convertEvent ev with
-        | SDL.Quit -> Quit
+    let (InternalEvent _ev) = ev
+    match SDL.convertEvent _ev with
+        | SDL.Window wev when wev.event = SDL.SDL_WindowEventID.SDL_WINDOWEVENT_CLOSE -> Quit
         // | SDL.Window wevent->
         //     printfn "Window event %A" wevent.event
         //     // if wevent.event = SDL.SDL_WindowEventID.SDL_WINDOWEVENT_CLOSE then Quit
@@ -633,7 +666,7 @@ let internal classifyEvent userClassify ev =
         | SDL.User uev -> userClassify uev
         | _ -> Ignore
 
-let private userClassify : SDL.SDL_UserEvent -> ClassifiedEvent = function
+let private userClassify : SDL.SDL_UserEvent -> ClassifiedEvent<Event> = function
     | uev when uev.``type`` = TIMER_EVENT -> React TimerTick
     | _ -> Ignore
 
@@ -645,27 +678,19 @@ let private timer interval =
     timer.Start()
     Some timer
 
-let pollEvents notify =
-    assert_init ()
-    while 1 = SDL.SDL_PollEvent(&event) do
-        match SDL.convertEvent event with
-        | SDL.KeyDown kevent -> notify (KeyPress, toKeyboardKey kevent)
-        | SDL.KeyUp kevent -> notify (KeyRelease, toKeyboardKey kevent)
-        | _ -> ()
-
 let runAppWithTimer (t:string) (w:int) (h:int) (interval:int option)
         (draw: 's -> drawing_fun)
         (react: 's -> Event -> 's option) (s: 's) : unit =
-    init (t, w, h)
-    
+    let window = new Window(t, w, h)
+
     let mutable state = s
     let rec drawLoop redraw =
         if redraw then
-            render (draw, state)
-        match waitEvent (classifyEvent userClassify) with
+            window.render (draw, state)
+        match window.waitEvent (classifyEvent userClassify) with
             | Quit ->
                 // printfn "We quit"
-                hideWindow ()
+                window.hideWindow ()
                 () // quit the interaction by exiting the loop
             | React ev ->
                 let redraw =
@@ -681,7 +706,6 @@ let runAppWithTimer (t:string) (w:int) (h:int) (interval:int option)
     drawLoop true
     timer |> Option.map (fun timer -> timer.Stop()) |> ignore
     //printfn "Out of loop"
-    cleanup ()
 
 let runApp (t:string) (w:int) (h:int) (draw: unit -> drawing_fun) : unit =
     let drawWState s = draw ()

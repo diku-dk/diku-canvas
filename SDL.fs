@@ -327,3 +327,6 @@ extern IntPtr SDL_CreateRGBSurfaceFrom (IntPtr pixels, int width, int height, in
 
 [<DllImport(libName, CallingConvention = CallingConvention.Cdecl)>]
 extern unit SDL_FreeSurface(IntPtr surface)
+
+[<DllImport(libName, CallingConvention = CallingConvention.Cdecl)>]
+extern uint32 SDL_GetWindowID(IntPtr window);
