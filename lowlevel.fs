@@ -504,9 +504,11 @@ type Window(t:string, w:int, h:int) =
         SDL.SDL_WindowFlags.SDL_WINDOW_INPUT_FOCUS
     
     do
-        SDL.SDL_SetMainReady()
-        SDL.SDL_Init(SDL.SDL_INIT_VIDEO) |> ignore
-        //SDL.SDL_SetHint(SDL.SDL_HINT_QUIT_ON_LAST_WINDOW_CLOSE, "0") |> ignore
+        let is_initial = 0 = Map.count eventQueues
+        if is_initial then
+            SDL.SDL_SetMainReady()
+            SDL.SDL_Init(SDL.SDL_INIT_VIDEO) |> ignore
+            //SDL.SDL_SetHint(SDL.SDL_HINT_QUIT_ON_LAST_WINDOW_CLOSE, "0") |> ignore
 
         window <- SDL.SDL_CreateWindow(t, SDL.SDL_WINDOWPOS_CENTERED, SDL.SDL_WINDOWPOS_CENTERED,
                                 viewWidth, viewHeight, windowFlags)
@@ -519,7 +521,10 @@ type Window(t:string, w:int, h:int) =
         bufferPtr <- IntPtr ((Marshal.UnsafeAddrOfPinnedArrayElement (frameBuffer, 0)).ToPointer ())
 
         img <- new Image<Rgba32>(w, h, Color.Black) |> Some
-        SDL.SDL_StartTextInput()
+
+        if is_initial then
+            SDL.SDL_StartTextInput()
+        
         windowId <- SDL.SDL_GetWindowID(window)
         eventQueues <- eventQueues.Add (windowId, Queue())
     
@@ -533,8 +538,10 @@ type Window(t:string, w:int, h:int) =
             //printfn "Render destroyed"
             SDL.SDL_DestroyWindow window
             //printfn "Window destroyed"
-            SDL.SDL_QuitSubSystem(SDL.SDL_INIT_VIDEO) |> ignore
             eventQueues <- eventQueues.Remove windowId
+
+            if 0 = Map.count eventQueues then
+                SDL.SDL_QuitSubSystem(SDL.SDL_INIT_VIDEO) |> ignore
 
             window <- IntPtr.Zero
             renderer <- IntPtr.Zero
