@@ -560,10 +560,10 @@ type Window(t:string, w:int, h:int) =
     override this.Finalize () =
         this.cleanup()
 
-    member this.render (draw : 's -> drawing_fun, state: 's) =
+    member this.render (draw : drawing_fun) =
         Option.map(fun (img': Image<Rgba32>) ->
             img'.Mutate(fun ctx' ->
-                    (draw state ctx')
+                    (draw ctx')
                         .Crop(min viewWidth img'.Width, min viewHeight img'.Height)
                         .Resize(ResizeOptions(Position = AnchorPositionMode.TopLeft,
                                             Size = Size(viewWidth, viewHeight),
@@ -693,7 +693,7 @@ let runAppWithTimer (t:string) (w:int) (h:int) (interval:int option)
     let mutable state = s
     let rec drawLoop redraw =
         if redraw then
-            window.render (draw, state)
+            window.render (draw state)
         match window.waitEvent (classifyEvent userClassify) with
             | Quit ->
                 // printfn "We quit"
