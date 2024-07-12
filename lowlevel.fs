@@ -19,8 +19,8 @@ let fromRgba (red:int) (green:int) (blue:int) (a:int) : Color =
 let fromRgb (red:int) (green:int) (blue:int) : Color =
     Color.FromRgb(byte red, byte green, byte blue)
 type image = SixLabors.ImageSharp.Image<Rgba32>
-type drawing_context = SixLabors.ImageSharp.Processing.IImageProcessingContext
-type drawing_fun = drawing_context -> drawing_context
+type DrawingContext = internal DrawingContext of SixLabors.ImageSharp.Processing.IImageProcessingContext
+type drawing_fun = DrawingContext -> DrawingContext
 
 type Font = SixLabors.Fonts.Font
 type FontFamily = SixLabors.Fonts.FontFamily
@@ -42,7 +42,9 @@ let solidPen (color:Color) (width:float) : Tool =
 
 type point = int * int
 type pointF = float * float
+type Vector2 = System.Numerics.Vector2
 type Matrix3x2 = System.Numerics.Matrix3x2
+type Matrix4x4 = System.Numerics.Matrix4x4
 type TextOptions = SixLabors.Fonts.TextOptions
 
 let toPointF (x:float, y:float) = PointF(x = float32 x, y = float32 y)
@@ -115,7 +117,6 @@ let construct pd : IPath =
                 | Combine (p1, p2) ->
                     loop builder curT (p1 :: p2 :: worklist)
     (loop builder initial pd).Build()
-
 
 type PrimPath =
     | Arc of pointF * float * float * float * float * float
@@ -201,39 +202,35 @@ let flatten (p : PathTree) : (Tool*IPathCollection) list =  //FIXME: should mayb
                     traverse acc worklist
     traverse [] [p]
 
-let createText (text, options) =
-    TextBuilder.GenerateGlyphs(text, options)
-
-let transformIPathCollection (mat: Matrix3x2, p: IPathCollection) =
-    p.Transform(mat)
-
-let drawCollection ((tool,col):Tool * IPathCollection) (ctx:drawing_context) : drawing_context =
+let drawCollection ((tool,col):Tool * IPathCollection) (ctx: DrawingContext): DrawingContext =
+    let (DrawingContext _ctx) = ctx
+    DrawingContext <|
     match tool with
         | Pen pen ->
-            ctx.Draw(pen, col)
+            _ctx.Draw(pen, col)
         | Brush brush ->
-            ctx.Fill(DrawingOptions(), brush, col)
+            _ctx.Fill(DrawingOptions(), brush, col)
 
-let drawPathTree (paths:PathTree) (ctx:drawing_context) : drawing_context =
+let drawPathTree (paths:PathTree) (ctx: DrawingContext) : DrawingContext =
     flatten paths |> List.fold (fun ctx penNCol -> drawCollection penNCol ctx) ctx
 
-let drawToFile width height (filePath:string) (draw:drawing_fun) =
+let drawToFile width height (filePath:string) (draw: drawing_fun) =
     let img = new Image<Rgba32>(width, height)
-    img.Mutate(draw >> ignore)
+    img.Mutate(DrawingContext >> draw >> ignore)
     img.Save(filePath)
 
 let drawToAnimatedGif width heigth (frameDelay:int) (repeatCount:int) (filePath:string) (drawLst:drawing_fun list) =
     match drawLst with
         draw::rst ->
             let gif = new Image<Rgba32>(width, heigth)
-            gif.Mutate(draw >> ignore)
+            gif.Mutate(DrawingContext >> draw >> ignore)
             let gifMetaData = gif.Metadata.GetGifMetadata()
             gifMetaData.RepeatCount <- uint16 repeatCount
             let metadata = gif.Frames.RootFrame.Metadata.GetGifMetadata()
             metadata.FrameDelay <- frameDelay
             List.iter (fun (draw:drawing_fun) -> 
                 let frame = new Image<Rgba32>(width, heigth)
-                frame.Mutate(draw >> ignore)
+                frame.Mutate(DrawingContext >> draw >> ignore)
                 let metadata = frame.Frames.RootFrame.Metadata.GetGifMetadata()
                 metadata.FrameDelay <- frameDelay
                 gif.Frames.AddFrame(frame.Frames.RootFrame) |> ignore
@@ -241,6 +238,113 @@ let drawToAnimatedGif width heigth (frameDelay:int) (repeatCount:int) (filePath:
             gif.SaveAsGif(filePath)
         | _ -> ()
 
+type Text(position: Vector2, text: string, color: Color, fontFamily: FontFamily, size: float) =
+    let mutable fontFamily = fontFamily 
+    let mutable font = makeFont fontFamily size
+    let mutable path = TextBuilder.GenerateGlyphs(text, TextOptions font)
+    let mutable brush = Brushes.Solid(color)
+    let mutable text = text
+    do
+        let pos = position - Vector2(path.Bounds.Location.X, path.Bounds.Location.Y)
+        path <- path.Translate(pos)
+
+    member private this.UpdatePath () =
+        path <- TextBuilder.GenerateGlyphs(text, TextOptions font)
+                .Translate(position)
+
+    member private this.UpdateFont () =
+        font <- makeFont fontFamily size
+
+    member this.Text
+        with get () = text
+        and set v =
+            text <- v
+            this.UpdatePath ()
+    
+    member this.FontFamily
+        with get () = fontFamily
+        and set v =
+            fontFamily <- v
+            this.UpdateFont ()
+            this.UpdatePath ()
+
+    member this.Color
+        with get () = color
+        and set v = brush <- Brushes.Solid(v)
+
+    member this.Render (DrawingContext ctx) =
+        ctx.Fill(DrawingOptions(), brush, path)
+        |> ignore
+    
+    member this.Extent
+        with get () = Vector2(path.Bounds.Width, path.Bounds.Height)
+    
+    member this.Position
+        with get () = Vector2(path.Bounds.Location.X, path.Bounds.Location.Y)
+    
+    member this.Scale (scaling: Vector2) =
+        path <- path.Scale(scaling.X, scaling.Y)
+        Vector2(path.Bounds.Width, path.Bounds.Height)
+            
+    member this.Translate (translation: Vector2) =
+        path <- path.Scale(translation.X, translation.Y)
+        Vector2(path.Bounds.Location.X, path.Bounds.Location.Y)
+    
+    member this.SetExtent (newExtent: Vector2) =
+        path <- path.Scale(
+            newExtent.X / path.Bounds.Width,
+            newExtent.Y / path.Bounds.Height
+        )
+    
+    member this.SetPosition (newPosition: Vector2) =
+        path <- path.Scale(
+            newPosition.X - path.Bounds.Location.X,
+            newPosition.Y - path.Bounds.Location.X
+        )
+(*
+type Texture(position: Vector2, stream: IO.Stream) =
+    let mutable image = Image.Load(stream)
+    let mutable position = position
+    let sampler = Processors.Transforms.NearestNeighborResampler ()
+    do
+        image.Mutate(fun ctx -> ctx |> ignore )
+    
+    interface IGraphic with
+        member this.Render (DrawingContext ctx) =
+            let position = Point(50, 50)
+            ctx.DrawImage(image, position, 1f)
+            |> ignore
+        
+        member this.Extent
+            with get () = Vector2(float32 image.Bounds.Width, float32 image.Bounds.Height)
+        
+        member this.Position
+            with get () = Vector2(float32 image.Bounds.Location.X, float32 image.Bounds.Location.Y)
+        
+        member this.Scale scaling =
+            image.Mutate(fun ctx ->
+                ctx.Resize(int scaling.X, int scaling.Y, sampler)
+                |> ignore
+            )
+            path <- path.Scale(scaling.X, scaling.Y)
+            Vector2(path.Bounds.Width, path.Bounds.Height)
+                
+        member this.Translate translation =
+            path <- path.Scale(translation.X, translation.Y)
+            Vector2(path.Bounds.Location.X, path.Bounds.Location.Y)
+        
+        member this.SetExtent (newExtent: Vector2) =
+            path <- path.Scale(
+                newExtent.X / path.Bounds.Width,
+                newExtent.Y / path.Bounds.Height
+            )
+        
+        member this.SetPosition (newPosition: Vector2) =
+            path <- path.Scale(
+                newPosition.X - path.Bounds.Location.X,
+                newPosition.Y - path.Bounds.Location.X
+            )
+*)
 type KeyAction =
     | KeyPress
     | KeyRelease
@@ -480,7 +584,7 @@ let private toKeyboardKey key =
     | "ø" -> DanishOE
     | _ -> Unknown
 
-let TIMER_EVENT =
+let private TIMER_EVENT =
     match SDL.SDL_RegisterEvents 1 with
     | UInt32.MaxValue -> failwith "Error: Could not allocate a user-defined Timer Event."
     | x -> x
@@ -502,7 +606,6 @@ type Window(t:string, w:int, h:int) =
     let windowFlags =
         SDL.SDL_WindowFlags.SDL_WINDOW_SHOWN |||
         SDL.SDL_WindowFlags.SDL_WINDOW_INPUT_FOCUS
-    
     do
         let is_initial = 0 = Map.count eventQueues
         if is_initial then
@@ -528,7 +631,7 @@ type Window(t:string, w:int, h:int) =
         windowId <- SDL.SDL_GetWindowID(window)
         eventQueues <- eventQueues.Add (windowId, Queue())
     
-    member this.cleanup () = 
+    member this.Cleanup () = 
         if not disposed then
             disposed <- true
             this.hideWindow ()
@@ -553,32 +656,35 @@ type Window(t:string, w:int, h:int) =
             windowId <- 0u
     
     interface IDisposable with
-        member self.Dispose() =
-            self.cleanup()
-            GC.SuppressFinalize(self)
+        member this.Dispose () =
+            this.Cleanup()
+            GC.SuppressFinalize(this)
     
     override this.Finalize () =
-        this.cleanup()
+        this.Cleanup()
 
-    member this.render (draw : drawing_fun) =
-        Option.map(fun (img': Image<Rgba32>) ->
-            img'.Mutate(fun ctx' ->
-                    (draw ctx')
-                        .Crop(min viewWidth img'.Width, min viewHeight img'.Height)
-                        .Resize(ResizeOptions(Position = AnchorPositionMode.TopLeft,
-                                            Size = Size(viewWidth, viewHeight),
-                                            Mode = ResizeMode.BoxPad))
-                    |> ignore)
-            img'.CopyPixelDataTo(frameBuffer)
+    member this.Render (draw : DrawingContext -> unit) =
+        Option.map(fun (img: Image<Rgba32>) ->
+            img.Mutate (fun ctx ->
+                DrawingContext ctx |> draw
+                ctx.Crop(min viewWidth img.Width, min viewHeight img.Height)
+                   .Resize(
+                        options = ResizeOptions(Position = AnchorPositionMode.TopLeft,
+                        Size = Size(viewWidth, viewHeight),
+                        Mode = ResizeMode.BoxPad)
+                    )
+                |> ignore
+            )
+            img.CopyPixelDataTo(frameBuffer)
             SDL.SDL_UpdateTexture(texture, IntPtr.Zero, bufferPtr, viewWidth * 4) |> ignore
             SDL.SDL_RenderClear(renderer) |> ignore
             SDL.SDL_RenderCopy(renderer, texture, IntPtr.Zero, IntPtr.Zero) |> ignore
             SDL.SDL_RenderPresent(renderer) |> ignore
-            img'.Mutate(fun ctx -> ctx.Clear(Color.Black) |> ignore)
+            img.Mutate(fun ctx -> ctx.Clear(Color.Black) |> ignore)
         ) img |> ignore
         ()
 
-    member private this.enqueueEvent (event: SDL.SDL_Event)  =
+    member private this.EnqueueEvent (event: SDL.SDL_Event)  =
         if event.window.windowID = 0u
         then
             Map.iter (
@@ -589,30 +695,30 @@ type Window(t:string, w:int, h:int) =
             | Some queue -> queue.Enqueue event
             | None -> ()
     
-    member private this.assertWindowExists () =
+    member private this.AssertWindowExists () =
         if Map.containsKey windowId eventQueues |> not then
             failwith "Error: You can not get events from a disposed Window."
 
-    member this.waitEvent f =
-        this.assertWindowExists ()
+    member this.WaitEvent f =
+        this.AssertWindowExists ()
 
         if eventQueues[windowId].Count = 0
         then
             if 0 = SDL.SDL_WaitEvent(&event) then
                 failwith "Error: No event arrived."
             
-            this.enqueueEvent event
-            this.waitEvent f
+            this.EnqueueEvent event
+            this.WaitEvent f
         else
             eventQueues[windowId].Dequeue ()
             |> InternalEvent
             |> f
     
-    member this.pollEvents f =
-        this.assertWindowExists ()
+    member this.PollEvents f =
+        this.AssertWindowExists ()
 
         while 1 = SDL.SDL_PollEvent(&event) do
-            this.enqueueEvent event
+            this.EnqueueEvent event
 
         while eventQueues[windowId].Count <> 0 do
             eventQueues[windowId].Dequeue ()
@@ -648,7 +754,7 @@ let toKeyboardEvent event =
     | SDL.KeyUp kevent -> React (KeyRelease, toKeyboardKey kevent)
     | _ -> Ignore
 
-let internal classifyEvent userClassify ev =
+let private classifyEvent userClassify ev =
     let (InternalEvent _ev) = ev
     match SDL.convertEvent _ev with
         | SDL.Window wev when wev.event = SDL.SDL_WindowEventID.SDL_WINDOWEVENT_CLOSE -> Quit
@@ -693,8 +799,8 @@ let runAppWithTimer (t:string) (w:int) (h:int) (interval:int option)
     let mutable state = s
     let rec drawLoop redraw =
         if redraw then
-            window.render (draw state)
-        match window.waitEvent (classifyEvent userClassify) with
+            window.Render (draw state >> ignore)
+        match window.WaitEvent (classifyEvent userClassify) with
             | Quit ->
                 // printfn "We quit"
                 window.hideWindow ()
