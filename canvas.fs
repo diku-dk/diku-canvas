@@ -329,7 +329,7 @@ let rec compileCps idx expFlag pic = cps {
         return wrap Matrix3x2.Identity rect dc
     | Text(txt, Color.Color c, Font font, rect) ->
         let brush = Lowlevel.solidBrush c
-        let opt = Lowlevel.TextOptions font
+        let opt = Lowlevel.textOptions font
         let dc = Lowlevel.Text (brush, txt, opt)
         return wrap Matrix3x2.Identity rect dc
     | Onto(p1, p2, rect) ->

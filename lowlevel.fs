@@ -9,6 +9,7 @@ open SixLabors.ImageSharp.PixelFormats
 open SixLabors.ImageSharp.Processing
 open SixLabors.ImageSharp.Drawing.Processing
 open SixLabors.ImageSharp.Drawing
+open SixLabors.Fonts
 // colors
 type Color = SixLabors.ImageSharp.Color
 
@@ -21,13 +22,18 @@ let fromRgb (red:int) (green:int) (blue:int) : Color =
 type image = SixLabors.ImageSharp.Image<Rgba32>
 type DrawingContext = internal DrawingContext of SixLabors.ImageSharp.Processing.IImageProcessingContext
 type drawing_fun = DrawingContext -> DrawingContext
-
-type Font = SixLabors.Fonts.Font
-type FontFamily = SixLabors.Fonts.FontFamily
+type Font = internal Font of SixLabors.Fonts.Font
+type FontFamily = internal FontFamily of SixLabors.Fonts.FontFamily
 let systemFontNames: string list = [for i in  SixLabors.Fonts.SystemFonts.Families do yield i.Name]
-let getFamily name = SixLabors.Fonts.SystemFonts.Get(name)
-let makeFont (fam:FontFamily) (size:float) = fam.CreateFont(float32 size, SixLabors.Fonts.FontStyle.Regular)
-let measureText (f:Font) (txt:string) = 
+let getFamily name =
+    SixLabors.Fonts.SystemFonts.Get(name)
+    |> FontFamily
+
+let makeFont (FontFamily fam:FontFamily) (size:float) =
+    fam.CreateFont(float32 size, SixLabors.Fonts.FontStyle.Regular)
+    |> Font
+
+let measureText (Font f:Font) (txt:string) = 
     let rect = SixLabors.Fonts.TextMeasurer.MeasureSize(txt, SixLabors.Fonts.TextOptions(f))
     (float rect.Width,float rect.Height)
 
@@ -45,7 +51,9 @@ type pointF = float * float
 type Vector2 = System.Numerics.Vector2
 type Matrix3x2 = System.Numerics.Matrix3x2
 type Matrix4x4 = System.Numerics.Matrix4x4
-type TextOptions = SixLabors.Fonts.TextOptions
+type TextOptions = internal TextOptions of SixLabors.Fonts.TextOptions
+
+let textOptions (Font font) = TextOptions <| SixLabors.Fonts.TextOptions font
 
 let toPointF (x:float, y:float) = PointF(x = float32 x, y = float32 y)
 let toVector2 (x:float, y:float) = System.Numerics.Vector2(float32 x, float32 y)
@@ -191,11 +199,11 @@ let flatten (p : PathTree) : (Tool*IPathCollection) list =  //FIXME: should mayb
                     let transformed = traverse [] [p] |> List.map (fun (pen,p) -> (pen,p.Transform(mat)))
                     let acc = transformed @ acc
                     traverse acc worklist
-                | Text (pen, text, options) ->
+                | Text (pen, text, TextOptions options) ->
                     let glyphs = TextBuilder.GenerateGlyphs(text, options)
                     let acc =  (pen,glyphs) :: acc
                     traverse acc worklist
-                | TextAlong(pen, text, options, p) ->
+                | TextAlong(pen, text, TextOptions options, p) ->
                     let path = p |> toILineSegment |> toPath
                     let glyphs = TextBuilder.GenerateGlyphs(text, path, options)
                     let acc =  (pen, glyphs) :: acc
@@ -241,18 +249,23 @@ let drawToAnimatedGif width heigth (frameDelay:int) (repeatCount:int) (filePath:
 type IWindowContext =
     abstract member Get : unit -> DrawingContext
 
+let internal unpackFont (Font f) = f
+
 type Text(position: Vector2, text: string, color: Color, fontFamily: FontFamily, size: float) =
     let mutable fontFamily = fontFamily 
     let mutable font = makeFont fontFamily size
-    let mutable path = TextBuilder.GenerateGlyphs(text, TextOptions font)
+    let mutable path = TextBuilder.GenerateGlyphs(text, SixLabors.Fonts.TextOptions (unpackFont font))
     let mutable brush = Brushes.Solid(color)
     let mutable text = text
     do
         let pos = position - Vector2(path.Bounds.Location.X, path.Bounds.Location.Y)
         path <- path.Translate(pos)
 
+    static member FontFamilies () =
+        List.toArray systemFontNames
+
     member private this.UpdatePath () =
-        path <- TextBuilder.GenerateGlyphs(text, TextOptions font)
+        path <- TextBuilder.GenerateGlyphs(text, SixLabors.Fonts.TextOptions (unpackFont font))
                 .Translate(position)
 
     member private this.UpdateFont () =
@@ -745,7 +758,6 @@ type Window(t:string, w:int, h:int) =
 
     member this.SetClearColor (r, g, b) =
         background <- fromRgb r g b
-
 
 type Event =
     | Key of char
