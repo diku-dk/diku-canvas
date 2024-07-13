@@ -605,6 +605,7 @@ type Window(t:string, w:int, h:int) =
     let mutable event = SDL.SDL_Event()
     let mutable img = None
     let mutable windowId = 0u
+    let mutable background = Color.Black
     let windowFlags =
         SDL.SDL_WindowFlags.SDL_WINDOW_SHOWN |||
         SDL.SDL_WindowFlags.SDL_WINDOW_INPUT_FOCUS
@@ -636,7 +637,7 @@ type Window(t:string, w:int, h:int) =
     member this.Cleanup () = 
         if not disposed then
             disposed <- true
-            this.hideWindow ()
+            this.HideWindow ()
             SDL.SDL_DestroyTexture texture
             //printfn "Texture destroyed"
             SDL.SDL_DestroyRenderer renderer
@@ -682,7 +683,7 @@ type Window(t:string, w:int, h:int) =
             SDL.SDL_RenderClear(renderer) |> ignore
             SDL.SDL_RenderCopy(renderer, texture, IntPtr.Zero, IntPtr.Zero) |> ignore
             SDL.SDL_RenderPresent(renderer) |> ignore
-            img.Mutate(fun ctx -> ctx.Clear(Color.Black) |> ignore)
+            img.Mutate(fun ctx -> ctx.Clear(background) |> ignore)
         ) img |> ignore
         ()
 
@@ -731,8 +732,12 @@ type Window(t:string, w:int, h:int) =
             
             f.Invoke(ev)
             
-    member this.hideWindow () =
+    member this.HideWindow () =
         SDL.SDL_HideWindow window
+
+    member this.SetClearColor (r, g, b) =
+        background <- fromRgb r g b
+
 
 type Event =
     | Key of char
@@ -809,7 +814,7 @@ let runAppWithTimer (t:string) (w:int) (h:int) (interval:int option)
         match window.WaitEvent (classifyEvent userClassify) with
             | Quit ->
                 // printfn "We quit"
-                window.hideWindow ()
+                window.HideWindow ()
                 () // quit the interaction by exiting the loop
             | React ev ->
                 let redraw =
