@@ -346,7 +346,7 @@ type Texture(position: Vector2, stream: IO.Stream) =
             )
 *)
 
-type KeyAction =
+type KeyboardAction =
     | KeyPress = 0
     | KeyRelease = 1
 
@@ -756,8 +756,8 @@ let toKeyboardEvent event =
     match SDL.convertEvent _event with
     | SDL.Window wev when wev.event = SDL.SDL_WindowEventID.SDL_WINDOWEVENT_CLOSE -> Quit
     | SDL.KeyDown kevent when kevent.keysym.sym = SDL.SDLK_ESCAPE -> Quit
-    | SDL.KeyDown kevent -> React (KeyAction.KeyPress, toKeyboardKey kevent)
-    | SDL.KeyUp kevent -> React (KeyAction.KeyRelease, toKeyboardKey kevent)
+    | SDL.KeyDown kevent -> React (KeyboardAction.KeyPress, toKeyboardKey kevent)
+    | SDL.KeyUp kevent -> React (KeyboardAction.KeyRelease, toKeyboardKey kevent)
     | _ -> Ignore
 
 let private classifyEvent userClassify ev =
