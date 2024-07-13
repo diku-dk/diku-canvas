@@ -671,10 +671,10 @@ type Window(t:string, w:int, h:int) =
             img.Mutate(fun ctx -> ctx.Clear(background) |> ignore)
          ) img |> ignore
 
-    member this.Render (draw : DrawingContext -> unit) =
+    member this.Render (draw: Action<DrawingContext>) =
         Option.map(fun (img: Image<Rgba32>) ->
             img.Mutate (fun ctx ->
-                DrawingContext ctx |> draw
+                draw.Invoke(DrawingContext ctx)
                 ctx.Crop(min viewWidth img.Width, min viewHeight img.Height)
                    .Resize(
                         options = ResizeOptions(Position = AnchorPositionMode.TopLeft,
