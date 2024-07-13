@@ -701,7 +701,7 @@ type Window(t:string, w:int, h:int) =
         if Map.containsKey windowId eventQueues |> not then
             failwith "Error: You can not get events from a disposed Window."
 
-    member this.WaitEvent f =
+    member this.WaitEvent (f : Func<InternalEvent, 'a>) =
         this.AssertWindowExists ()
 
         if eventQueues[windowId].Count = 0
@@ -712,20 +712,24 @@ type Window(t:string, w:int, h:int) =
             this.EnqueueEvent event
             this.WaitEvent f
         else
-            eventQueues[windowId].Dequeue ()
-            |> InternalEvent
-            |> f
+            let ev =
+                eventQueues[windowId].Dequeue ()
+                |> InternalEvent
+            
+            f.Invoke(ev)
     
-    member this.PollEvents f =
+    member this.PollEvents (f : Action<InternalEvent>) =
         this.AssertWindowExists ()
 
         while 1 = SDL.SDL_PollEvent(&event) do
             this.EnqueueEvent event
 
         while eventQueues[windowId].Count <> 0 do
-            eventQueues[windowId].Dequeue ()
-            |> InternalEvent
-            |> f 
+            let ev =
+                eventQueues[windowId].Dequeue ()
+                |> InternalEvent
+            
+            f.Invoke(ev)
             
     member this.hideWindow () =
         SDL.SDL_HideWindow window
