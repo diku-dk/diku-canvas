@@ -418,6 +418,7 @@ type Text(position: Vector2, text: string, color: Color, fontFamily: FontFamily,
     let mutable brush = Brushes.Solid(color.color)
     let mutable text = text
     let mutable color = color
+    let mutable size = size
     do
         let pos = position - Vector2(path.Bounds.Location.X, path.Bounds.Location.Y)
         path <- path.Translate(pos)
@@ -441,6 +442,13 @@ type Text(position: Vector2, text: string, color: Color, fontFamily: FontFamily,
         with get () = fontFamily
         and set v =
             fontFamily <- v
+            this.UpdateFont ()
+            this.UpdatePath ()
+    
+    member this.Size
+        with get () = size
+        and set v =
+            size <- v
             this.UpdateFont ()
             this.UpdatePath ()
 
