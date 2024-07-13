@@ -345,244 +345,246 @@ type Texture(position: Vector2, stream: IO.Stream) =
                 newPosition.Y - path.Bounds.Location.X
             )
 *)
+
 type KeyAction =
-    | KeyPress
-    | KeyRelease
+    | KeyPress = 0
+    | KeyRelease = 1
 
 type KeyboardKey =
-    | Unknown // Matches the case of an invalid, non-existent, or unsupported keyboard key.
-    | Space // The spacebar key
-    | Apostrophe // The apostrophe key '''
-    | Comma // The comma key ','
-    | Minus // The minus key '-'
-    | Plus // The plus key '+'
-    | Period // The period/dot key '.'
-    | Slash // The slash key '/'
-    | Num0 // The 0 key.
-    | Num1 // The 1 key.
-    | Num2 // The 2 key.
-    | Num3 // The 3 key.
-    | Num4 // The 4 key.
-    | Num5 // The 5 key.
-    | Num6 // The 6 key.
-    | Num7 // The 7 key.
-    | Num8 // The 8 key.
-    | Num9 // The 9 key.
-    | Semicolon // The semicolon key.
-    | Equal // The equal key.
-    | A // The A key.
-    | B // The B key.
-    | C // The C key.
-    | D // The D key.
-    | E // The E key.
-    | F // The F key.
-    | G // The G key.
-    | H // The H key.
-    | I // The I key.
-    | J // The J key.
-    | K // The K key.
-    | L // The L key.
-    | M // The M key.
-    | N // The N key.
-    | O // The O key.
-    | P // The P key.
-    | Q // The Q key.
-    | R // The R key.
-    | S // The S key.
-    | T // The T key.
-    | U // The U key.
-    | V // The V key.
-    | W // The W key.
-    | X // The X key.
-    | Y // The Y key.
-    | Z // The Z key.
-    | LeftBracket // The left bracket(opening bracket) key '['
-    | Backslash // The backslash '\'
-    | RightBracket // The right bracket(closing bracket) key ']'
-    | GraveAccent // The grave accent key '`'
-    | AcuteAccent // The acute accent key ("inverted" grave accent) '´'
-    | Escape // The escape key.
-    | Enter // The enter key.
-    | Tab // The tab key.
-    | Backspace // The backspace key.
-    | Insert // The insert key.
-    | Delete // The delete key.
-    | Right // The right arrow key.
-    | Left // The left arrow key.
-    | Down // The down arrow key.
-    | Up // The up arrow key.
-    | PageUp // The page up key.
-    | PageDown // The page down key.
-    | Home // The home key.
-    | End // The end key.
-    | CapsLock // The caps lock key.
-    | ScrollLock // The scroll lock key.
-    | NumLock // The num lock key.
-    | PrintScreen // The print screen key.
-    | Pause // The pause key.
-    | F1 // The F1 key.
-    | F2 // The F2 key.
-    | F3 // The F3 key.
-    | F4 // The F4 key.
-    | F5 // The F5 key.
-    | F6 // The F6 key.
-    | F7 // The F7 key.
-    | F8 // The F8 key.
-    | F9 // The F9 key.
-    | F10 // The F10 key.
-    | F11 // The F11 key.
-    | F12 // The F12 key.
-    | KeyPad0 // The 0 key on the key pad.
-    | KeyPad1 // The 1 key on the key pad.
-    | KeyPad2 // The 2 key on the key pad.
-    | KeyPad3 // The 3 key on the key pad.
-    | KeyPad4 // The 4 key on the key pad.
-    | KeyPad5 // The 5 key on the key pad.
-    | KeyPad6 // The 6 key on the key pad.
-    | KeyPad7 // The 7 key on the key pad.
-    | KeyPad8 // The 8 key on the key pad.
-    | KeyPad9 // The 9 key on the key pad.
-    | KeyPadDecimal // The decimal key on the key pad.
-    | KeyPadDivide // The divide key on the key pad.
-    | KeyPadMultiply // The multiply key on the key pad.
-    | KeyPadSubtract // The subtract key on the key pad.
-    | KeyPadAdd // The add key on the key pad.
-    | KeyPadEnter // The enter key on the key pad.
-    | KeyPadEqual // The equal key on the key pad.
-    | LeftShift // The left shift key.
-    | LeftControl // The left control key.
-    | LeftAlt // The left alt key.
-    | LeftSuper // The left super key.
-    | RightShift // The right shift key.
-    | RightControl // The right control key.
-    | RightAlt // The right alt key.
-    | RightSuper // The right super key.
-    | Menu // The menu key.
-    | Diaresis // The Diaresis key '¨'
-    | LessThan // The less than sign '<'
-    | GreaterThan // The greater than sign '>'
-    | FractionOneHalf // The "vulgar fraction one half" key '½'
-    | DanishAA // The Danish AA key 'Å'
-    | DanishAE // The Danish AE key 'Æ'
-    | DanishOE // The Danish OE key 'Ø'
+    | Unknown = 0 // Matches the case of an invalid, non-existent, or unsupported keyboard key.
+    | Space = 1 // The spacebar key
+    | Apostrophe = 2 // The apostrophe key '''
+    | Comma = 3 // The comma key ','
+    | Minus = 4 // The minus key '-'
+    | Plus = 5 // The plus key '+'
+    | Period = 6 // The period/dot key '.'
+    | Slash = 7 // The slash key '/'
+    | Num0 = 8 // The 0 key.
+    | Num1 = 9 // The 1 key.
+    | Num2 = 10 // The 2 key.
+    | Num3 = 11 // The 3 key.
+    | Num4 = 12 // The 4 key.
+    | Num5 = 13 // The 5 key.
+    | Num6 = 14 // The 6 key.
+    | Num7 = 15 // The 7 key.
+    | Num8 = 16 // The 8 key.
+    | Num9 = 17 // The 9 key.
+    | Semicolon = 18 // The semicolon key.
+    | Equal = 19 // The equal key.
+    | A = 20 // The A key.
+    | B = 21 // The B key.
+    | C = 22 // The C key.
+    | D = 23 // The D key.
+    | E = 24 // The E key.
+    | F = 25 // The F key.
+    | G = 26 // The G key.
+    | H = 27 // The H key.
+    | I = 28 // The I key.
+    | J = 29 // The J key.
+    | K = 30 // The K key.
+    | L = 31 // The L key.
+    | M = 32 // The M key.
+    | N = 33 // The N key.
+    | O = 34 // The O key.
+    | P = 35 // The P key.
+    | Q = 36 // The Q key.
+    | R = 37 // The R key.
+    | S = 38 // The S key.
+    | T = 39 // The T key.
+    | U = 40 // The U key.
+    | V = 41 // The V key.
+    | W = 42 // The W key.
+    | X = 43 // The X key.
+    | Y = 44 // The Y key.
+    | Z = 45 // The Z key.
+    | LeftBracket = 46 // The left bracket(opening bracket) key '['
+    | Backslash = 47 // The backslash '\'
+    | RightBracket = 48 // The right bracket(closing bracket) key ']'
+    | GraveAccent = 49 // The grave accent key '`'
+    | AcuteAccent = 50 // The acute accent key ("inverted" grave accent) '´'
+    | Escape = 51 // The escape key.
+    | Enter = 52 // The enter key.
+    | Tab = 53 // The tab key.
+    | Backspace = 54 // The backspace key.
+    | Insert = 55 // The insert key.
+    | Delete = 56 // The delete key.
+    | Right = 57 // The right arrow key.
+    | Left = 58 // The left arrow key.
+    | Down = 59 // The down arrow key.
+    | Up = 60 // The up arrow key.
+    | PageUp = 61 // The page up key.
+    | PageDown = 62 // The page down key.
+    | Home = 63 // The home key.
+    | End = 64 // The end key.
+    | CapsLock = 65 // The caps lock key.
+    | ScrollLock = 66 // The scroll lock key.
+    | NumLock = 67 // The num lock key.
+    | PrintScreen = 68 // The print screen key.
+    | Pause = 69 // The pause key.
+    | F1 = 70 // The F1 key.
+    | F2 = 71 // The F2 key.
+    | F3 = 72 // The F3 key.
+    | F4 = 73 // The F4 key.
+    | F5 = 74 // The F5 key.
+    | F6 = 75 // The F6 key.
+    | F7 = 76 // The F7 key.
+    | F8 = 77 // The F8 key.
+    | F9 = 78 // The F9 key.
+    | F10 = 79 // The F10 key.
+    | F11 = 80 // The F11 key.
+    | F12 = 81 // The F12 key.
+    | KeyPad0 = 82 // The 0 key on the key pad.
+    | KeyPad1 = 83 // The 1 key on the key pad.
+    | KeyPad2 = 84 // The 2 key on the key pad.
+    | KeyPad3 = 85 // The 3 key on the key pad.
+    | KeyPad4 = 86 // The 4 key on the key pad.
+    | KeyPad5 = 87 // The 5 key on the key pad.
+    | KeyPad6 = 88 // The 6 key on the key pad.
+    | KeyPad7 = 89 // The 7 key on the key pad.
+    | KeyPad8 = 90 // The 8 key on the key pad.
+    | KeyPad9 = 91 // The 9 key on the key pad.
+    | KeyPadDecimal = 92 // The decimal key on the key pad.
+    | KeyPadDivide = 93 // The divide key on the key pad.
+    | KeyPadMultiply = 94 // The multiply key on the key pad.
+    | KeyPadSubtract = 95 // The subtract key on the key pad.
+    | KeyPadAdd = 96 // The add key on the key pad.
+    | KeyPadEnter = 97 // The enter key on the key pad.
+    | KeyPadEqual = 98 // The equal key on the key pad.
+    | LeftShift = 99 // The left shift key.
+    | LeftControl = 100 // The left control key.
+    | LeftAlt = 101 // The left alt key.
+    | LeftSuper = 102 // The left super key.
+    | RightShift = 103 // The right shift key.
+    | RightControl = 104 // The right control key.
+    | RightAlt = 105 // The right alt key.
+    | RightSuper = 106 // The right super key.
+    | Menu = 107 // The menu key.
+    | Diaresis = 108 // The Diaresis key '¨'
+    | LessThan = 109 // The less than sign '<'
+    | GreaterThan = 110 // The greater than sign '>'
+    | FractionOneHalf = 111 // The "vulgar fraction one half" key '½'
+    | DanishAA = 112 // The Danish AA key 'Å'
+    | DanishAE = 113 // The Danish AE key 'Æ'
+    | DanishOE = 114 // The Danish OE key 'Ø'
+
 
 let private toKeyboardKey key =
     match SDL.stringFromKeyboard key with
-    | "Space" -> Space
-    | "'" -> Apostrophe
-    | "," -> Comma
-    | "-" -> Minus
-    | "+" -> Plus
-    | "." -> Period
-    | "/" -> Slash
-    | "0" -> Num0
-    | "1" -> Num1
-    | "2" -> Num2
-    | "3" -> Num3
-    | "4" -> Num4
-    | "5" -> Num5
-    | "6" -> Num6
-    | "7" -> Num7
-    | "8" -> Num8
-    | "9" -> Num9
-    | ";" -> Semicolon
-    | "=" -> Equal
-    | "A" -> A
-    | "B" -> B
-    | "C" -> C
-    | "D" -> D
-    | "E" -> E
-    | "F" -> F
-    | "G" -> G
-    | "H" -> H
-    | "I" -> I
-    | "J" -> J
-    | "K" -> K
-    | "L" -> L
-    | "M" -> M
-    | "N" -> N
-    | "O" -> O
-    | "P" -> P
-    | "Q" -> Q
-    | "R" -> R
-    | "S" -> S
-    | "T" -> T
-    | "U" -> U
-    | "V" -> V
-    | "W" -> W
-    | "X" -> X
-    | "Y" -> Y
-    | "Z" -> Z
-    | "[" -> LeftBracket
-    | "\\" -> Backslash
-    | "]" -> RightBracket
-    | "`" -> GraveAccent
-    | "´" -> AcuteAccent
-    | "Escape" -> Escape
-    | "Return" -> Enter // This should probably be Return.
-    | "Tab" -> Tab
-    | "Backspace" -> Backspace
-    | "Insert" -> Insert
-    | "Delete" -> Delete
-    | "Right" -> Right
-    | "Left" -> Left
-    | "Down" -> Down
-    | "Up" -> Up
-    | "PageUp" -> PageUp
-    | "PageDown" -> PageDown
-    | "Home" -> Home
-    | "End" -> End
-    | "CapsLock" -> CapsLock
-    | "ScrollLock" -> ScrollLock
-    | "Numlock" -> NumLock // Has to be lowercase.
-    | "PrintScreen" -> PrintScreen
-    | "Pause" -> Pause
-    | "F1" -> F1
-    | "F2" -> F2
-    | "F3" -> F3
-    | "F4" -> F4
-    | "F5" -> F5
-    | "F6" -> F6
-    | "F7" -> F7
-    | "F8" -> F8
-    | "F9" -> F9
-    | "F10" -> F10
-    | "F11" -> F11
-    | "F12" -> F12
-    | "Keypad 0" -> KeyPad0
-    | "Keypad 1" -> KeyPad1
-    | "Keypad 2" -> KeyPad2
-    | "Keypad 3" -> KeyPad3
-    | "Keypad 4" -> KeyPad4
-    | "Keypad 5" -> KeyPad5
-    | "Keypad 6" -> KeyPad6
-    | "Keypad 7" -> KeyPad7
-    | "Keypad 8" -> KeyPad8
-    | "Keypad 9" -> KeyPad9
-    | "Keypad ." -> KeyPadDecimal
-    | "Keypad /" -> KeyPadDivide
-    | "Keypad *" -> KeyPadMultiply
-    | "Keypad -" -> KeyPadSubtract
-    | "Keypad +" -> KeyPadAdd
-    | "Keypad Enter" -> KeyPadEnter
-    | "Keypad =" -> KeyPadEqual
-    | "Left Shift" -> LeftShift
-    | "Left Ctrl" -> LeftControl
-    | "Left Alt" -> LeftAlt
-    | "Left GUI" -> LeftSuper
-    | "Right Shift" -> RightShift
-    | "Right Ctrl" -> RightControl
-    | "Right Alt" -> RightAlt
-    | "Right GUI" -> RightSuper
-    | "Menu" -> Menu // Not sure if this does anything.
-    | "¨" -> Diaresis
-    | "<" -> LessThan
-    | ">" -> GreaterThan
-    | "½" -> FractionOneHalf
-    | "å" -> DanishAA
-    | "æ" -> DanishAE
-    | "ø" -> DanishOE
-    | _ -> Unknown
+    | "Space" -> KeyboardKey.Space
+    | "'" -> KeyboardKey.Apostrophe
+    | "," -> KeyboardKey.Comma
+    | "-" -> KeyboardKey.Minus
+    | "+" -> KeyboardKey.Plus
+    | "." -> KeyboardKey.Period
+    | "/" -> KeyboardKey.Slash
+    | "0" -> KeyboardKey.Num0
+    | "1" -> KeyboardKey.Num1
+    | "2" -> KeyboardKey.Num2
+    | "3" -> KeyboardKey.Num3
+    | "4" -> KeyboardKey.Num4
+    | "5" -> KeyboardKey.Num5
+    | "6" -> KeyboardKey.Num6
+    | "7" -> KeyboardKey.Num7
+    | "8" -> KeyboardKey.Num8
+    | "9" -> KeyboardKey.Num9
+    | ";" -> KeyboardKey.Semicolon
+    | "=" -> KeyboardKey.Equal
+    | "A" -> KeyboardKey.A
+    | "B" -> KeyboardKey.B
+    | "C" -> KeyboardKey.C
+    | "D" -> KeyboardKey.D
+    | "E" -> KeyboardKey.E
+    | "F" -> KeyboardKey.F
+    | "G" -> KeyboardKey.G
+    | "H" -> KeyboardKey.H
+    | "I" -> KeyboardKey.I
+    | "J" -> KeyboardKey.J
+    | "K" -> KeyboardKey.K
+    | "L" -> KeyboardKey.L
+    | "M" -> KeyboardKey.M
+    | "N" -> KeyboardKey.N
+    | "O" -> KeyboardKey.O
+    | "P" -> KeyboardKey.P
+    | "Q" -> KeyboardKey.Q
+    | "R" -> KeyboardKey.R
+    | "S" -> KeyboardKey.S
+    | "T" -> KeyboardKey.T
+    | "U" -> KeyboardKey.U
+    | "V" -> KeyboardKey.V
+    | "W" -> KeyboardKey.W
+    | "X" -> KeyboardKey.X
+    | "Y" -> KeyboardKey.Y
+    | "Z" -> KeyboardKey.Z
+    | "[" -> KeyboardKey.LeftBracket
+    | "\\" -> KeyboardKey.Backslash
+    | "]" -> KeyboardKey.RightBracket
+    | "`" -> KeyboardKey.GraveAccent
+    | "´" -> KeyboardKey.AcuteAccent
+    | "Escape" -> KeyboardKey.Escape
+    | "Return" -> KeyboardKey.Enter // This should probably be Return.
+    | "Tab" -> KeyboardKey.Tab
+    | "Backspace" -> KeyboardKey.Backspace
+    | "Insert" -> KeyboardKey.Insert
+    | "Delete" -> KeyboardKey.Delete
+    | "Right" -> KeyboardKey.Right
+    | "Left" -> KeyboardKey.Left
+    | "Down" -> KeyboardKey.Down
+    | "Up" -> KeyboardKey.Up
+    | "PageUp" -> KeyboardKey.PageUp
+    | "PageDown" -> KeyboardKey.PageDown
+    | "Home" -> KeyboardKey.Home
+    | "End" -> KeyboardKey.End
+    | "CapsLock" -> KeyboardKey.CapsLock
+    | "ScrollLock" -> KeyboardKey.ScrollLock
+    | "Numlock" -> KeyboardKey.NumLock // Has to be lowercase.
+    | "PrintScreen" -> KeyboardKey.PrintScreen
+    | "Pause" -> KeyboardKey.Pause
+    | "F1" -> KeyboardKey.F1
+    | "F2" -> KeyboardKey.F2
+    | "F3" -> KeyboardKey.F3
+    | "F4" -> KeyboardKey.F4
+    | "F5" -> KeyboardKey.F5
+    | "F6" -> KeyboardKey.F6
+    | "F7" -> KeyboardKey.F7
+    | "F8" -> KeyboardKey.F8
+    | "F9" -> KeyboardKey.F9
+    | "F10" -> KeyboardKey.F10
+    | "F11" -> KeyboardKey.F11
+    | "F12" -> KeyboardKey.F12
+    | "Keypad 0" -> KeyboardKey.KeyPad0
+    | "Keypad 1" -> KeyboardKey.KeyPad1
+    | "Keypad 2" -> KeyboardKey.KeyPad2
+    | "Keypad 3" -> KeyboardKey.KeyPad3
+    | "Keypad 4" -> KeyboardKey.KeyPad4
+    | "Keypad 5" -> KeyboardKey.KeyPad5
+    | "Keypad 6" -> KeyboardKey.KeyPad6
+    | "Keypad 7" -> KeyboardKey.KeyPad7
+    | "Keypad 8" -> KeyboardKey.KeyPad8
+    | "Keypad 9" -> KeyboardKey.KeyPad9
+    | "Keypad ." -> KeyboardKey.KeyPadDecimal
+    | "Keypad /" -> KeyboardKey.KeyPadDivide
+    | "Keypad *" -> KeyboardKey.KeyPadMultiply
+    | "Keypad -" -> KeyboardKey.KeyPadSubtract
+    | "Keypad +" -> KeyboardKey.KeyPadAdd
+    | "Keypad Enter" -> KeyboardKey.KeyPadEnter
+    | "Keypad =" -> KeyboardKey.KeyPadEqual
+    | "Left Shift" -> KeyboardKey.LeftShift
+    | "Left Ctrl" -> KeyboardKey.LeftControl
+    | "Left Alt" -> KeyboardKey.LeftAlt
+    | "Left GUI" -> KeyboardKey.LeftSuper
+    | "Right Shift" -> KeyboardKey.RightShift
+    | "Right Ctrl" -> KeyboardKey.RightControl
+    | "Right Alt" -> KeyboardKey.RightAlt
+    | "Right GUI" -> KeyboardKey.RightSuper
+    | "Menu" -> KeyboardKey.Menu // Not sure if this does anything.
+    | "¨" -> KeyboardKey.Diaresis
+    | "<" -> KeyboardKey.LessThan
+    | ">" -> KeyboardKey.GreaterThan
+    | "½" -> KeyboardKey.FractionOneHalf
+    | "å" -> KeyboardKey.DanishAA
+    | "æ" -> KeyboardKey.DanishAE
+    | "ø" -> KeyboardKey.DanishOE
+    | _ -> KeyboardKey.Unknown
 
 let private TIMER_EVENT =
     match SDL.SDL_RegisterEvents 1 with
@@ -750,8 +752,8 @@ let toKeyboardEvent event =
     match SDL.convertEvent _event with
     | SDL.Window wev when wev.event = SDL.SDL_WindowEventID.SDL_WINDOWEVENT_CLOSE -> Quit
     | SDL.KeyDown kevent when kevent.keysym.sym = SDL.SDLK_ESCAPE -> Quit
-    | SDL.KeyDown kevent -> React (KeyPress, toKeyboardKey kevent)
-    | SDL.KeyUp kevent -> React (KeyRelease, toKeyboardKey kevent)
+    | SDL.KeyDown kevent -> React (KeyAction.KeyPress, toKeyboardKey kevent)
+    | SDL.KeyUp kevent -> React (KeyAction.KeyRelease, toKeyboardKey kevent)
     | _ -> Ignore
 
 let private classifyEvent userClassify ev =
