@@ -820,7 +820,7 @@ type Window(t:string, w:int, h:int) =
         windowId <- SDL.SDL_GetWindowID(window)
         eventQueues <- eventQueues.Add (windowId, Queue())
 
-    member this.Cleanup () = 
+    member private this.Cleanup () = 
         if not disposed then
             disposed <- true
             this.HideWindow ()
@@ -847,7 +847,6 @@ type Window(t:string, w:int, h:int) =
     interface IDisposable with
         member this.Dispose () =
             this.Cleanup()
-            GC.SuppressFinalize(this)
     
     override this.Finalize () =
         this.Cleanup()
