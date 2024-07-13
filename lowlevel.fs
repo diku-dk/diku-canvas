@@ -284,11 +284,11 @@ type Text(position: Vector2, text: string, color: Color, fontFamily: FontFamily,
     
     member this.Scale (scaling: Vector2) =
         path <- path.Scale(scaling.X, scaling.Y)
-        Vector2(path.Bounds.Width, path.Bounds.Height)
+        this.Position
             
     member this.Translate (translation: Vector2) =
         path <- path.Scale(translation.X, translation.Y)
-        Vector2(path.Bounds.Location.X, path.Bounds.Location.Y)
+        this.Extent
     
     member this.SetExtent (newExtent: Vector2) =
         path <- path.Scale(
