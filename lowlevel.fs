@@ -238,6 +238,9 @@ let drawToAnimatedGif width heigth (frameDelay:int) (repeatCount:int) (filePath:
             gif.SaveAsGif(filePath)
         | _ -> ()
 
+type IWindowContext =
+    abstract member Get : unit -> DrawingContext
+
 type Text(position: Vector2, text: string, color: Color, fontFamily: FontFamily, size: float) =
     let mutable fontFamily = fontFamily 
     let mutable font = makeFont fontFamily size
@@ -626,7 +629,7 @@ type Window(t:string, w:int, h:int) =
         frameBuffer <- Array.create (viewWidth * viewHeight * 4) (byte 0)
         bufferPtr <- IntPtr ((Marshal.UnsafeAddrOfPinnedArrayElement (frameBuffer, 0)).ToPointer ())
 
-        img <- new Image<Rgba32>(w, h, Color.Black) |> Some
+        img <- new Image<Rgba32>(w, h, background) |> Some
 
         if is_initial then
             SDL.SDL_StartTextInput()
