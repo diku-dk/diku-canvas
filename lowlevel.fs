@@ -820,7 +820,7 @@ type Window(t:string, w:int, h:int) =
         windowId <- SDL.SDL_GetWindowID(window)
         eventQueues <- eventQueues.Add (windowId, Queue())
 
-    member private this.Cleanup () = 
+    member this.Cleanup () = 
         if not disposed then
             disposed <- true
             this.HideWindow ()
