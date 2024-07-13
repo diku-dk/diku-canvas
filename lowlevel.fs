@@ -1,8 +1,8 @@
 module Lowlevel
 
-open System.Runtime.InteropServices
 open System
 open System.Collections.Generic
+open System.Collections.ObjectModel
 
 open SixLabors.ImageSharp
 open SixLabors.ImageSharp.PixelFormats
@@ -12,6 +12,7 @@ open SixLabors.ImageSharp.Drawing
 open SixLabors.Fonts
 // colors
 open SixLabors.ImageSharp
+open System.Runtime.InteropServices
 
 type Color =
     struct
@@ -169,13 +170,12 @@ type Color =
     static member Yellow = Color(SixLabors.ImageSharp.Color.Yellow)
     static member YellowGreen = Color(SixLabors.ImageSharp.Color.YellowGreen)
 
-
-
 type InternalEvent = internal InternalEvent of SDL.SDL_Event
 
 let fromRgba (red:int) (green:int) (blue:int) (a:int) : Color =
     Color.FromRgba(byte red, byte green, byte blue, byte a)
     |> Color
+
 let fromRgb (red:int) (green:int) (blue:int) : Color =
     Color.FromRgb(byte red, byte green, byte blue)
     |> Color
@@ -410,6 +410,8 @@ let drawToAnimatedGif width heigth (frameDelay:int) (repeatCount:int) (filePath:
 let internal unpackFont (Font f) = f
 
 type Text(position: Vector2, text: string, color: Color, fontFamily: FontFamily, size: float) =
+    static let fontFamilies =
+        ReadOnlyCollection(List(List.map getFamily systemFontNames))
     let mutable fontFamily = fontFamily 
     let mutable font = makeFont fontFamily size
     let mutable path = TextBuilder.GenerateGlyphs(text, SixLabors.Fonts.TextOptions (unpackFont font))
@@ -420,8 +422,7 @@ type Text(position: Vector2, text: string, color: Color, fontFamily: FontFamily,
         let pos = position - Vector2(path.Bounds.Location.X, path.Bounds.Location.Y)
         path <- path.Translate(pos)
 
-    static member FontFamilies () =
-        List.toArray systemFontNames
+    static member FontFamilies = fontFamilies
 
     member private this.UpdatePath () =
         path <- TextBuilder.GenerateGlyphs(text, SixLabors.Fonts.TextOptions (unpackFont font))
@@ -810,7 +811,7 @@ type Window(t:string, w:int, h:int) =
         
         windowId <- SDL.SDL_GetWindowID(window)
         eventQueues <- eventQueues.Add (windowId, Queue())
-    
+
     member this.Cleanup () = 
         if not disposed then
             disposed <- true
