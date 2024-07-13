@@ -785,7 +785,8 @@ let timerTickEvent () =
 type Window(t:string, w:int, h:int) =
     let mutable disposed = false
     static let mutable eventQueues = Map.empty
-    let viewWidth, viewHeight = w, h
+    let width, height = w, h
+    let title = t
     let mutable window, renderer, texture, bufferPtr = IntPtr.Zero, IntPtr.Zero, IntPtr.Zero, IntPtr.Zero
     let mutable frameBuffer = Array.create 0 (byte 0)
     let mutable event = SDL.SDL_Event()
@@ -803,13 +804,13 @@ type Window(t:string, w:int, h:int) =
             //SDL.SDL_SetHint(SDL.SDL_HINT_QUIT_ON_LAST_WINDOW_CLOSE, "0") |> ignore
 
         window <- SDL.SDL_CreateWindow(t, SDL.SDL_WINDOWPOS_CENTERED, SDL.SDL_WINDOWPOS_CENTERED,
-                                viewWidth, viewHeight, windowFlags)
+                                width, height, windowFlags)
         renderer <- SDL.SDL_CreateRenderer(window, -1, SDL.SDL_RendererFlags.SDL_RENDERER_ACCELERATED |||
                                                 SDL.SDL_RendererFlags.SDL_RENDERER_PRESENTVSYNC)
 
-        texture <- SDL.SDL_CreateTexture(renderer, SDL.SDL_PIXELFORMAT_RGBA32, SDL.SDL_TEXTUREACCESS_STREAMING, viewWidth, viewHeight)
+        texture <- SDL.SDL_CreateTexture(renderer, SDL.SDL_PIXELFORMAT_RGBA32, SDL.SDL_TEXTUREACCESS_STREAMING, width, height)
 
-        frameBuffer <- Array.create (viewWidth * viewHeight * 4) (byte 0)
+        frameBuffer <- Array.create (width * height * 4) (byte 0)
         bufferPtr <- IntPtr ((Marshal.UnsafeAddrOfPinnedArrayElement (frameBuffer, 0)).ToPointer ())
 
         img <- new Image<Rgba32>(w, h, background.color) |> Some
@@ -860,16 +861,16 @@ type Window(t:string, w:int, h:int) =
         Option.map(fun (img: Image<Rgba32>) ->
             img.Mutate (fun ctx ->
                 draw.Invoke(DrawingContext ctx)
-                ctx.Crop(min viewWidth img.Width, min viewHeight img.Height)
+                ctx.Crop(min width img.Width, min height img.Height)
                    .Resize(
                         options = ResizeOptions(Position = AnchorPositionMode.TopLeft,
-                        Size = Size(viewWidth, viewHeight),
+                        Size = Size(width, height),
                         Mode = ResizeMode.BoxPad)
                     )
                 |> ignore
             )
             img.CopyPixelDataTo(frameBuffer)
-            SDL.SDL_UpdateTexture(texture, IntPtr.Zero, bufferPtr, viewWidth * 4) |> ignore
+            SDL.SDL_UpdateTexture(texture, IntPtr.Zero, bufferPtr, width * 4) |> ignore
             SDL.SDL_RenderClear(renderer) |> ignore
             SDL.SDL_RenderCopy(renderer, texture, IntPtr.Zero, IntPtr.Zero) |> ignore
             SDL.SDL_RenderPresent(renderer) |> ignore
@@ -927,6 +928,15 @@ type Window(t:string, w:int, h:int) =
 
     member this.SetClearColor (r, g, b) =
         background <- fromRgb r g b
+    
+    member this.Title
+        with get () = title
+    
+    member this.Width
+        with get () = width
+    
+    member this.Height
+        with get () = height
 
 type Event =
     | Key of char
