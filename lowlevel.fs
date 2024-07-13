@@ -11,14 +11,175 @@ open SixLabors.ImageSharp.Drawing.Processing
 open SixLabors.ImageSharp.Drawing
 open SixLabors.Fonts
 // colors
-type Color = SixLabors.ImageSharp.Color
+open SixLabors.ImageSharp
+
+type Color =
+    struct
+        val internal color: SixLabors.ImageSharp.Color
+        internal new(color: SixLabors.ImageSharp.Color) = { color = color }
+    end
+
+    static member AliceBlue = Color(SixLabors.ImageSharp.Color.AliceBlue)
+    static member AntiqueWhite = Color(SixLabors.ImageSharp.Color.AntiqueWhite)
+    static member Aqua = Color(SixLabors.ImageSharp.Color.Aqua)
+    static member Aquamarine = Color(SixLabors.ImageSharp.Color.Aquamarine)
+    static member Azure = Color(SixLabors.ImageSharp.Color.Azure)
+    static member Beige = Color(SixLabors.ImageSharp.Color.Beige)
+    static member Bisque = Color(SixLabors.ImageSharp.Color.Bisque)
+    static member Black = Color(SixLabors.ImageSharp.Color.Black)
+    static member BlanchedAlmond = Color(SixLabors.ImageSharp.Color.BlanchedAlmond)
+    static member Blue = Color(SixLabors.ImageSharp.Color.Blue)
+    static member BlueViolet = Color(SixLabors.ImageSharp.Color.BlueViolet)
+    static member Brown = Color(SixLabors.ImageSharp.Color.Brown)
+    static member BurlyWood = Color(SixLabors.ImageSharp.Color.BurlyWood)
+    static member CadetBlue = Color(SixLabors.ImageSharp.Color.CadetBlue)
+    static member Chartreuse = Color(SixLabors.ImageSharp.Color.Chartreuse)
+    static member Chocolate = Color(SixLabors.ImageSharp.Color.Chocolate)
+    static member Coral = Color(SixLabors.ImageSharp.Color.Coral)
+    static member CornflowerBlue = Color(SixLabors.ImageSharp.Color.CornflowerBlue)
+    static member Cornsilk = Color(SixLabors.ImageSharp.Color.Cornsilk)
+    static member Crimson = Color(SixLabors.ImageSharp.Color.Crimson)
+    static member Cyan = Color(SixLabors.ImageSharp.Color.Cyan)
+    static member DarkBlue = Color(SixLabors.ImageSharp.Color.DarkBlue)
+    static member DarkCyan = Color(SixLabors.ImageSharp.Color.DarkCyan)
+    static member DarkGoldenrod = Color(SixLabors.ImageSharp.Color.DarkGoldenrod)
+    static member DarkGray = Color(SixLabors.ImageSharp.Color.DarkGray)
+    static member DarkGreen = Color(SixLabors.ImageSharp.Color.DarkGreen)
+    static member DarkGrey = Color(SixLabors.ImageSharp.Color.DarkGrey)
+    static member DarkKhaki = Color(SixLabors.ImageSharp.Color.DarkKhaki)
+    static member DarkMagenta = Color(SixLabors.ImageSharp.Color.DarkMagenta)
+    static member DarkOliveGreen = Color(SixLabors.ImageSharp.Color.DarkOliveGreen)
+    static member DarkOrange = Color(SixLabors.ImageSharp.Color.DarkOrange)
+    static member DarkOrchid = Color(SixLabors.ImageSharp.Color.DarkOrchid)
+    static member DarkRed = Color(SixLabors.ImageSharp.Color.DarkRed)
+    static member DarkSalmon = Color(SixLabors.ImageSharp.Color.DarkSalmon)
+    static member DarkSeaGreen = Color(SixLabors.ImageSharp.Color.DarkSeaGreen)
+    static member DarkSlateBlue = Color(SixLabors.ImageSharp.Color.DarkSlateBlue)
+    static member DarkSlateGray = Color(SixLabors.ImageSharp.Color.DarkSlateGray)
+    static member DarkSlateGrey = Color(SixLabors.ImageSharp.Color.DarkSlateGrey)
+    static member DarkTurquoise = Color(SixLabors.ImageSharp.Color.DarkTurquoise)
+    static member DarkViolet = Color(SixLabors.ImageSharp.Color.DarkViolet)
+    static member DeepPink = Color(SixLabors.ImageSharp.Color.DeepPink)
+    static member DeepSkyBlue = Color(SixLabors.ImageSharp.Color.DeepSkyBlue)
+    static member DimGray = Color(SixLabors.ImageSharp.Color.DimGray)
+    static member DimGrey = Color(SixLabors.ImageSharp.Color.DimGrey)
+    static member DodgerBlue = Color(SixLabors.ImageSharp.Color.DodgerBlue)
+    static member Firebrick = Color(SixLabors.ImageSharp.Color.Firebrick)
+    static member FloralWhite = Color(SixLabors.ImageSharp.Color.FloralWhite)
+    static member ForestGreen = Color(SixLabors.ImageSharp.Color.ForestGreen)
+    static member Fuchsia = Color(SixLabors.ImageSharp.Color.Fuchsia)
+    static member Gainsboro = Color(SixLabors.ImageSharp.Color.Gainsboro)
+    static member GhostWhite = Color(SixLabors.ImageSharp.Color.GhostWhite)
+    static member Gold = Color(SixLabors.ImageSharp.Color.Gold)
+    static member Goldenrod = Color(SixLabors.ImageSharp.Color.Goldenrod)
+    static member Gray = Color(SixLabors.ImageSharp.Color.Gray)
+    static member Green = Color(SixLabors.ImageSharp.Color.Green)
+    static member GreenYellow = Color(SixLabors.ImageSharp.Color.GreenYellow)
+    static member Grey = Color(SixLabors.ImageSharp.Color.Grey)
+    static member Honeydew = Color(SixLabors.ImageSharp.Color.Honeydew)
+    static member HotPink = Color(SixLabors.ImageSharp.Color.HotPink)
+    static member IndianRed = Color(SixLabors.ImageSharp.Color.IndianRed)
+    static member Indigo = Color(SixLabors.ImageSharp.Color.Indigo)
+    static member Ivory = Color(SixLabors.ImageSharp.Color.Ivory)
+    static member Khaki = Color(SixLabors.ImageSharp.Color.Khaki)
+    static member Lavender = Color(SixLabors.ImageSharp.Color.Lavender)
+    static member LavenderBlush = Color(SixLabors.ImageSharp.Color.LavenderBlush)
+    static member LawnGreen = Color(SixLabors.ImageSharp.Color.LawnGreen)
+    static member LemonChiffon = Color(SixLabors.ImageSharp.Color.LemonChiffon)
+    static member LightBlue = Color(SixLabors.ImageSharp.Color.LightBlue)
+    static member LightCoral = Color(SixLabors.ImageSharp.Color.LightCoral)
+    static member LightCyan = Color(SixLabors.ImageSharp.Color.LightCyan)
+    static member LightGoldenrodYellow = Color(SixLabors.ImageSharp.Color.LightGoldenrodYellow)
+    static member LightGray = Color(SixLabors.ImageSharp.Color.LightGray)
+    static member LightGreen = Color(SixLabors.ImageSharp.Color.LightGreen)
+    static member LightGrey = Color(SixLabors.ImageSharp.Color.LightGrey)
+    static member LightPink = Color(SixLabors.ImageSharp.Color.LightPink)
+    static member LightSalmon = Color(SixLabors.ImageSharp.Color.LightSalmon)
+    static member LightSeaGreen = Color(SixLabors.ImageSharp.Color.LightSeaGreen)
+    static member LightSkyBlue = Color(SixLabors.ImageSharp.Color.LightSkyBlue)
+    static member LightSlateGray = Color(SixLabors.ImageSharp.Color.LightSlateGray)
+    static member LightSlateGrey = Color(SixLabors.ImageSharp.Color.LightSlateGrey)
+    static member LightSteelBlue = Color(SixLabors.ImageSharp.Color.LightSteelBlue)
+    static member LightYellow = Color(SixLabors.ImageSharp.Color.LightYellow)
+    static member Lime = Color(SixLabors.ImageSharp.Color.Lime)
+    static member LimeGreen = Color(SixLabors.ImageSharp.Color.LimeGreen)
+    static member Linen = Color(SixLabors.ImageSharp.Color.Linen)
+    static member Magenta = Color(SixLabors.ImageSharp.Color.Magenta)
+    static member Maroon = Color(SixLabors.ImageSharp.Color.Maroon)
+    static member MediumAquamarine = Color(SixLabors.ImageSharp.Color.MediumAquamarine)
+    static member MediumBlue = Color(SixLabors.ImageSharp.Color.MediumBlue)
+    static member MediumOrchid = Color(SixLabors.ImageSharp.Color.MediumOrchid)
+    static member MediumPurple = Color(SixLabors.ImageSharp.Color.MediumPurple)
+    static member MediumSeaGreen = Color(SixLabors.ImageSharp.Color.MediumSeaGreen)
+    static member MediumSlateBlue = Color(SixLabors.ImageSharp.Color.MediumSlateBlue)
+    static member MediumSpringGreen = Color(SixLabors.ImageSharp.Color.MediumSpringGreen)
+    static member MediumTurquoise = Color(SixLabors.ImageSharp.Color.MediumTurquoise)
+    static member MediumVioletRed = Color(SixLabors.ImageSharp.Color.MediumVioletRed)
+    static member MidnightBlue = Color(SixLabors.ImageSharp.Color.MidnightBlue)
+    static member MintCream = Color(SixLabors.ImageSharp.Color.MintCream)
+    static member MistyRose = Color(SixLabors.ImageSharp.Color.MistyRose)
+    static member Moccasin = Color(SixLabors.ImageSharp.Color.Moccasin)
+    static member NavajoWhite = Color(SixLabors.ImageSharp.Color.NavajoWhite)
+    static member Navy = Color(SixLabors.ImageSharp.Color.Navy)
+    static member OldLace = Color(SixLabors.ImageSharp.Color.OldLace)
+    static member Olive = Color(SixLabors.ImageSharp.Color.Olive)
+    static member OliveDrab = Color(SixLabors.ImageSharp.Color.OliveDrab)
+    static member Orange = Color(SixLabors.ImageSharp.Color.Orange)
+    static member OrangeRed = Color(SixLabors.ImageSharp.Color.OrangeRed)
+    static member Orchid = Color(SixLabors.ImageSharp.Color.Orchid)
+    static member PaleGoldenrod = Color(SixLabors.ImageSharp.Color.PaleGoldenrod)
+    static member PaleGreen = Color(SixLabors.ImageSharp.Color.PaleGreen)
+    static member PaleTurquoise = Color(SixLabors.ImageSharp.Color.PaleTurquoise)
+    static member PaleVioletRed = Color(SixLabors.ImageSharp.Color.PaleVioletRed)
+    static member PapayaWhip = Color(SixLabors.ImageSharp.Color.PapayaWhip)
+    static member PeachPuff = Color(SixLabors.ImageSharp.Color.PeachPuff)
+    static member Peru = Color(SixLabors.ImageSharp.Color.Peru)
+    static member Pink = Color(SixLabors.ImageSharp.Color.Pink)
+    static member Plum = Color(SixLabors.ImageSharp.Color.Plum)
+    static member PowderBlue = Color(SixLabors.ImageSharp.Color.PowderBlue)
+    static member Purple = Color(SixLabors.ImageSharp.Color.Purple)
+    static member RebeccaPurple = Color(SixLabors.ImageSharp.Color.RebeccaPurple)
+    static member Red = Color(SixLabors.ImageSharp.Color.Red)
+    static member RosyBrown = Color(SixLabors.ImageSharp.Color.RosyBrown)
+    static member RoyalBlue = Color(SixLabors.ImageSharp.Color.RoyalBlue)
+    static member SaddleBrown = Color(SixLabors.ImageSharp.Color.SaddleBrown)
+    static member Salmon = Color(SixLabors.ImageSharp.Color.Salmon)
+    static member SandyBrown = Color(SixLabors.ImageSharp.Color.SandyBrown)
+    static member SeaGreen = Color(SixLabors.ImageSharp.Color.SeaGreen)
+    static member SeaShell = Color(SixLabors.ImageSharp.Color.SeaShell)
+    static member Sienna = Color(SixLabors.ImageSharp.Color.Sienna)
+    static member Silver = Color(SixLabors.ImageSharp.Color.Silver)
+    static member SkyBlue = Color(SixLabors.ImageSharp.Color.SkyBlue)
+    static member SlateBlue = Color(SixLabors.ImageSharp.Color.SlateBlue)
+    static member SlateGray = Color(SixLabors.ImageSharp.Color.SlateGray)
+    static member SlateGrey = Color(SixLabors.ImageSharp.Color.SlateGrey)
+    static member Snow = Color(SixLabors.ImageSharp.Color.Snow)
+    static member SpringGreen = Color(SixLabors.ImageSharp.Color.SpringGreen)
+    static member SteelBlue = Color(SixLabors.ImageSharp.Color.SteelBlue)
+    static member Tan = Color(SixLabors.ImageSharp.Color.Tan)
+    static member Teal = Color(SixLabors.ImageSharp.Color.Teal)
+    static member Thistle = Color(SixLabors.ImageSharp.Color.Thistle)
+    static member Tomato = Color(SixLabors.ImageSharp.Color.Tomato)
+    static member Transparent = Color(SixLabors.ImageSharp.Color.Transparent)
+    static member Turquoise = Color(SixLabors.ImageSharp.Color.Turquoise)
+    static member Violet = Color(SixLabors.ImageSharp.Color.Violet)
+    static member Wheat = Color(SixLabors.ImageSharp.Color.Wheat)
+    static member White = Color(SixLabors.ImageSharp.Color.White)
+    static member WhiteSmoke = Color(SixLabors.ImageSharp.Color.WhiteSmoke)
+    static member Yellow = Color(SixLabors.ImageSharp.Color.Yellow)
+    static member YellowGreen = Color(SixLabors.ImageSharp.Color.YellowGreen)
+
+
 
 type InternalEvent = internal InternalEvent of SDL.SDL_Event
 
 let fromRgba (red:int) (green:int) (blue:int) (a:int) : Color =
     Color.FromRgba(byte red, byte green, byte blue, byte a)
+    |> Color
 let fromRgb (red:int) (green:int) (blue:int) : Color =
     Color.FromRgb(byte red, byte green, byte blue)
+    |> Color
+
 type image = SixLabors.ImageSharp.Image<Rgba32>
 type DrawingContext = internal DrawingContext of SixLabors.ImageSharp.Processing.IImageProcessingContext
 type drawing_fun = DrawingContext -> DrawingContext
@@ -41,10 +202,10 @@ type Tool =
     | Pen of SixLabors.ImageSharp.Drawing.Processing.Pen
     | Brush of SixLabors.ImageSharp.Drawing.Processing.Brush
 
-let solidBrush (color:Color) : Tool =
-    Brush (Brushes.Solid(color))
-let solidPen (color:Color) (width:float) : Tool =
-    Pen (Pens.Solid(color, float32 width))
+let solidBrush (color: Color) : Tool =
+    Brush (Brushes.Solid(color.color))
+let solidPen (color: Color) (width: float) : Tool =
+    Pen (Pens.Solid(color.color, float32 width))
 
 type point = int * int
 type pointF = float * float
@@ -246,17 +407,15 @@ let drawToAnimatedGif width heigth (frameDelay:int) (repeatCount:int) (filePath:
             gif.SaveAsGif(filePath)
         | _ -> ()
 
-type IWindowContext =
-    abstract member Get : unit -> DrawingContext
-
 let internal unpackFont (Font f) = f
 
 type Text(position: Vector2, text: string, color: Color, fontFamily: FontFamily, size: float) =
     let mutable fontFamily = fontFamily 
     let mutable font = makeFont fontFamily size
     let mutable path = TextBuilder.GenerateGlyphs(text, SixLabors.Fonts.TextOptions (unpackFont font))
-    let mutable brush = Brushes.Solid(color)
+    let mutable brush = Brushes.Solid(color.color)
     let mutable text = text
+    let mutable color = color
     do
         let pos = position - Vector2(path.Bounds.Location.X, path.Bounds.Location.Y)
         path <- path.Translate(pos)
@@ -286,7 +445,9 @@ type Text(position: Vector2, text: string, color: Color, fontFamily: FontFamily,
 
     member this.Color
         with get () = color
-        and set v = brush <- Brushes.Solid(v)
+        and set v =
+            color <- v
+            brush <- Brushes.Solid(color.color)
 
     member this.Render (DrawingContext ctx) =
         ctx.Fill(DrawingOptions(), brush, path)
@@ -642,7 +803,7 @@ type Window(t:string, w:int, h:int) =
         frameBuffer <- Array.create (viewWidth * viewHeight * 4) (byte 0)
         bufferPtr <- IntPtr ((Marshal.UnsafeAddrOfPinnedArrayElement (frameBuffer, 0)).ToPointer ())
 
-        img <- new Image<Rgba32>(w, h, background) |> Some
+        img <- new Image<Rgba32>(w, h, background.color) |> Some
 
         if is_initial then
             SDL.SDL_StartTextInput()
@@ -684,7 +845,7 @@ type Window(t:string, w:int, h:int) =
 
     member this.Clear () =
          Option.map(fun (img: Image<Rgba32>) ->
-            img.Mutate(fun ctx -> ctx.Clear(background) |> ignore)
+            img.Mutate(fun ctx -> ctx.Clear(background.color) |> ignore)
          ) img |> ignore
 
     member this.Render (draw: Action<DrawingContext>) =
