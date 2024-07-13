@@ -666,6 +666,11 @@ type Window(t:string, w:int, h:int) =
     override this.Finalize () =
         this.Cleanup()
 
+    member this.Clear () =
+         Option.map(fun (img: Image<Rgba32>) ->
+            img.Mutate(fun ctx -> ctx.Clear(background) |> ignore)
+         ) img |> ignore
+
     member this.Render (draw : DrawingContext -> unit) =
         Option.map(fun (img: Image<Rgba32>) ->
             img.Mutate (fun ctx ->
@@ -683,8 +688,8 @@ type Window(t:string, w:int, h:int) =
             SDL.SDL_RenderClear(renderer) |> ignore
             SDL.SDL_RenderCopy(renderer, texture, IntPtr.Zero, IntPtr.Zero) |> ignore
             SDL.SDL_RenderPresent(renderer) |> ignore
-            img.Mutate(fun ctx -> ctx.Clear(background) |> ignore)
         ) img |> ignore
+        this.Clear ()
         ()
 
     member private this.EnqueueEvent (event: SDL.SDL_Event)  =
