@@ -438,7 +438,6 @@ type Text(position: Vector2, text: string, color: Color, fontFamily: FontFamily,
         path <- TextBuilder.GenerateGlyphs(text, SixLabors.Fonts.TextOptions (unpackFont font))
         let (x, y) = measureText font text
         extent <- new Vector2(float32 x, float32 y)
-        path <- path.Translate(0f, -extent.Y)
 
     member private this.UpdateFont () =
         font <- makeFont fontFamily size
@@ -473,9 +472,8 @@ type Text(position: Vector2, text: string, color: Color, fontFamily: FontFamily,
         let mat = Matrix3x2(
             float32 width, 0.0f,
             0.0f, - float32 height,
-            0.0f, float32 height
+            0.0f, float32 height + -extent.Y
         )
-        //let s = Matrix3x2.CreateScale(float32 width, float32 height)
         let x = Vector2.Transform(position, mat)// Matrix3x2.Multiply(s, mat))
         ctx.Fill(DrawingOptions(), brush, path.Translate(x))
         |> ignore
