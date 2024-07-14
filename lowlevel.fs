@@ -194,9 +194,16 @@ let makeFont (FontFamily fam:FontFamily) (size:float) =
     fam.CreateFont(float32 size, SixLabors.Fonts.FontStyle.Regular)
     |> Font
 
+let makeFontCSharp (fam, size) = makeFont fam size
+
+let fontFamilies =
+    ReadOnlyCollection(List(List.map getFamily systemFontNames))
+
 let measureText (Font f:Font) (txt:string) = 
     let rect = SixLabors.Fonts.TextMeasurer.MeasureSize(txt, SixLabors.Fonts.TextOptions(f))
     (float rect.Width,float rect.Height)
+
+let measureTextCSharp (font, txt) = measureText font txt
 
 type Tool = 
     | Pen of SixLabors.ImageSharp.Drawing.Processing.Pen
@@ -422,51 +429,6 @@ let drawText (color: Color, PathCollection path: PathCollection, DrawingContext 
     let brush = Brushes.Solid(color.color)
     ctx.Fill(DrawingOptions(), brush, path)
     |> ignore
-
-(*
-type Texture(position: Vector2, stream: IO.Stream) =
-    let mutable image = Image.Load(stream)
-    let mutable position = position
-    let sampler = Processors.Transforms.NearestNeighborResampler ()
-    do
-        image.Mutate(fun ctx -> ctx |> ignore )
-    
-    interface IGraphic with
-        member this.Render (DrawingContext ctx) =
-            let position = Point(50, 50)
-            ctx.DrawImage(image, position, 1f)
-            |> ignore
-        
-        member this.Extent
-            with get () = Vector2(float32 image.Bounds.Width, float32 image.Bounds.Height)
-        
-        member this.Position
-            with get () = Vector2(float32 image.Bounds.Location.X, float32 image.Bounds.Location.Y)
-        
-        member this.Scale scaling =
-            image.Mutate(fun ctx ->
-                ctx.Resize(int scaling.X, int scaling.Y, sampler)
-                |> ignore
-            )
-            path <- path.Scale(scaling.X, scaling.Y)
-            Vector2(path.Bounds.Width, path.Bounds.Height)
-                
-        member this.Translate translation =
-            path <- path.Scale(translation.X, translation.Y)
-            Vector2(path.Bounds.Location.X, path.Bounds.Location.Y)
-        
-        member this.SetExtent (newExtent: Vector2) =
-            path <- path.Scale(
-                newExtent.X / path.Bounds.Width,
-                newExtent.Y / path.Bounds.Height
-            )
-        
-        member this.SetPosition (newPosition: Vector2) =
-            path <- path.Scale(
-                newPosition.X - path.Bounds.Location.X,
-                newPosition.Y - path.Bounds.Location.X
-            )
-*)
 
 type KeyAction =
     | KeyPress = 0
