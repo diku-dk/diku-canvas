@@ -420,7 +420,7 @@ type Text(position: Vector2, text: string, color: Color, fontFamily: FontFamily,
     let mutable color = color
     let mutable size = size
     do
-        let pos = position - Vector2(path.Bounds.Location.X, path.Bounds.Location.Y)
+        let pos = position - Vector2(path.Bounds.Left, path.Bounds.Bottom)
         path <- path.Translate(pos)
 
     static member FontFamilies = fontFamilies
@@ -467,7 +467,7 @@ type Text(position: Vector2, text: string, color: Color, fontFamily: FontFamily,
         with get () = Vector2(path.Bounds.Width, path.Bounds.Height)
     
     member this.Position
-        with get () = Vector2(path.Bounds.Location.X, path.Bounds.Location.Y)
+        with get () = Vector2(path.Bounds.Left, path.Bounds.Bottom)
     
     member this.Scale (scaling: Vector2) =
         path <- path.Scale(scaling.X, scaling.Y)
