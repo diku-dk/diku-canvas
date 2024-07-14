@@ -421,8 +421,9 @@ type Text(position: Vector2, text: string, color: Color, fontFamily: FontFamily,
     let mutable color = color
     let mutable size = size
     do
-        let pos = position - new Vector2(path.Bounds.Right, path.Bounds.Bottom)
-        path <- path.Translate(pos.X, pos.Y)
+        let translation = position - new Vector2(path.Bounds.Left, path.Bounds.Bottom)
+        let translationMatrix = Matrix3x2.CreateTranslation(translation) 
+        path <- path.Transform(translationMatrix)
 
     static member FontFamilies = fontFamilies
 
@@ -468,7 +469,7 @@ type Text(position: Vector2, text: string, color: Color, fontFamily: FontFamily,
         with get () = new Vector2(path.Bounds.Width, path.Bounds.Height)
     
     member this.Position
-        with get () = new Vector2(path.Bounds.Right, path.Bounds.Bottom)
+        with get () = new Vector2(path.Bounds.Left, path.Bounds.Bottom)
     
     member this.Scale (scaling: Vector2) =
         path <- path.Scale(scaling.X, scaling.Y)
@@ -484,7 +485,8 @@ type Text(position: Vector2, text: string, color: Color, fontFamily: FontFamily,
     
     member this.SetPosition (newPosition: Vector2) =
         let translation = newPosition - this.Position
-        path <- path.Translate(translation.X, translation.Y)
+        let translationMatrix = Matrix3x2.CreateTranslation(translation) 
+        path <- path.Transform(translationMatrix)
 (*
 type Texture(position: Vector2, stream: IO.Stream) =
     let mutable image = Image.Load(stream)
