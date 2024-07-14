@@ -429,9 +429,7 @@ type Text(position: Vector2, text: string, color: Color, fontFamily: FontFamily,
     let mutable color = color
     let mutable size = size
     let mutable position = position
-    do
-        path <- path.Translate(0f, -extent.Y)
-
+    
     static member FontFamilies = fontFamilies
 
     member private this.UpdatePath () =
