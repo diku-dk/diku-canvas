@@ -172,6 +172,13 @@ type Color =
 
 type InternalEvent = internal InternalEvent of SDL.SDL_Event
 
+type point = int * int
+type pointF = float * float
+type Vector2 = System.Numerics.Vector2
+type Matrix3x2 = System.Numerics.Matrix3x2
+type Matrix4x4 = System.Numerics.Matrix4x4
+type TextOptions = internal TextOptions of SixLabors.Fonts.TextOptions
+
 let fromRgba (red:int) (green:int) (blue:int) (a:int) : Color =
     Color.FromRgba(byte red, byte green, byte blue, byte a)
     |> Color
@@ -203,7 +210,9 @@ let measureText (Font f:Font) (txt:string) =
     let rect = SixLabors.Fonts.TextMeasurer.MeasureSize(txt, SixLabors.Fonts.TextOptions(f))
     (float rect.Width,float rect.Height)
 
-let measureTextCSharp (font, txt) = measureText font txt
+let measureTextCSharp (font, txt) =
+    let (x, y) = measureText font txt
+    new Vector2(float32 x, float32 y)
 
 type Tool = 
     | Pen of SixLabors.ImageSharp.Drawing.Processing.Pen
@@ -213,13 +222,6 @@ let solidBrush (color: Color) : Tool =
     Brush (Brushes.Solid(color.color))
 let solidPen (color: Color) (width: float) : Tool =
     Pen (Pens.Solid(color.color, float32 width))
-
-type point = int * int
-type pointF = float * float
-type Vector2 = System.Numerics.Vector2
-type Matrix3x2 = System.Numerics.Matrix3x2
-type Matrix4x4 = System.Numerics.Matrix4x4
-type TextOptions = internal TextOptions of SixLabors.Fonts.TextOptions
 
 let textOptions (Font font) = TextOptions <| SixLabors.Fonts.TextOptions font
 
