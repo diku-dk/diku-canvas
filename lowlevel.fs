@@ -486,7 +486,7 @@ type Text(position: Vector2, text: string, color: Color, fontFamily: FontFamily,
             
     member this.Translate (translation: Vector2) =
         position <- position + translation
-        path <- path.Translate(translation.X, translation.Y + this.Extent.Y)
+        path <- path.Translate(translation.X, translation.Y)
         this.Position
     
     member this.SetExtent (newExtent: Vector2) =
