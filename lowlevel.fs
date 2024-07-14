@@ -473,7 +473,7 @@ type Text(position: Vector2, text: string, color: Color, fontFamily: FontFamily,
         this.Position
             
     member this.Translate (translation: Vector2) =
-        path <- path.Scale(translation.X, translation.Y)
+        path <- path.Translate(translation.X, translation.Y)
         this.Extent
     
     member this.SetExtent (newExtent: Vector2) =
@@ -483,7 +483,7 @@ type Text(position: Vector2, text: string, color: Color, fontFamily: FontFamily,
         )
     
     member this.SetPosition (newPosition: Vector2) =
-        path <- path.Scale(
+        path <- path.Translate(
             newPosition.X - path.Bounds.Location.X,
             newPosition.Y - path.Bounds.Location.X
         )
