@@ -430,13 +430,12 @@ type Text(position: Vector2, text: string, color: Color, fontFamily: FontFamily,
     let mutable size = size
     let mutable position = position
     do
-        path <- path.Translate(position)
+        path <- path.Translate(0f, -extent.Y)
 
     static member FontFamilies = fontFamilies
 
     member private this.UpdatePath () =
         path <- TextBuilder.GenerateGlyphs(text, SixLabors.Fonts.TextOptions (unpackFont font))
-                .Translate(this.Position)
         let (x, y) = measureText font text
         extent <- new Vector2(float32 x, float32 y)
         path <- path.Translate(0f, -extent.Y)
@@ -476,7 +475,8 @@ type Text(position: Vector2, text: string, color: Color, fontFamily: FontFamily,
             0.0f, -1.0f,
             0.0f, float32 height
         )
-        ctx.Fill(DrawingOptions( Transform = mat ), brush, path)
+        let x = Vector2.Transform(position, mat)
+        ctx.Fill(DrawingOptions(), brush, path.Translate(x))
         |> ignore
     
     member this.Extent
@@ -484,6 +484,7 @@ type Text(position: Vector2, text: string, color: Color, fontFamily: FontFamily,
     
     member this.Position
         with get (): Vector2 = position
+        and set v = position <- v
       
     member this.Scale (scaling: Vector2) =
         path <- path.Scale(scaling.X, scaling.Y)
@@ -492,7 +493,6 @@ type Text(position: Vector2, text: string, color: Color, fontFamily: FontFamily,
             
     member this.Translate (translation: Vector2) =
         position <- position + translation
-        path <- path.Translate(translation.X, translation.Y)
         this.Position
     
     member this.SetExtent (newExtent: Vector2) =
