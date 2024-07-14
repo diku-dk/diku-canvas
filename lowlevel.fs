@@ -439,6 +439,7 @@ type Text(position: Vector2, text: string, color: Color, fontFamily: FontFamily,
                 .Translate(this.Position)
         let (x, y) = measureText font text
         extent <- new Vector2(float32 x, float32 y)
+        path <- path.Translate(0f, -extent.Y)
 
     member private this.UpdateFont () =
         font <- makeFont fontFamily size
