@@ -471,7 +471,12 @@ type Text(position: Vector2, text: string, color: Color, fontFamily: FontFamily,
             brush <- Brushes.Solid(color.color)
 
     member this.Render (DrawingContext (ctx, width, height)) =
-        ctx.Fill(DrawingOptions(), brush, path)
+        let mat = Matrix3x2(
+            1.0f, 0.0f,
+            0.0f, -1.0f,
+            0.0f, float32 height
+        )
+        ctx.Fill(DrawingOptions( Transform = mat ), brush, path)
         |> ignore
     
     member this.Extent
