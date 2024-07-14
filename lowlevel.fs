@@ -478,16 +478,12 @@ type Text(position: Vector2, text: string, color: Color, fontFamily: FontFamily,
         this.Extent
     
     member this.SetExtent (newExtent: Vector2) =
-        path <- path.Scale(
-            newExtent.X / path.Bounds.Width,
-            newExtent.Y / path.Bounds.Height
-        )
+        let scaling = newExtent / this.Extent
+        path <- path.Scale(scaling.X, scaling.Y)
     
     member this.SetPosition (newPosition: Vector2) =
-        path <- path.Translate(
-            newPosition.X - path.Bounds.Location.X,
-            newPosition.Y - path.Bounds.Location.Y
-        )
+        let translation = newPosition - this.Position
+        path <- path.Translate(translation.X, translation.Y)
 (*
 type Texture(position: Vector2, stream: IO.Stream) =
     let mutable image = Image.Load(stream)
