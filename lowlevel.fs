@@ -476,7 +476,7 @@ type Text(position: Vector2, text: string, color: Color, fontFamily: FontFamily,
             0.0f, float32 height
         )
         let s = Matrix3x2.CreateScale(float32 width, float32 height)
-        let x = Vector2.Transform(position, Matrix3x2.Multiply(mat, s))
+        let x = Vector2.Transform(position, Matrix3x2.Multiply(s, mat))
         ctx.Fill(DrawingOptions(), brush, path.Translate(x))
         |> ignore
     
