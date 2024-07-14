@@ -426,8 +426,9 @@ type Text(position: Vector2, text: string, color: Color, fontFamily: FontFamily,
     static member FontFamilies = fontFamilies
 
     member private this.UpdatePath () =
+        let position = this.Position
         path <- TextBuilder.GenerateGlyphs(text, SixLabors.Fonts.TextOptions (unpackFont font))
-                .Translate(position)
+        this.SetPosition(position)
 
     member private this.UpdateFont () =
         font <- makeFont fontFamily size
