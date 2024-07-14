@@ -871,11 +871,11 @@ type Window(t:string, w:int, h:int) =
         Option.map(fun (img: Image<Rgba32>) ->
             img.Mutate (fun ctx ->
                 draw.Invoke(DrawingContext (ctx, width, height))
-                ctx.Crop(min width img.Width, min height img.Height)
+                ctx.AutoOrient()
                    .Resize(
                         options = ResizeOptions(Position = AnchorPositionMode.TopLeft,
                         Size = Size(width, height),
-                        Mode = ResizeMode.BoxPad)
+                        Mode = ResizeMode.Crop)
                     )
                 |> ignore
             )
