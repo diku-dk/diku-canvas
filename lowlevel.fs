@@ -485,7 +485,7 @@ type Text(position: Vector2, text: string, color: Color, fontFamily: FontFamily,
     member this.SetPosition (newPosition: Vector2) =
         path <- path.Translate(
             newPosition.X - path.Bounds.Location.X,
-            newPosition.Y - path.Bounds.Location.X
+            newPosition.Y - path.Bounds.Location.Y
         )
 (*
 type Texture(position: Vector2, stream: IO.Stream) =
