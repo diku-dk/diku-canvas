@@ -437,6 +437,10 @@ let renderPenPath (width, color: Color, PathCollection path: PathCollection, Dra
     ctx.Draw(pen, path)
     |> ignore
 
+let transformPath (PathCollection path, matrix ) =
+    path.Transform(matrix)
+    |> PathCollection
+
 type KeyAction =
     | KeyPress = 0
     | KeyRelease = 1
