@@ -409,6 +409,7 @@ let drawToAnimatedGif width heigth (frameDelay:int) (repeatCount:int) (filePath:
 
 let internal unpackFont (Font f) = f
 
+// Draws from the bottom right point.
 type Text(position: Vector2, text: string, color: Color, fontFamily: FontFamily, size: float) =
     static let fontFamilies =
         ReadOnlyCollection(List(List.map getFamily systemFontNames))
@@ -421,7 +422,7 @@ type Text(position: Vector2, text: string, color: Color, fontFamily: FontFamily,
     let mutable size = size
     do
         let pos = position - new Vector2(path.Bounds.Right, path.Bounds.Bottom)
-        path <- path.Translate(pos.X + path.Bounds.Width, pos.Y)
+        path <- path.Translate(pos.X, pos.Y)
 
     static member FontFamilies = fontFamilies
 
@@ -483,7 +484,7 @@ type Text(position: Vector2, text: string, color: Color, fontFamily: FontFamily,
     
     member this.SetPosition (newPosition: Vector2) =
         let translation = newPosition - this.Position
-        path <- path.Translate(translation.X + path.Bounds.Width, translation.Y)
+        path <- path.Translate(translation.X, translation.Y)
 (*
 type Texture(position: Vector2, stream: IO.Stream) =
     let mutable image = Image.Load(stream)
