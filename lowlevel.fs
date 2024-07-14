@@ -420,7 +420,7 @@ type Text(position: Vector2, text: string, color: Color, fontFamily: FontFamily,
     let mutable color = color
     let mutable size = size
     do
-        let pos = position - new Vector2(path.Bounds.Right, path.Bounds.Bottom)
+        let pos = position - new Vector2(path.Bounds.Left, path.Bounds.Bottom)
         path <- path.Translate(pos)
 
     static member FontFamilies = fontFamilies
@@ -468,6 +468,8 @@ type Text(position: Vector2, text: string, color: Color, fontFamily: FontFamily,
     
     member this.Position
         with get () = new Vector2(path.Bounds.Right, path.Bounds.Bottom)
+    member private this.Adjust
+        with get () = new Vector2(path.Bounds.Left, path.Bounds.Bottom)
     
     member this.Scale (scaling: Vector2) =
         path <- path.Scale(scaling.X, scaling.Y)
@@ -482,7 +484,7 @@ type Text(position: Vector2, text: string, color: Color, fontFamily: FontFamily,
         path <- path.Scale(scaling.X, scaling.Y)
     
     member this.SetPosition (newPosition: Vector2) =
-        let translation = newPosition - this.Position
+        let translation = newPosition - this.Adjust
         path <- path.Translate(translation.X, translation.Y)
 (*
 type Texture(position: Vector2, stream: IO.Stream) =
