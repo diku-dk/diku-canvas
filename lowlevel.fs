@@ -181,7 +181,7 @@ let fromRgb (red:int) (green:int) (blue:int) : Color =
     |> Color
 
 type image = SixLabors.ImageSharp.Image<Rgba32>
-type DrawingContext = internal DrawingContext of SixLabors.ImageSharp.Processing.IImageProcessingContext * int * int
+type DrawingContext = internal DrawingContext of SixLabors.ImageSharp.Processing.IImageProcessingContext
 type drawing_fun = DrawingContext -> DrawingContext
 type Font = internal Font of SixLabors.Fonts.Font
 type FontFamily = internal FontFamily of SixLabors.Fonts.FontFamily
@@ -189,8 +189,6 @@ let systemFontNames: string list = [for i in  SixLabors.Fonts.SystemFonts.Famili
 let getFamily name =
     SixLabors.Fonts.SystemFonts.Get(name)
     |> FontFamily
-
-let internal toDrawingContext w h a  = DrawingContext (a, w, h)
 
 let makeFont (FontFamily fam:FontFamily) (size:float) =
     fam.CreateFont(float32 size, SixLabors.Fonts.FontStyle.Regular)
@@ -374,7 +372,7 @@ let flatten (p : PathTree) : (Tool*IPathCollection) list =  //FIXME: should mayb
     traverse [] [p]
 
 let drawCollection ((tool,col):Tool * IPathCollection) (ctx: DrawingContext): DrawingContext =
-    let (DrawingContext (_ctx, width, height)) = ctx
+    let (DrawingContext _ctx) = ctx
     
     ignore <|
     match tool with
@@ -383,28 +381,28 @@ let drawCollection ((tool,col):Tool * IPathCollection) (ctx: DrawingContext): Dr
         | Brush brush ->
             _ctx.Fill(DrawingOptions(), brush, col)
     
-    DrawingContext (_ctx, width, height)
+    DrawingContext _ctx
 
 let drawPathTree (paths:PathTree) (ctx: DrawingContext) : DrawingContext =
     flatten paths |> List.fold (fun ctx penNCol -> drawCollection penNCol ctx) ctx
 
 let drawToFile width height (filePath:string) (draw: drawing_fun) =
     let img = new Image<Rgba32>(width, height)
-    img.Mutate(toDrawingContext width height >> draw >> ignore)
+    img.Mutate(DrawingContext >> draw >> ignore)
     img.Save(filePath)
 
 let drawToAnimatedGif width height (frameDelay:int) (repeatCount:int) (filePath:string) (drawLst:drawing_fun list) =
     match drawLst with
         draw::rst ->
             let gif = new Image<Rgba32>(width, height)
-            gif.Mutate(toDrawingContext width height >> draw >> ignore)
+            gif.Mutate(DrawingContext >> draw >> ignore)
             let gifMetaData = gif.Metadata.GetGifMetadata()
             gifMetaData.RepeatCount <- uint16 repeatCount
             let metadata = gif.Frames.RootFrame.Metadata.GetGifMetadata()
             metadata.FrameDelay <- frameDelay
             List.iter (fun (draw:drawing_fun) -> 
                 let frame = new Image<Rgba32>(width, height)
-                frame.Mutate(toDrawingContext width height >> draw >> ignore)
+                frame.Mutate(DrawingContext >> draw >> ignore)
                 let metadata = frame.Frames.RootFrame.Metadata.GetGifMetadata()
                 metadata.FrameDelay <- frameDelay
                 gif.Frames.AddFrame(frame.Frames.RootFrame) |> ignore
@@ -414,91 +412,17 @@ let drawToAnimatedGif width height (frameDelay:int) (repeatCount:int) (filePath:
 
 let internal unpackFont (Font f) = f
 
-// Draws from the bottom right point.
-type Text(position: Vector2, text: string, color: Color, fontFamily: FontFamily, size: float) =
-    static let fontFamilies =
-        ReadOnlyCollection(List(List.map getFamily systemFontNames))
-    let mutable fontFamily = fontFamily 
-    let mutable font = makeFont fontFamily size
-    let mutable path = TextBuilder.GenerateGlyphs(text, SixLabors.Fonts.TextOptions (unpackFont font))
-    let mutable brush = Brushes.Solid(color.color)
-    let mutable extent =
-        let (x, y) = measureText font text
-        in new Vector2(float32 x, float32 y)
-    let mutable text = text
-    let mutable color = color
-    let mutable size = size
-    let mutable position = position
-    
-    static member FontFamilies = fontFamilies
+type PathCollection = internal PathCollection of IPathCollection
 
-    member private this.UpdatePath () =
-        path <- TextBuilder.GenerateGlyphs(text, SixLabors.Fonts.TextOptions (unpackFont font))
-        let (x, y) = measureText font text
-        extent <- new Vector2(float32 x, float32 y)
+let createText (text, font) = 
+    TextBuilder.GenerateGlyphs(text, SixLabors.Fonts.TextOptions (unpackFont font))
+    |> PathCollection
 
-    member private this.UpdateFont () =
-        font <- makeFont fontFamily size
+let drawText (color: Color, PathCollection path: PathCollection, DrawingContext ctx) =
+    let brush = Brushes.Solid(color.color)
+    ctx.Fill(DrawingOptions(), brush, path)
+    |> ignore
 
-    member this.Text
-        with get () = text
-        and set v =
-            text <- v
-            this.UpdatePath ()
-    
-    member this.FontFamily
-        with get () = fontFamily
-        and set v =
-            fontFamily <- v
-            this.UpdateFont ()
-            this.UpdatePath ()
-    
-    member this.Size
-        with get () = size
-        and set v =
-            size <- v
-            this.UpdateFont ()
-            this.UpdatePath ()
-
-    member this.Color
-        with get () = color
-        and set v =
-            color <- v
-            brush <- Brushes.Solid(color.color)
-
-    member this.Render (DrawingContext (ctx, width, height)) =
-        let mat = Matrix3x2(
-            float32 width, 0.0f,
-            0.0f, - float32 height,
-            0.0f, float32 height + -extent.Y
-        )
-        let x = Vector2.Transform(position, mat)// Matrix3x2.Multiply(s, mat))
-        ctx.Fill(DrawingOptions(), brush, path.Translate(x))
-        |> ignore
-    
-    member this.Extent
-        with get () = extent
-    
-    member this.Position
-        with get (): Vector2 = position
-        and set v = position <- v
-      
-    member this.Scale (scaling: Vector2) =
-        path <- path.Scale(scaling.X, scaling.Y)
-        extent <- scaling * extent
-        this.Extent
-            
-    member this.Translate (translation: Vector2) =
-        position <- position + translation
-        this.Position
-    
-    member this.SetExtent (newExtent: Vector2) =
-        let scaling = newExtent / this.Extent
-        this.Scale(scaling) |> ignore
-    
-    member this.SetPosition (newPosition: Vector2) =
-        let translation = newPosition - this.Position
-        this.Translate(translation) |> ignore
 (*
 type Texture(position: Vector2, stream: IO.Stream) =
     let mutable image = Image.Load(stream)
@@ -872,7 +796,7 @@ type Window(t:string, w:int, h:int) =
     member this.Render (draw: Action<DrawingContext>) =
         Option.map(fun (img: Image<Rgba32>) ->
             img.Mutate (fun ctx ->
-                draw.Invoke(DrawingContext (ctx, width, height))
+                draw.Invoke(DrawingContext ctx)
                 ctx.Crop(min width img.Width, min height img.Height)
                    .Resize(
                         options = ResizeOptions(Position = AnchorPositionMode.TopLeft,
