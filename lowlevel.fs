@@ -181,7 +181,7 @@ let fromRgb (red:int) (green:int) (blue:int) : Color =
     |> Color
 
 type image = SixLabors.ImageSharp.Image<Rgba32>
-type DrawingContext = internal DrawingContext of SixLabors.ImageSharp.Processing.IImageProcessingContext
+type DrawingContext = internal DrawingContext of SixLabors.ImageSharp.Processing.IImageProcessingContext * int * int
 type drawing_fun = DrawingContext -> DrawingContext
 type Font = internal Font of SixLabors.Fonts.Font
 type FontFamily = internal FontFamily of SixLabors.Fonts.FontFamily
@@ -189,6 +189,8 @@ let systemFontNames: string list = [for i in  SixLabors.Fonts.SystemFonts.Famili
 let getFamily name =
     SixLabors.Fonts.SystemFonts.Get(name)
     |> FontFamily
+
+let internal toDrawingContext w h a  = DrawingContext (a, w, h)
 
 let makeFont (FontFamily fam:FontFamily) (size:float) =
     fam.CreateFont(float32 size, SixLabors.Fonts.FontStyle.Regular)
@@ -372,34 +374,37 @@ let flatten (p : PathTree) : (Tool*IPathCollection) list =  //FIXME: should mayb
     traverse [] [p]
 
 let drawCollection ((tool,col):Tool * IPathCollection) (ctx: DrawingContext): DrawingContext =
-    let (DrawingContext _ctx) = ctx
-    DrawingContext <|
+    let (DrawingContext (_ctx, width, height)) = ctx
+    
+    ignore <|
     match tool with
         | Pen pen ->
             _ctx.Draw(pen, col)
         | Brush brush ->
             _ctx.Fill(DrawingOptions(), brush, col)
+    
+    DrawingContext (_ctx, width, height)
 
 let drawPathTree (paths:PathTree) (ctx: DrawingContext) : DrawingContext =
     flatten paths |> List.fold (fun ctx penNCol -> drawCollection penNCol ctx) ctx
 
 let drawToFile width height (filePath:string) (draw: drawing_fun) =
     let img = new Image<Rgba32>(width, height)
-    img.Mutate(DrawingContext >> draw >> ignore)
+    img.Mutate(toDrawingContext width height >> draw >> ignore)
     img.Save(filePath)
 
-let drawToAnimatedGif width heigth (frameDelay:int) (repeatCount:int) (filePath:string) (drawLst:drawing_fun list) =
+let drawToAnimatedGif width height (frameDelay:int) (repeatCount:int) (filePath:string) (drawLst:drawing_fun list) =
     match drawLst with
         draw::rst ->
-            let gif = new Image<Rgba32>(width, heigth)
-            gif.Mutate(DrawingContext >> draw >> ignore)
+            let gif = new Image<Rgba32>(width, height)
+            gif.Mutate(toDrawingContext width height >> draw >> ignore)
             let gifMetaData = gif.Metadata.GetGifMetadata()
             gifMetaData.RepeatCount <- uint16 repeatCount
             let metadata = gif.Frames.RootFrame.Metadata.GetGifMetadata()
             metadata.FrameDelay <- frameDelay
             List.iter (fun (draw:drawing_fun) -> 
-                let frame = new Image<Rgba32>(width, heigth)
-                frame.Mutate(DrawingContext >> draw >> ignore)
+                let frame = new Image<Rgba32>(width, height)
+                frame.Mutate(toDrawingContext width height >> draw >> ignore)
                 let metadata = frame.Frames.RootFrame.Metadata.GetGifMetadata()
                 metadata.FrameDelay <- frameDelay
                 gif.Frames.AddFrame(frame.Frames.RootFrame) |> ignore
@@ -464,7 +469,7 @@ type Text(position: Vector2, text: string, color: Color, fontFamily: FontFamily,
             color <- v
             brush <- Brushes.Solid(color.color)
 
-    member this.Render (DrawingContext ctx) =
+    member this.Render (DrawingContext (ctx, width, height)) =
         ctx.Fill(DrawingOptions(), brush, path)
         |> ignore
     
@@ -481,7 +486,7 @@ type Text(position: Vector2, text: string, color: Color, fontFamily: FontFamily,
             
     member this.Translate (translation: Vector2) =
         position <- position + translation
-        path <- path.Translate(translation.X, translation.Y)
+        path <- path.Translate(translation.X, translation.Y + this.Extent.Y)
         this.Position
     
     member this.SetExtent (newExtent: Vector2) =
@@ -864,7 +869,7 @@ type Window(t:string, w:int, h:int) =
     member this.Render (draw: Action<DrawingContext>) =
         Option.map(fun (img: Image<Rgba32>) ->
             img.Mutate (fun ctx ->
-                draw.Invoke(DrawingContext ctx)
+                draw.Invoke(DrawingContext (ctx, width, height))
                 ctx.Crop(min width img.Width, min height img.Height)
                    .Resize(
                         options = ResizeOptions(Position = AnchorPositionMode.TopLeft,
