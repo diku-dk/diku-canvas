@@ -420,17 +420,15 @@ type Text(position: Vector2, text: string, color: Color, fontFamily: FontFamily,
     let mutable text = text
     let mutable color = color
     let mutable size = size
+    let mutable position = position
     do
-        let translation = position - new Vector2(path.Bounds.Left, path.Bounds.Bottom)
-        let translationMatrix = Matrix3x2.CreateTranslation(translation) 
-        path <- path.Transform(translationMatrix)
+        path <- path.Translate(position)
 
     static member FontFamilies = fontFamilies
 
     member private this.UpdatePath () =
-        let position = this.Position
         path <- TextBuilder.GenerateGlyphs(text, SixLabors.Fonts.TextOptions (unpackFont font))
-        this.SetPosition(position)
+                .Translate(this.Position)
 
     member private this.UpdateFont () =
         font <- makeFont fontFamily size
@@ -469,24 +467,24 @@ type Text(position: Vector2, text: string, color: Color, fontFamily: FontFamily,
         with get () = new Vector2(path.Bounds.Width, path.Bounds.Height)
     
     member this.Position
-        with get () = new Vector2(path.Bounds.Left, path.Bounds.Bottom)
-    
+        with get (): Vector2 = position
+      
     member this.Scale (scaling: Vector2) =
         path <- path.Scale(scaling.X, scaling.Y)
         this.Extent
             
     member this.Translate (translation: Vector2) =
+        position <- position + translation
         path <- path.Translate(translation.X, translation.Y)
         this.Position
     
     member this.SetExtent (newExtent: Vector2) =
         let scaling = newExtent / this.Extent
-        path <- path.Scale(scaling.X, scaling.Y)
+        this.Scale(scaling) |> ignore
     
     member this.SetPosition (newPosition: Vector2) =
         let translation = newPosition - this.Position
-        let translationMatrix = Matrix3x2.CreateTranslation(translation) 
-        path <- path.Transform(translationMatrix)
+        this.Translate(translation) |> ignore
 (*
 type Texture(position: Vector2, stream: IO.Stream) =
     let mutable image = Image.Load(stream)
