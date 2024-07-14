@@ -427,9 +427,14 @@ let createText (text, font) =
     TextBuilder.GenerateGlyphs(text, SixLabors.Fonts.TextOptions (unpackFont font))
     |> PathCollection
 
-let drawText (color: Color, PathCollection path: PathCollection, DrawingContext ctx) =
+let renderBrushPath (color: Color, PathCollection path: PathCollection, DrawingContext ctx) =
     let brush = Brushes.Solid(color.color)
     ctx.Fill(DrawingOptions(), brush, path)
+    |> ignore
+
+let renderPenPath (width, color: Color, PathCollection path: PathCollection, DrawingContext ctx) =
+    let pen = Pens.Solid(color.color, width)
+    ctx.Draw(pen, path)
     |> ignore
 
 type KeyAction =
