@@ -427,6 +427,16 @@ let createText (text, font) =
     TextBuilder.GenerateGlyphs(text, SixLabors.Fonts.TextOptions (unpackFont font))
     |> PathCollection
 
+type Image = internal Image of SixLabors.ImageSharp.Image
+
+let createImage (buffer: ReadOnlySpan<byte>) =
+    Image.Load(buffer)
+    |> Image
+
+let renderImage (Image image, DrawingContext ctx) =
+    ctx.DrawImage(image,  1f)
+    |> ignore
+
 let renderBrushPath (color: Color, PathCollection path: PathCollection, DrawingContext ctx) =
     let brush = Brushes.Solid(color.color)
     ctx.Fill(DrawingOptions(), brush, path)
@@ -437,9 +447,15 @@ let renderPenPath (width, color: Color, PathCollection path: PathCollection, Dra
     ctx.Draw(pen, path)
     |> ignore
 
-let transformPath (PathCollection path, matrix ) =
+let transformPath (PathCollection path, matrix) =
     path.Transform(matrix)
     |> PathCollection
+
+let transformImage (Image image, matrix) =
+    // let x = image.;
+    // image.Mutate(fun ctx -> ())
+    
+    Image image
 
 type KeyAction =
     | KeyPress = 0
