@@ -730,6 +730,10 @@ type Window(t:string, w:int, h:int) =
         windowId <- SDL.SDL_GetWindowID(window)
         eventQueues <- eventQueues.Add (windowId, Queue())
 
+        Option.map(fun (img: Image<Rgba32>) ->
+            img.Mutate(fun ctx -> ctx.Clear(background.color) |> ignore)
+        ) img |> ignore
+
     member this.Cleanup () = 
         if not disposed then
             disposed <- true
