@@ -207,11 +207,7 @@ let fontFamilies =
     ReadOnlyCollection(List(List.map getFamily systemFontNames))
 
 let measureText (Font f:Font) (txt:string) = 
-    let options = new SixLabors.Fonts.TextOptions(f)
-    options.HorizontalAlignment <- HorizontalAlignment.Left
-    options.VerticalAlignment <- VerticalAlignment.Top
-    options.WrappingLength <- 0f
-    let rect = SixLabors.Fonts.TextMeasurer.MeasureBounds(txt, options)
+    let rect = SixLabors.Fonts.TextMeasurer.MeasureSize(txt, new SixLabors.Fonts.TextOptions(f))
     (float rect.Width,float rect.Height)
 
 let measureTextCSharp (font, txt) =
@@ -227,12 +223,7 @@ let solidBrush (color: Color) : Tool =
 let solidPen (color: Color) (width: float) : Tool =
     Pen (Pens.Solid(color.color, float32 width))
 
-let textOptions (Font font) =
-    let options = SixLabors.Fonts.TextOptions font
-    options.HorizontalAlignment <- HorizontalAlignment.Left
-    options.VerticalAlignment <- VerticalAlignment.Top
-    options.WrappingLength <- 0f
-    TextOptions options
+let textOptions (Font font) = TextOptions <| SixLabors.Fonts.TextOptions font
 
 let toPointF (x:float, y:float) = PointF(x = float32 x, y = float32 y)
 let toVector2 (x:float, y:float) = System.Numerics.Vector2(float32 x, float32 y)
@@ -432,9 +423,8 @@ let internal unpackFont (Font f) = f
 
 type PathCollection = internal PathCollection of IPathCollection
 
-let createText (text, font: Font) =
-    let (TextOptions options) = textOptions font
-    TextBuilder.GenerateGlyphs(text, options)
+let createText (text, font) = 
+    TextBuilder.GenerateGlyphs(text, SixLabors.Fonts.TextOptions (unpackFont font))
     |> PathCollection
 
 let renderBrushPath (color: Color, PathCollection path: PathCollection, DrawingContext ctx) =
