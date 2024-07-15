@@ -207,7 +207,7 @@ let fontFamilies =
     ReadOnlyCollection(List(List.map getFamily systemFontNames))
 
 let measureText (Font f:Font) (txt:string) = 
-    let rect = SixLabors.Fonts.TextMeasurer.MeasureAdvance(txt, SixLabors.Fonts.TextOptions(f))
+    let rect = SixLabors.Fonts.TextMeasurer.MeasureSize(txt, new SixLabors.Fonts.TextOptions(f))
     (float rect.Width,float rect.Height)
 
 let measureTextCSharp (font, txt) =
