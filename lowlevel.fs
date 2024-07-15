@@ -734,6 +734,8 @@ type Window(t:string, w:int, h:int) =
             img.Mutate(fun ctx -> ctx.Clear(background.color) |> ignore)
         ) img |> ignore
 
+        System.Threading.Thread.Sleep(1000)
+
     member this.Cleanup () = 
         if not disposed then
             disposed <- true
