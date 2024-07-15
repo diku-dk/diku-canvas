@@ -730,7 +730,7 @@ type Window(t:string, w:int, h:int) =
         windowId <- SDL.SDL_GetWindowID(window)
         eventQueues <- eventQueues.Add (windowId, Queue())
 
-    static member MeasureText (txt: string, Font f) =
+    member this.MeasureText (txt: string, Font f) =
         let options = new SixLabors.Fonts.TextOptions(f)
         let rect = SixLabors.Fonts.TextMeasurer.MeasureSize(txt, options)
         new Vector2 (float32 rect.Width, float32 rect.Height)
