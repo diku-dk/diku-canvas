@@ -433,8 +433,15 @@ let createImage (buffer: ReadOnlySpan<byte>) =
     Image.Load(buffer)
     |> Image
 
-let renderImage (x: int, y: int, Image image, DrawingContext ctx) =
-    ctx.DrawImage(image, new Point(x, y), 1f)
+let renderImage (bgPoint: int * int,
+                 fgPoint: int * int,
+                 cropSize: int * int,
+                 Image image,
+                 DrawingContext ctx) =
+    let rect =
+        Rectangle(new Point(fst fgPoint, snd fgPoint),
+                  new Size(fst cropSize, snd cropSize))
+    ctx.DrawImage(image, new Point(fst bgPoint, snd bgPoint), rect, 1f)
     |> ignore
 
 let renderBrushPath (color: Color, PathCollection path: PathCollection, DrawingContext ctx) =
