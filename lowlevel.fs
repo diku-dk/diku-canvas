@@ -434,14 +434,9 @@ let createImage (buffer: ReadOnlySpan<byte>) =
     |> Image
 
 let renderImage (bgPoint: int * int,
-                 fgPoint: int * int,
-                 cropSize: int * int,
                  Image image,
                  DrawingContext ctx) =
-    let rect =
-        Rectangle(new Point(fst fgPoint, snd fgPoint),
-                  new Size(fst cropSize, snd cropSize))
-    ctx.DrawImage(image, new Point(fst bgPoint, snd bgPoint), rect, 1f)
+    ctx.DrawImage(image, new Point(fst bgPoint, snd bgPoint), 1f)
     |> ignore
 
 let renderBrushPath (color: Color, PathCollection path: PathCollection, DrawingContext ctx) =
@@ -461,6 +456,11 @@ let transformPath (PathCollection path, matrix) =
 let scaleImage (Image image, x: int, y: int) =
     image.Clone (fun ctx ->
         ctx.Resize(x, y) |> ignore
+    ) |> Image
+
+let cropImage (Image image, x: int, y: int) =
+    image.Clone (fun ctx ->
+        ctx.Crop(x, y) |> ignore
     ) |> Image
 
 let measureImage (Image image) =
