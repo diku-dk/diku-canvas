@@ -452,10 +452,9 @@ let transformPath (PathCollection path, matrix) =
     |> PathCollection
 
 let scaleImage (Image image, x: int, y: int) =
-    image.Mutate (fun ctx ->
+    image.Clone (fun ctx ->
         ctx.Resize(x, y) |> ignore
-    )
-    Image image
+    ) |> Image
 
 let measureImage (Image image) =
     (image.Width, image.Height)
