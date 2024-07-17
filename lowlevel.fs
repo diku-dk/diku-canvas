@@ -433,8 +433,8 @@ let createImage (buffer: ReadOnlySpan<byte>) =
     Image.Load(buffer)
     |> Image
 
-let renderImage (Image image, DrawingContext ctx) =
-    ctx.DrawImage(image,  1f)
+let renderImage (x: int, y: int, Image image, DrawingContext ctx) =
+    ctx.DrawImage(image, new Point(x, y), 1f)
     |> ignore
 
 let renderBrushPath (color: Color, PathCollection path: PathCollection, DrawingContext ctx) =
@@ -451,11 +451,14 @@ let transformPath (PathCollection path, matrix) =
     path.Transform(matrix)
     |> PathCollection
 
-let transformImage (Image image, matrix) =
-    // let x = image.;
-    // image.Mutate(fun ctx -> ())
-    
+let scaleImage (Image image, x: int, y: int) =
+    image.Mutate (fun ctx ->
+        ctx.Resize(x, y) |> ignore
+    )
     Image image
+
+let measureImage (Image image) =
+    (image.Width, image.Height)
 
 type KeyAction =
     | KeyPress = 0
