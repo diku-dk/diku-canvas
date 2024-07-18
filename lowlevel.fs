@@ -458,9 +458,9 @@ let scaleImage (Image image, x: int, y: int) =
         ctx.Resize(x, y) |> ignore
     ) |> Image
 
-let cropImage (Image image, x: int, y: int) =
+let cropImage (Image image, x: int, y: int, w: int, h: int) =
     image.Clone (fun ctx ->
-        ctx.Crop(x, y) |> ignore
+        ctx.Crop(new Rectangle(new Point(x, y), new Size(w, h))) |> ignore
     ) |> Image
 
 let measureImage (Image image) =
