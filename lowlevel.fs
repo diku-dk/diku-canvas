@@ -453,7 +453,7 @@ let transformPath (PathCollection path, matrix) =
     path.Transform(matrix)
     |> PathCollection
 
-let scaleImage (Image image, x: int, y: int) =
+let setSizeImage (Image image, x: int, y: int) =
     image.Clone (fun ctx ->
         ctx.Resize(x, y) |> ignore
     ) |> Image
