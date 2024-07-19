@@ -3,6 +3,7 @@ module Lowlevel
 open System
 open System.Collections.Generic
 open System.Collections.ObjectModel
+open System.Linq
 
 open SixLabors.ImageSharp
 open SixLabors.ImageSharp.PixelFormats
@@ -196,6 +197,12 @@ let systemFontNames: string list = [for i in  SixLabors.Fonts.SystemFonts.Famili
 let getFamily name =
     SixLabors.Fonts.SystemFonts.Get(name)
     |> FontFamily
+
+let createFontFamilies (streams: IEnumerable<IO.Stream>) =
+  let fontCollection = new FontCollection()
+  streams.Select(fun (stream: IO.Stream) ->
+     fontCollection.Add(stream) |> FontFamily
+  )
 
 let makeFont (FontFamily fam:FontFamily) (size:float) =
     fam.CreateFont(float32 size, SixLabors.Fonts.FontStyle.Regular)
