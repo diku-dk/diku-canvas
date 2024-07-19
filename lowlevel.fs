@@ -459,6 +459,15 @@ let setSizeImage (Image image, x: int, y: int) =
         ctx.Resize(x, y) |> ignore
     ) |> Image
 
+let transformImage (Image image, matrix) =
+    // let resampler = KnownResamplers.Lanczos3
+    // let transformer = new Processors.Transforms.AffineTransformProcessor(matrix, resampler, image.Size)
+    let builder = new AffineTransformBuilder()
+    builder.AppendMatrix(matrix) |> ignore
+    image.Clone (fun ctx ->
+        ctx.Transform(builder) |> ignore
+    ) |> Image
+
 let cropImage (Image image, x: int, y: int, w: int, h: int) =
     image.Clone (fun ctx ->
         ctx.Crop(new Rectangle(new Point(x, y), new Size(w, h))) |> ignore
