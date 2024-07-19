@@ -749,6 +749,11 @@ type Window(t:string, w:int, h:int) =
 
         window <- SDL.SDL_CreateWindow(t, SDL.SDL_WINDOWPOS_CENTERED, SDL.SDL_WINDOWPOS_CENTERED,
                                 width, height, windowFlags)
+
+        if window = 0 then
+            let err = Marshal.PtrToStringUTF8(SDL.SDL_GetError())
+            failwith err
+
         renderer <- SDL.SDL_CreateRenderer(window, -1, SDL.SDL_RendererFlags.SDL_RENDERER_ACCELERATED |||
                                                 SDL.SDL_RendererFlags.SDL_RENDERER_PRESENTVSYNC)
 

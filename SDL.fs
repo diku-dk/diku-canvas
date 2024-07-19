@@ -108,8 +108,6 @@ let stringFromTextInput (tinput:SDL_TextInputEvent) : string =
     let addr = &&tinput.text.first
     Marshal.PtrToStringUTF8(NativePtr.toNativeInt addr)
 
-
-
 [<StructLayout(LayoutKind.Sequential)>]
 type SDL_UserEvent=
     struct
@@ -278,6 +276,8 @@ extern int SDL_WaitEvent(SDL_Event& _event)
 [<DllImport(libName, CallingConvention = CallingConvention.Cdecl)>]
 extern int SDL_WaitEventTimeout(SDL_Event& _event, int32 millis)
 
+[<DllImport(libName, CallingConvention = CallingConvention.Cdecl)>]
+extern IntPtr SDL_GetError()
 
 (* Allocate a set of user-defined events *)
 [<DllImport(libName, CallingConvention = CallingConvention.Cdecl)>]
