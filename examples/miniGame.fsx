@@ -1,8 +1,4 @@
-// #r "nuget:DIKU.Canvas, 2.0"
-#r "nuget: SixLabors.Fonts, 2.0.4"
-#r "nuget: SixLabors.ImageSharp, 3.1.4"
-#r "nuget: SixLabors.ImageSharp.Drawing, 2.1.3"
-#r "/home/due/Documents/diku-canvas/bin/Release/net6.0/canvas.dll"
+#r "nuget:DIKU.Canvas, 2.0.4"
 open Canvas
 open Color
 
