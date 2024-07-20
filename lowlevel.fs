@@ -213,7 +213,11 @@ let makeFontCSharp (fam, size) = makeFont fam size
 let fontFamilies =
     ReadOnlyCollection(List(List.map getFamily systemFontNames))
 
-let measureText (Font f:Font) (txt:string) = 
+let measureText (Font f:Font) (txt:string) =
+    let options = new SixLabors.Fonts.TextOptions(f)
+    options.WrappingLength <- infinityf
+    options.HorizontalAlignment <- HorizontalAlignment.Left
+    options.VerticalAlignment <- VerticalAlignment.Top 
     let rect = SixLabors.Fonts.TextMeasurer.MeasureSize(txt, new SixLabors.Fonts.TextOptions(f))
     (float rect.Width,float rect.Height)
 
@@ -230,7 +234,9 @@ let solidBrush (color: Color) : Tool =
 let solidPen (color: Color) (width: float) : Tool =
     Pen (Pens.Solid(color.color, float32 width))
 
-let textOptions (Font font) = TextOptions <| SixLabors.Fonts.TextOptions font
+let textOptions (Font font) =
+    SixLabors.Fonts.TextOptions font
+    |> TextOptions
 
 let toPointF (x:float, y:float) = PointF(x = float32 x, y = float32 y)
 let toVector2 (x:float, y:float) = System.Numerics.Vector2(float32 x, float32 y)
