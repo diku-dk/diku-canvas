@@ -18,6 +18,12 @@ open System.Runtime.InteropServices
 type Color =
     struct
         val internal color: SixLabors.ImageSharp.Color
+        new(red, green, blue, a) = {
+            color = Color.FromRgba(red, green, blue, a)
+        }
+        new(red, green, blue) = {
+            color = Color.FromRgb(red, green, blue)
+        }
         internal new(color: SixLabors.ImageSharp.Color) = { color = color }
     end
 
@@ -188,7 +194,6 @@ let fromRgb (red:int) (green:int) (blue:int) : Color =
     Color.FromRgb(byte red, byte green, byte blue)
     |> Color
 
-type image = SixLabors.ImageSharp.Image<Rgba32>
 type DrawingContext = internal DrawingContext of SixLabors.ImageSharp.Processing.IImageProcessingContext
 type drawing_fun = DrawingContext -> DrawingContext
 type Font = internal Font of SixLabors.Fonts.Font
@@ -238,8 +243,8 @@ let textOptions (Font font) =
     SixLabors.Fonts.TextOptions font
     |> TextOptions
 
-let toPointF (x:float, y:float) = PointF(x = float32 x, y = float32 y)
-let toVector2 (x:float, y:float) = System.Numerics.Vector2(float32 x, float32 y)
+let private toPointF (x:float, y:float) = PointF(x = float32 x, y = float32 y)
+let private toVector2 (x:float, y:float) = System.Numerics.Vector2(float32 x, float32 y)
 
 type PathDefinition =
     | EmptyDef
@@ -261,7 +266,7 @@ let (<++>) p1 p2 =
         | _, EmptyDef -> p1
         | defs -> Combine defs
 
-let construct pd : IPath =
+let private construct pd : IPath =
     let initial = Matrix3x2.Identity
     let builder = PathBuilder initial
     let rec loop (builder:PathBuilder) curT = function // tail-recursive traversal
@@ -344,15 +349,15 @@ let transform (mat:Matrix3x2) = function
     | p ->
         Transform(mat, p)
 
-let rotateDegreeAround (degrees:float) point p =
+let private rotateDegreeAround (degrees:float) point p =
     let mat = Matrix3x2Extensions.CreateRotationDegrees(float32 degrees, toPointF point)
     transform mat p
 
-let rotateRadiansAround (radians:float) point p =
+let private rotateRadiansAround (radians:float) point p =
     let mat = Matrix3x2Extensions.CreateRotation(float32 radians, toPointF point)
     transform mat p
 
-let toILineSegment : PrimPath -> ILineSegment = function
+let private toILineSegment : PrimPath -> ILineSegment = function
     | Arc(center, rX, rY, rotation, start, sweep) ->
         ArcLineSegment(toPointF center, SizeF(float32 rX, float32 rY), float32 rotation, float32 start, float32 sweep)
     | CubicBezier(start, c1, c2, endPoint) ->
@@ -362,10 +367,10 @@ let toILineSegment : PrimPath -> ILineSegment = function
     | Lines points ->
         LinearLineSegment(points |> Seq.map toPointF |> Seq.toArray)
 
-let toPath (ilineseg:ILineSegment) : IPath =
+let private toPath (ilineseg:ILineSegment) : IPath =
     Path [| ilineseg |]
 
-let flatten (p : PathTree) : (Tool*IPathCollection) list =  //FIXME: should maybe return a seq<IPathCollection>
+let private flatten (p : PathTree) : (Tool*IPathCollection) list =  //FIXME: should maybe return a seq<IPathCollection>
     let rec traverse (acc : (Tool*IPathCollection) list) = function // tail-recursive traversal
         | [] -> List.rev acc
         | cur :: worklist ->
@@ -393,7 +398,7 @@ let flatten (p : PathTree) : (Tool*IPathCollection) list =  //FIXME: should mayb
                     traverse acc worklist
     traverse [] [p]
 
-let drawCollection ((tool,col):Tool * IPathCollection) (ctx: DrawingContext): DrawingContext =
+let private drawCollection ((tool,col):Tool * IPathCollection) (ctx: DrawingContext): DrawingContext =
     let (DrawingContext _ctx) = ctx
     
     ignore <|
@@ -432,15 +437,15 @@ let drawToAnimatedGif width height (frameDelay:int) (repeatCount:int) (filePath:
             gif.SaveAsGif(filePath)
         | _ -> ()
 
-let internal unpackFont (Font f) = f
+let private unpackFont (Font f) = f
 
+type Image = internal Image of SixLabors.ImageSharp.Image
 type PathCollection = internal PathCollection of IPathCollection
 
 let createText (text, font) = 
     TextBuilder.GenerateGlyphs(text, SixLabors.Fonts.TextOptions (unpackFont font))
     |> PathCollection
 
-type Image = internal Image of SixLabors.ImageSharp.Image
 
 let createImage (buffer: ReadOnlySpan<byte>) =
     Image.Load(buffer)
@@ -470,15 +475,6 @@ let transformPath (PathCollection path, matrix) =
 let setSizeImage (Image image, x: int, y: int) =
     image.Clone (fun ctx ->
         ctx.Resize(x, y) |> ignore
-    ) |> Image
-
-let transformImage (Image image, matrix) =
-    // let resampler = KnownResamplers.Lanczos3
-    // let transformer = new Processors.Transforms.AffineTransformProcessor(matrix, resampler, image.Size)
-    let builder = new AffineTransformBuilder()
-    builder.AppendMatrix(matrix) |> ignore
-    image.Clone (fun ctx ->
-        ctx.Transform(builder) |> ignore
     ) |> Image
 
 let cropImage (Image image, x: int, y: int, w: int, h: int) =
@@ -610,7 +606,6 @@ type KeyboardKey =
     | DanishAE = 113 // The Danish AE key 'Æ'
     | DanishOE = 114 // The Danish OE key 'Ø'
 
-
 let private toKeyboardKey key =
     match SDL.stringFromKeyboard key with
     | "Space" -> KeyboardKey.Space
@@ -734,7 +729,7 @@ let private TIMER_EVENT =
     | UInt32.MaxValue -> failwith "Error: Could not allocate a user-defined Timer Event."
     | x -> x
 
-let timerTickEvent () =
+let private timerTickEvent () =
     let mutable ev = SDL.SDL_Event()
     ev.``type`` <- TIMER_EVENT
     SDL.SDL_PushEvent(&ev) |> ignore
@@ -890,6 +885,9 @@ type Window(t:string, w:int, h:int) =
 
     member this.SetClearColor (r, g, b) =
         background <- fromRgb r g b
+    
+    member this.SetClearColor (color: Color) =
+        background <- color
     
     member this.Title
         with get () = title
