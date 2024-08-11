@@ -919,7 +919,6 @@ let toKeyboardEvent event =
     let (InternalEvent _event) = event
     match SDL.convertEvent _event with
     | SDL.Window wev when wev.event = SDL.SDL_WindowEventID.SDL_WINDOWEVENT_CLOSE -> Quit
-    | SDL.KeyDown kevent when kevent.keysym.sym = SDL.SDLK_ESCAPE -> Quit
     | SDL.KeyDown kevent -> React (KeyAction.KeyPress, toKeyboardKey kevent)
     | SDL.KeyUp kevent -> React (KeyAction.KeyRelease, toKeyboardKey kevent)
     | _ -> Ignore
