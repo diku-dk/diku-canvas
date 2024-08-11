@@ -77,6 +77,13 @@ type SDL_KeyboardEvent =
         val keysym: SDL_Keysym
     end
 
+[<DllImport(libName, CallingConvention = CallingConvention.Cdecl)>]
+extern IntPtr SDL_GetKeyName(uint32 key)
+
+let stringFromKeyboard (kevent:SDL_KeyboardEvent) : string =
+    let keyCode = kevent.keysym.sym
+    let keyName = SDL_GetKeyName keyCode
+    Marshal.PtrToStringUTF8(keyName)
 
 let SDL_TEXTINPUTEVENT_TEXT_SIZE = 32
 
@@ -100,8 +107,6 @@ type SDL_TextInputEvent =
 let stringFromTextInput (tinput:SDL_TextInputEvent) : string =
     let addr = &&tinput.text.first
     Marshal.PtrToStringUTF8(NativePtr.toNativeInt addr)
-
-
 
 [<StructLayout(LayoutKind.Sequential)>]
 type SDL_UserEvent=
@@ -271,6 +276,8 @@ extern int SDL_WaitEvent(SDL_Event& _event)
 [<DllImport(libName, CallingConvention = CallingConvention.Cdecl)>]
 extern int SDL_WaitEventTimeout(SDL_Event& _event, int32 millis)
 
+[<DllImport(libName, CallingConvention = CallingConvention.Cdecl)>]
+extern IntPtr SDL_GetError()
 
 (* Allocate a set of user-defined events *)
 [<DllImport(libName, CallingConvention = CallingConvention.Cdecl)>]
@@ -320,3 +327,6 @@ extern IntPtr SDL_CreateRGBSurfaceFrom (IntPtr pixels, int width, int height, in
 
 [<DllImport(libName, CallingConvention = CallingConvention.Cdecl)>]
 extern unit SDL_FreeSurface(IntPtr surface)
+
+[<DllImport(libName, CallingConvention = CallingConvention.Cdecl)>]
+extern uint32 SDL_GetWindowID(IntPtr window);
