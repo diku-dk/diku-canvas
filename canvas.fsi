@@ -22,8 +22,6 @@ type Size = float*float
 type Event =
     /// A key with at letter is pressed
     | Key of key: char
-    /// A key is release
-    | KeyUp of key: string
     /// Down arrow is pressed
     | DownArrow
     /// Up arrow is pressed
