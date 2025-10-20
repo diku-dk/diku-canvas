@@ -22,8 +22,6 @@ let correct draw s = let (Picture pic) = draw s in pic
 type Event =
     /// A key with at letter is pressed
     | Key of key: char
-    /// A key is released
-    | KeyUp of key: string
     /// Down arrow is pressed
     | DownArrow
     /// Up arrow is pressed
@@ -45,7 +43,6 @@ type Event =
 
 let fromLowlevelEvent = function
     | Lowlevel.Key t -> Key t
-    | Lowlevel.KeyUp t -> KeyUp t
     | Lowlevel.DownArrow -> DownArrow
     | Lowlevel.UpArrow -> UpArrow
     | Lowlevel.LeftArrow -> LeftArrow
